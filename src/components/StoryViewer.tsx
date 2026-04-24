@@ -108,7 +108,7 @@ export default function StoryViewer() {
       </AnimatePresence>
 
       {/* Progress Bars */}
-      <div className="absolute top-4 left-0 right-0 z-[60] flex gap-1 px-4">
+      <div className="absolute top-4 left-0 right-0 z-[1100] flex gap-1 px-4">
         {slides.map((_, i) => (
           <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
             <motion.div
@@ -121,7 +121,7 @@ export default function StoryViewer() {
       </div>
 
       {/* Audio Toggle Button */}
-      <div className="absolute top-8 right-8 z-[999]">
+      <div className="absolute top-8 right-8 z-[1200]">
         <button
           onClick={toggleAudio}
           className="p-4 rounded-full bg-black/50 backdrop-blur-2xl border border-white/20 text-white hover:bg-black/80 transition-all active:scale-90 shadow-2xl"
