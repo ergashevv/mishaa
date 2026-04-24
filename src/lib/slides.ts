@@ -7,50 +7,95 @@ export interface Slide {
 }
 
 export const slides: Slide[] = [
+  // Part 1
   {
     id: 1,
-    caption: "It's been a long week...",
+    caption: "",
     mobileImage: "/story1-mobile.png",
     desktopImage: "/story1-desktop.png",
     type: 'image'
   },
   {
     id: 2,
-    caption: "I checked my wallet today...",
+    caption: "",
     mobileImage: "/story2-mobile.png",
     desktopImage: "/story2-desktop.png",
     type: 'image'
   },
   {
     id: 3,
-    caption: "My stomach thinks my throat has been cut 😭",
+    caption: "",
     mobileImage: "/story3-mobile.png",
     desktopImage: "/story3-desktop.png",
     type: 'image'
   },
   {
     id: 4,
-    caption: "I walked past KFC and... I can still smell it",
+    caption: "",
     mobileImage: "/story4-mobile.png",
     desktopImage: "/story4-desktop.png",
     type: 'image'
   },
   {
     id: 5,
-    caption: "Current living situation: Minimalist (Broke)",
+    caption: "",
     mobileImage: "/story5-mobile.png",
     desktopImage: "/story5-desktop.png",
     type: 'image'
   },
   {
     id: 6,
-    caption: "My last resort... 🙏",
+    caption: "",
     mobileImage: "/story6-mobile.png",
     desktopImage: "/story6-desktop.png",
     type: 'image'
   },
+  // Part 2
   {
     id: 7,
+    caption: "",
+    mobileImage: "/new1-mobile.png",
+    desktopImage: "/new1-desktop.png",
+    type: 'image'
+  },
+  {
+    id: 8,
+    caption: "",
+    mobileImage: "/new2-mobile.png",
+    desktopImage: "/new2-desktop.png",
+    type: 'image'
+  },
+  {
+    id: 9,
+    caption: "",
+    mobileImage: "/new3-mobile.png",
+    desktopImage: "/new3-desktop.png",
+    type: 'image'
+  },
+  {
+    id: 10,
+    caption: "",
+    mobileImage: "/new4-mobile.png",
+    desktopImage: "/new4-desktop.png",
+    type: 'image'
+  },
+  {
+    id: 11,
+    caption: "",
+    mobileImage: "/new5-mobile.png",
+    desktopImage: "/new5-desktop.png",
+    type: 'image'
+  },
+  {
+    id: 12,
+    caption: "",
+    mobileImage: "/new6-mobile.png",
+    desktopImage: "/new6-desktop.png",
+    type: 'image'
+  },
+  // Final Slide
+  {
+    id: 13,
     type: 'final',
     mobileImage: "",
     desktopImage: "",
