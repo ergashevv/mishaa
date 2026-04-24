@@ -154,7 +154,7 @@ export default function StoryViewer() {
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 z-[120] pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 z-[999] pointer-events-none overflow-hidden text-white">
               {/* Ambient Background Glows */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-600/10 blur-[120px] rounded-full" />
@@ -162,7 +162,7 @@ export default function StoryViewer() {
               <motion.div
                 initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="relative z-10 max-w-4xl w-full flex flex-col md:flex-row items-center gap-12 md:gap-20 pointer-events-auto"
+                className="relative z-[1000] max-w-4xl w-full flex flex-col md:flex-row items-center gap-12 md:gap-20 pointer-events-auto"
               >
                 {/* Left Side: Illustration/Brand */}
                 <div className="flex-1 text-center md:text-left">
@@ -239,14 +239,12 @@ export default function StoryViewer() {
       </AnimatePresence>
 
       {/* Instagram-style Navigation Zones (Invisible) */}
-      <div className="absolute inset-0 z-[80] flex pointer-events-none">
-        {/* Left Side (30% for Back) */}
-        <div
+      <div className="absolute inset-0 z-[10] flex pointer-events-none">
+        <div 
           className="w-[30%] h-full pointer-events-auto cursor-w-resize"
           onClick={(e) => prevSlide(e)}
         />
-        {/* Right Side (70% for Forward) */}
-        <div
+        <div 
           className="w-[70%] h-full pointer-events-auto cursor-e-resize"
           onClick={(e) => nextSlide(e)}
         />
