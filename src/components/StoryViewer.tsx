@@ -202,7 +202,7 @@ export default function StoryViewer() {
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : currentSlide.type === 'title' ? (
-            <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 z-[50] overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 pt-24 z-[50] overflow-hidden pointer-events-none">
                 {/* Atmospheric Cinematic Glows */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[50%] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
                 
@@ -238,7 +238,7 @@ export default function StoryViewer() {
                 </motion.div>
             </div>
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 z-[999] pointer-events-none overflow-hidden text-white">
+            <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 pt-24 z-[999] pointer-events-none overflow-hidden text-white">
               {/* Ambient Background Glows */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-600/10 blur-[120px] rounded-full" />
