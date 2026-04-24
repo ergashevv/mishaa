@@ -325,14 +325,14 @@ export default function StoryViewer() {
       {/* Instagram-style Navigation Zones (Invisible) */}
       <div className="absolute inset-0 z-[10] flex pointer-events-none touch-none" onContextMenu={(e) => e.preventDefault()}>
         <div 
-          className="w-[30%] h-full pointer-events-auto cursor-w-resize"
+          className="w-[30%] h-full pointer-events-auto cursor-auto"
           onMouseDown={handlePressStart}
           onMouseUp={() => handlePressEnd('left')}
           onTouchStart={handlePressStart}
           onTouchEnd={() => handlePressEnd('left')}
         />
         <div 
-          className="w-[70%] h-full pointer-events-auto cursor-e-resize"
+          className="w-[70%] h-full pointer-events-auto cursor-auto"
           onMouseDown={handlePressStart}
           onMouseUp={() => handlePressEnd('right')}
           onTouchStart={handlePressStart}
