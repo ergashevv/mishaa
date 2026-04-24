@@ -10,6 +10,7 @@ export default function StoryViewer() {
   const [isMobile, setIsMobile] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
+  const [manualMute, setManualMute] = useState(false);
   const [hasStarted, setHasStarted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -20,8 +21,8 @@ export default function StoryViewer() {
     checkScreen();
     window.addEventListener('resize', checkScreen);
     
-    // Attempt to play audio on mount (might be blocked by browser)
-    if (audioRef.current) {
+    // Only attempt auto-play if the user hasn't manually muted
+    if (audioRef.current && !manualMute) {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
     }
 
@@ -50,20 +51,21 @@ export default function StoryViewer() {
 
   const toggleAudio = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("Audio toggle clicked, current paused state:", audioRef.current?.paused);
     if (audioRef.current) {
       if (audioRef.current.paused) {
         audioRef.current.play().catch((err) => console.error("Play failed:", err));
+        setManualMute(false);
       } else {
         audioRef.current.pause();
+        setManualMute(true);
       }
     }
   };
 
   const nextSlide = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    // Also try to start audio on first interaction if it was blocked
-    if (!isPlaying && audioRef.current) {
+    // Only try to start audio on interaction if it wasn't manually muted
+    if (!isPlaying && audioRef.current && !manualMute) {
         audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
     }
     if (currentIdx < slides.length - 1) {
@@ -152,7 +154,7 @@ export default function StoryViewer() {
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0c0c0e] via-[#1a1a1e] to-black flex items-center justify-center p-6 md:p-8">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0c0c0e] via-[#1a1a1e] to-black flex items-center justify-center p-6 md:p-8 z-[90]">
                <motion.div 
                  initial={{ y: 20, opacity: 0 }}
                  animate={{ y: 0, opacity: 1 }}
@@ -173,17 +175,28 @@ export default function StoryViewer() {
                     </div>
                     
                     <div className="mb-8">
-                        <p className="text-2xl md:text-3xl font-mono tracking-tighter text-white font-black">5614 6816 0771 9857</p>
+                        <p className="text-xl md:text-2xl lg:text-3xl font-mono tracking-tighter text-white font-black whitespace-nowrap">5614 6816 0771 9857</p>
                     </div>
 
                     <button 
-                         onClick={(e) => {
+                         onClick={async (e) => {
                              e.stopPropagation();
-                             navigator.clipboard.writeText('5614 6816 0771 9857');
+                             const text = '5614 6816 0771 9857';
+                             try {
+                                 await navigator.clipboard.writeText(text);
+                             } catch (err) {
+                                 // Fallback for older/insecure mobile browsers
+                                 const textArea = document.createElement("textarea");
+                                 textArea.value = text;
+                                 document.body.appendChild(textArea);
+                                 textArea.select();
+                                 document.execCommand("copy");
+                                 document.body.removeChild(textArea);
+                             }
                              setShowCopied(true);
                              setTimeout(() => setShowCopied(false), 2000);
                          }}
-                         className="w-full py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
+                         className="w-full py-4 bg-white text-black text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
                     >
                         Copy Card Number
                     </button>
