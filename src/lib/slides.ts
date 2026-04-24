@@ -57,6 +57,7 @@ export const slides: Slide[] = [
     id: 7,
     type: 'title',
     titleText: "SEASON 2",
+    subtitleText: "THE UNTOLD CHAPTER",
     caption: "",
     mobileImage: "",
     desktopImage: ""

@@ -154,19 +154,39 @@ export default function StoryViewer() {
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : currentSlide.type === 'title' ? (
-            <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 z-[120]">
+            <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 z-[50] overflow-hidden pointer-events-none">
+                {/* Atmospheric Cinematic Glows */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[50%] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
+                
                 <motion.div
-                   initial={{ opacity: 0, scale: 0.95 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   transition={{ duration: 1.5, ease: "easeOut" }}
-                   className="text-center"
+                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+                   className="text-center relative z-10"
                 >
-                    <span className="text-white/30 text-xs md:text-sm tracking-[0.5em] uppercase font-black mb-4 block animate-pulse">
+                    <motion.span 
+                        initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                        animate={{ opacity: 1, letterSpacing: "0.6em" }}
+                        transition={{ delay: 0.5, duration: 1.5 }}
+                        className="text-white/40 text-sm md:text-base uppercase font-black mb-6 block tracking-[0.6em]"
+                    >
                         {currentSlide.subtitleText}
-                    </span>
-                    <h1 className="text-6xl md:text-9xl font-black text-white italic tracking-tighter leading-none shadow-white/20">
-                        {currentSlide.titleText}
+                    </motion.span>
+                    
+                    <h1 className="text-7xl md:text-[12rem] font-black text-white italic tracking-tighter leading-none relative">
+                        <span className="relative z-10">{currentSlide.titleText}</span>
+                        {/* Dramatic Shadow/Glow */}
+                        <span className="absolute inset-0 text-white/20 blur-2xl z-0 scale-110 pointer-events-none italic">
+                            {currentSlide.titleText}
+                        </span>
                     </h1>
+
+                    <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: "100%" }}
+                        transition={{ delay: 1, duration: 1.5, ease: "easeInOut" }}
+                        className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mt-8"
+                    />
                 </motion.div>
             </div>
           ) : (
