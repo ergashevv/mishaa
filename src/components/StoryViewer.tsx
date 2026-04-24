@@ -153,6 +153,22 @@ export default function StoryViewer() {
               />
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
+          ) : currentSlide.type === 'title' ? (
+            <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 z-[120]">
+                <motion.div
+                   initial={{ opacity: 0, scale: 0.95 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   transition={{ duration: 1.5, ease: "easeOut" }}
+                   className="text-center"
+                >
+                    <span className="text-white/30 text-xs md:text-sm tracking-[0.5em] uppercase font-black mb-4 block animate-pulse">
+                        {currentSlide.subtitleText}
+                    </span>
+                    <h1 className="text-6xl md:text-9xl font-black text-white italic tracking-tighter leading-none shadow-white/20">
+                        {currentSlide.titleText}
+                    </h1>
+                </motion.div>
+            </div>
           ) : (
             <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 z-[999] pointer-events-none overflow-hidden text-white">
               {/* Ambient Background Glows */}

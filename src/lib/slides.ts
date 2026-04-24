@@ -3,7 +3,9 @@ export interface Slide {
   caption: string;
   mobileImage: string;
   desktopImage: string;
-  type: 'image' | 'final';
+  type: 'image' | 'final' | 'title';
+  titleText?: string;
+  subtitleText?: string;
 }
 
 export const slides: Slide[] = [
@@ -50,44 +52,53 @@ export const slides: Slide[] = [
     desktopImage: "/story6-desktop.png",
     type: 'image'
   },
-  // Part 2
+  // MOVIE TITLE SLIDE
   {
     id: 7,
+    type: 'title',
+    titleText: "SEASON 2",
+    caption: "",
+    mobileImage: "",
+    desktopImage: ""
+  },
+  // Part 2
+  {
+    id: 8,
     caption: "",
     mobileImage: "/new1-mobile.png",
     desktopImage: "/new1-desktop.png",
     type: 'image'
   },
   {
-    id: 8,
+    id: 9,
     caption: "",
     mobileImage: "/new2-mobile.png",
     desktopImage: "/new2-desktop.png",
     type: 'image'
   },
   {
-    id: 9,
+    id: 10,
     caption: "",
     mobileImage: "/new3-mobile.png",
     desktopImage: "/new3-desktop.png",
     type: 'image'
   },
   {
-    id: 10,
+    id: 11,
     caption: "",
     mobileImage: "/new4-mobile.png",
     desktopImage: "/new4-desktop.png",
     type: 'image'
   },
   {
-    id: 11,
+    id: 12,
     caption: "",
     mobileImage: "/new5-mobile.png",
     desktopImage: "/new5-desktop.png",
     type: 'image'
   },
   {
-    id: 12,
+    id: 13,
     caption: "",
     mobileImage: "/new6-mobile.png",
     desktopImage: "/new6-desktop.png",
@@ -95,7 +106,7 @@ export const slides: Slide[] = [
   },
   // Final Slide
   {
-    id: 13,
+    id: 14,
     type: 'final',
     mobileImage: "",
     desktopImage: "",
