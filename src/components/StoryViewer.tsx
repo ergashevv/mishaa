@@ -154,11 +154,11 @@ export default function StoryViewer() {
                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0c0c0e] via-[#1a1a1e] to-black flex items-center justify-center p-6 md:p-8 z-[90]">
-               <motion.div 
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0c0c0e] via-[#1a1a1e] to-black flex items-center justify-center p-6 md:p-8 z-[50] pointer-events-none">
+                <motion.div 
                  initial={{ y: 20, opacity: 0 }}
                  animate={{ y: 0, opacity: 1 }}
-                 className="max-w-sm w-full bg-[#1c1c21]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-10 text-center shadow-[0_40px_100px_rgba(0,0,0,0.8)]"
+                 className="relative z-[110] max-w-sm w-full bg-[#1c1c21]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-10 text-center shadow-[0_40px_100px_rgba(0,0,0,0.8)] pointer-events-auto"
                >
                   <div className="w-20 h-20 bg-gradient-to-tr from-rose-500 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl rotate-3">
                     <Heart className="w-10 h-10 text-white fill-white" />
