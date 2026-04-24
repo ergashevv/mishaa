@@ -14,6 +14,33 @@ export default function StoryViewer() {
   const [manualMute, setManualMute] = useState(false);
   const [progress, setProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pressTimerRef = useRef<number>(0);
+
+  // Audio lifecycle and Visibility management
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        audio.pause();
+      } else if (!manualMute) {
+        audio.play().catch(() => { });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Initial play on mount
+    if (!manualMute) {
+      audio.play().then(() => setIsPlaying(true)).catch(() => { });
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      audio.pause(); // Cleanup on unmount
+    };
+  }, [manualMute]);
 
   useEffect(() => {
     const checkScreen = () => {
@@ -21,11 +48,6 @@ export default function StoryViewer() {
     };
     checkScreen();
     window.addEventListener('resize', checkScreen);
-
-    // Only attempt auto-play if the user hasn't manually muted
-    if (audioRef.current && !manualMute) {
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
-    }
 
     // Keyboard navigation
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,7 +57,7 @@ export default function StoryViewer() {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Precise progress tracking: 50ms intervals for 5 seconds total (100 steps)
+    // Precise progress tracking
     let interval: NodeJS.Timeout;
     if (currentIdx < slides.length - 1 && !isPaused) {
       interval = setInterval(() => {
@@ -56,8 +78,20 @@ export default function StoryViewer() {
     };
   }, [currentIdx, isPaused]);
 
-  const handlePressStart = () => setIsPaused(true);
-  const handlePressEnd = () => setIsPaused(false);
+  const handlePressStart = () => {
+    pressTimerRef.current = Date.now();
+    setIsPaused(true);
+  };
+
+  const handlePressEnd = (direction: 'left' | 'right') => {
+    const duration = Date.now() - pressTimerRef.current;
+    setIsPaused(false);
+
+    if (duration < 250) { // It's a short tap
+      if (direction === 'left') prevSlide();
+      else nextSlide();
+    }
+  };
 
   const toggleAudio = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -289,29 +323,27 @@ export default function StoryViewer() {
       </AnimatePresence>
 
       {/* Instagram-style Navigation Zones (Invisible) */}
-      <div className="absolute inset-0 z-[10] flex pointer-events-none">
+      <div className="absolute inset-0 z-[10] flex pointer-events-none touch-none" onContextMenu={(e) => e.preventDefault()}>
         <div 
           className="w-[30%] h-full pointer-events-auto cursor-w-resize"
           onMouseDown={handlePressStart}
-          onMouseUp={handlePressEnd}
+          onMouseUp={() => handlePressEnd('left')}
           onTouchStart={handlePressStart}
-          onTouchEnd={handlePressEnd}
-          onClick={(e) => prevSlide(e)}
+          onTouchEnd={() => handlePressEnd('left')}
         />
         <div 
           className="w-[70%] h-full pointer-events-auto cursor-e-resize"
           onMouseDown={handlePressStart}
-          onMouseUp={handlePressEnd}
+          onMouseUp={() => handlePressEnd('right')}
           onTouchStart={handlePressStart}
-          onTouchEnd={handlePressEnd}
-          onClick={(e) => nextSlide(e)}
+          onTouchEnd={() => handlePressEnd('right')}
         />
       </div>
 
       {/* Navigation Indicators (Only Desktop Buttons) */}
       <div className="hidden md:flex absolute inset-y-0 left-0 w-20 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-[100] pointer-events-none">
         <button
-          onClick={prevSlide}
+          onClick={(e) => { e.stopPropagation(); prevSlide(); }}
           className="p-4 rounded-full bg-black/40 backdrop-blur-xl text-white border border-white/10 pointer-events-auto"
         >
           <ChevronLeft className="w-8 h-8" />
@@ -319,7 +351,7 @@ export default function StoryViewer() {
       </div>
       <div className="hidden md:flex absolute inset-y-0 right-0 w-20 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-[100] pointer-events-none">
         <button
-          onClick={nextSlide}
+          onClick={(e) => { e.stopPropagation(); nextSlide(); }}
           className="p-4 rounded-full bg-black/40 backdrop-blur-xl text-white border border-white/10 pointer-events-auto"
         >
           <ChevronRight className="w-8 h-8" />
