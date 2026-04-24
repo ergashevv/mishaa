@@ -12,7 +12,7 @@ export default function StoryViewer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const [manualMute, setManualMute] = useState(false);
-  const [hasStarted, setHasStarted] = useState(true);
+  const [progress, setProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -35,18 +35,24 @@ export default function StoryViewer() {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Auto-play logic: Go to next slide every 5 seconds, ONLY IF NOT PAUSED
-    let timer: NodeJS.Timeout;
+    // Precise progress tracking: 50ms intervals for 5 seconds total (100 steps)
+    let interval: NodeJS.Timeout;
     if (currentIdx < slides.length - 1 && !isPaused) {
-      timer = setTimeout(() => {
-        nextSlide();
-      }, 5000);
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            nextSlide();
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 50);
     }
 
     return () => {
       window.removeEventListener('resize', checkScreen);
       window.removeEventListener('keydown', handleKeyDown);
-      if (timer) clearTimeout(timer);
+      if (interval) clearInterval(interval);
     };
   }, [currentIdx, isPaused]);
 
@@ -68,7 +74,7 @@ export default function StoryViewer() {
 
   const nextSlide = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    // Only try to start audio on interaction if it wasn't manually muted
+    setProgress(0); // Reset progress on manual move
     if (!isPlaying && audioRef.current && !manualMute) {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
     }
@@ -79,6 +85,7 @@ export default function StoryViewer() {
 
   const prevSlide = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    setProgress(0); // Reset progress on manual move
     if (currentIdx > 0) {
       setCurrentIdx(currentIdx - 1);
     }
@@ -112,26 +119,23 @@ export default function StoryViewer() {
       </AnimatePresence>
 
       {/* Progress Bars */}
-      <div className="absolute top-4 left-0 right-0 z-[1100] flex gap-1 px-4">
+      <div className="absolute top-12 left-0 right-0 z-[1100] flex gap-1 px-2 md:top-6 md:px-4">
         {slides.map((_, i) => (
-          <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+          <div key={i} className="h-[2px] flex-1 bg-white/20 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ 
-                width: i < currentIdx ? '100%' : i === currentIdx ? (isPaused ? undefined : '100%') : '0%' 
+                width: i < currentIdx ? "100%" : i === currentIdx ? `${progress}%` : "0%"
               }}
-              transition={{ 
-                duration: i === currentIdx ? 5 : 0.4,
-                ease: "linear"
-              }}
-              className="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+              transition={{ duration: 0.05, ease: "linear" }}
+              className="h-full bg-white"
             />
           </div>
         ))}
       </div>
 
       {/* Audio Toggle Button */}
-      <div className="absolute top-8 right-8 z-[1200]">
+      <div className="absolute top-20 right-4 z-[1200] md:top-12 md:right-8">
         <button
           onClick={toggleAudio}
           className="p-4 rounded-full bg-black/50 backdrop-blur-2xl border border-white/20 text-white hover:bg-black/80 transition-all active:scale-90 shadow-2xl"
