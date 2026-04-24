@@ -8,6 +8,7 @@ import { ChevronRight, ChevronLeft, CreditCard, Heart, Volume2, VolumeX, Play } 
 export default function StoryViewer() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const [manualMute, setManualMute] = useState(false);
@@ -34,9 +35,9 @@ export default function StoryViewer() {
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Auto-play logic: Go to next slide every 5 seconds
+    // Auto-play logic: Go to next slide every 5 seconds, ONLY IF NOT PAUSED
     let timer: NodeJS.Timeout;
-    if (currentIdx < slides.length - 1) {
+    if (currentIdx < slides.length - 1 && !isPaused) {
       timer = setTimeout(() => {
         nextSlide();
       }, 5000);
@@ -47,7 +48,10 @@ export default function StoryViewer() {
       window.removeEventListener('keydown', handleKeyDown);
       if (timer) clearTimeout(timer);
     };
-  }, [currentIdx]);
+  }, [currentIdx, isPaused]);
+
+  const handlePressStart = () => setIsPaused(true);
+  const handlePressEnd = () => setIsPaused(false);
 
   const toggleAudio = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -113,7 +117,13 @@ export default function StoryViewer() {
           <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: i < currentIdx ? '100%' : i === currentIdx ? '100%' : '0%' }}
+              animate={{ 
+                width: i < currentIdx ? '100%' : i === currentIdx ? (isPaused ? undefined : '100%') : '0%' 
+              }}
+              transition={{ 
+                duration: i === currentIdx ? 5 : 0.4,
+                ease: "linear"
+              }}
               className="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
             />
           </div>
@@ -278,10 +288,18 @@ export default function StoryViewer() {
       <div className="absolute inset-0 z-[10] flex pointer-events-none">
         <div 
           className="w-[30%] h-full pointer-events-auto cursor-w-resize"
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
           onClick={(e) => prevSlide(e)}
         />
         <div 
           className="w-[70%] h-full pointer-events-auto cursor-e-resize"
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
           onClick={(e) => nextSlide(e)}
         />
       </div>
