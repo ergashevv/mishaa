@@ -22,6 +22,7 @@ export default function ComicCreator() {
   const { 
     pages, activePageIndex, activePage, selectedPanelId, selectedPanel, 
     characters, studioSettings, setStudioSettings, title, setTitle, 
+    updatePanel, addPanel, deletePanel, duplicatePanel, generatePanelImage, 
     addPage, setActivePageIndex, insertPanelAfter, addTextElement,
     draftPanels, addDraftPanel, setSelectedPanelId,
     saveToCloud, isSaving, lastSaved
