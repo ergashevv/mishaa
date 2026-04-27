@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { slides } from '@/lib/slides';
 import { ChevronRight, ChevronLeft, CreditCard, Heart, Volume2, VolumeX, Play } from 'lucide-react';
 
@@ -15,6 +15,21 @@ export default function StoryViewer() {
   const [progress, setProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pressTimerRef = useRef<number>(0);
+
+  const nextSlide = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setProgress(0); // Reset progress on manual move
+    if (!isPlaying && audioRef.current && !manualMute) {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
+    }
+    setCurrentIdx((idx) => (idx < slides.length - 1 ? idx + 1 : idx));
+  }, [isPlaying, manualMute]);
+
+  const prevSlide = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setProgress(0); // Reset progress on manual move
+    setCurrentIdx((idx) => (idx > 0 ? idx - 1 : idx));
+  }, []);
 
   // Audio lifecycle and Visibility management
   useEffect(() => {
@@ -76,7 +91,7 @@ export default function StoryViewer() {
       window.removeEventListener('keydown', handleKeyDown);
       if (interval) clearInterval(interval);
     };
-  }, [currentIdx, isPaused]);
+  }, [currentIdx, isPaused, nextSlide, prevSlide]);
 
   const handlePressStart = () => {
     pressTimerRef.current = Date.now();
@@ -103,25 +118,6 @@ export default function StoryViewer() {
         audioRef.current.pause();
         setManualMute(true);
       }
-    }
-  };
-
-  const nextSlide = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setProgress(0); // Reset progress on manual move
-    if (!isPlaying && audioRef.current && !manualMute) {
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
-    }
-    if (currentIdx < slides.length - 1) {
-      setCurrentIdx(currentIdx + 1);
-    }
-  };
-
-  const prevSlide = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setProgress(0); // Reset progress on manual move
-    if (currentIdx > 0) {
-      setCurrentIdx(currentIdx - 1);
     }
   };
 
@@ -158,7 +154,7 @@ export default function StoryViewer() {
           <div key={i} className="h-[2px] flex-1 bg-white/20 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ 
+              animate={{
                 width: i < currentIdx ? "100%" : i === currentIdx ? `${progress}%` : "0%"
               }}
               transition={{ duration: 0.05, ease: "linear" }}
@@ -199,43 +195,43 @@ export default function StoryViewer() {
                   target.src = `https://via.placeholder.com/${isMobile ? '1080x1920' : '1920x1080'}/222/FFF?text=Rasm+yuklanmadi`;
                 }}
               />
-               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 z-10" />
             </div>
           ) : currentSlide.type === 'title' ? (
             <div className="absolute inset-0 w-full h-full bg-black flex flex-col items-center justify-center p-8 pt-24 z-[50] overflow-hidden pointer-events-none">
-                {/* Atmospheric Cinematic Glows */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[50%] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
-                
-                <motion.div
-                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                   transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-                   className="text-center relative z-10"
-                >
-                    <motion.span 
-                        initial={{ opacity: 0, letterSpacing: "0.2em" }}
-                        animate={{ opacity: 1, letterSpacing: "0.6em" }}
-                        transition={{ delay: 0.5, duration: 1.5 }}
-                        className="text-white/40 text-sm md:text-base uppercase font-black mb-6 block tracking-[0.6em]"
-                    >
-                        {currentSlide.subtitleText}
-                    </motion.span>
-                    
-                    <h1 className="text-7xl md:text-[12rem] font-black text-white italic tracking-tighter leading-none relative">
-                        <span className="relative z-10">{currentSlide.titleText}</span>
-                        {/* Dramatic Shadow/Glow */}
-                        <span className="absolute inset-0 text-white/20 blur-2xl z-0 scale-110 pointer-events-none italic">
-                            {currentSlide.titleText}
-                        </span>
-                    </h1>
+              {/* Atmospheric Cinematic Glows */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[50%] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
 
-                    <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: "100%" }}
-                        transition={{ delay: 1, duration: 1.5, ease: "easeInOut" }}
-                        className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mt-8"
-                    />
-                </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+                className="text-center relative z-10"
+              >
+                <motion.span
+                  initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                  animate={{ opacity: 1, letterSpacing: "0.6em" }}
+                  transition={{ delay: 0.5, duration: 1.5 }}
+                  className="text-white/40 text-sm md:text-base uppercase font-black mb-6 block tracking-[0.6em]"
+                >
+                  {currentSlide.subtitleText}
+                </motion.span>
+
+                <h1 className="text-7xl md:text-[12rem] font-black text-white italic tracking-tighter leading-none relative">
+                  <span className="relative z-10">{currentSlide.titleText}</span>
+                  {/* Dramatic Shadow/Glow */}
+                  <span className="absolute inset-0 text-white/20 blur-2xl z-0 scale-110 pointer-events-none italic">
+                    {currentSlide.titleText}
+                  </span>
+                </h1>
+
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ delay: 1, duration: 1.5, ease: "easeInOut" }}
+                  className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mt-8"
+                />
+              </motion.div>
             </div>
           ) : (
             <div className="absolute inset-0 w-full h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 pt-24 z-[999] pointer-events-none overflow-hidden text-white">
@@ -324,14 +320,14 @@ export default function StoryViewer() {
 
       {/* Instagram-style Navigation Zones (Invisible) */}
       <div className="absolute inset-0 z-[10] flex pointer-events-none touch-none" onContextMenu={(e) => e.preventDefault()}>
-        <div 
+        <div
           className="w-[30%] h-full pointer-events-auto cursor-auto"
           onMouseDown={handlePressStart}
           onMouseUp={() => handlePressEnd('left')}
           onTouchStart={handlePressStart}
           onTouchEnd={() => handlePressEnd('left')}
         />
-        <div 
+        <div
           className="w-[70%] h-full pointer-events-auto cursor-auto"
           onMouseDown={handlePressStart}
           onMouseUp={() => handlePressEnd('right')}

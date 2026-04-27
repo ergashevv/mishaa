@@ -1,89 +1,78 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
+    const { prompt: userPrompt } = await req.json();
+    const apiKey = process.env.AZURE_IMAGE_KEY;
+    const endpoint = process.env.AZURE_IMAGE_ENDPOINT;
+    const deploymentName = "gpt-image-2-1";
+    const apiVersion = "2024-02-01";
 
-    if (!apiKey) {
-      return NextResponse.json({ error: "Gemini API key missing" }, { status: 500 });
+    if (!apiKey || !endpoint) {
+      console.error("❌ Missing Azure Credentials");
+      return NextResponse.json({ error: "Azure API configuration missing" }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const prompt = userPrompt || "A modern AI startup office, ultra realistic, 4k";
+    const baseUrl = endpoint.endsWith("/") ? endpoint.slice(0, -1) : endpoint;
+    const url = `${baseUrl}/openai/deployments/${deploymentName}/images/generations?api-version=${apiVersion}`;
+
+    console.log(`🎨 Sending request to Azure OpenAI: ${deploymentName}`);
     
-    // Step 1: Vision analysis using the LATEST stable model
-    let personDescription = "a young man with short dark hair";
-    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+      }
+      return NextResponse.json({ error: `Azure API error: ${response.status}`, details: errorData }, { status: response.status });
+    }
+
+    const result = await response.json();
+    let base64Data = result.data?.[0]?.b64_json;
+    const imageUrl = result.data?.[0]?.url;
+
+    if (!base64Data && imageUrl) {
+      const imageRes = await fetch(imageUrl);
+      const arrayBuffer = await imageRes.arrayBuffer();
+      base64Data = Buffer.from(arrayBuffer).toString('base64');
+    }
+
+    if (!base64Data) {
+      throw new Error("No image data returned from Azure OpenAI");
+    }
+
+    const imageDataWithPrefix = `data:image/png;base64,${base64Data}`;
+
     try {
-      const visionModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
-      const imageFiles = ["me.PNG", "me2.PNG", "me3.PNG", "me4.JPG", "me5.PNG"];
-      const imageParts = [];
-
-      for (const fileName of imageFiles) {
-        const imagePath = path.join(process.cwd(), "public", fileName);
-        if (fs.existsSync(imagePath)) {
-          const imageData = fs.readFileSync(imagePath);
-          imageParts.push({
-            inlineData: {
-              data: imageData.toString("base64"),
-              mimeType: fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".jpeg") ? "image/jpeg" : "image/png"
-            }
-          });
-        }
-      }
-      
-      if (imageParts.length > 0) {
-        console.log("🔍 Analyzing likeness with Gemini 1.5 Pro...");
-        const analysisResult = await visionModel.generateContent([
-          "Analyze these photos. Create a technical, highly detailed physical description for an AI portrait generator. Focus on facial geometry, nose shape, lip thickness, eye depth, skin undertones, and hair growth pattern. Ensure the description is unique to this person so they are unrecognizable from anyone else. Output only keywords.",
-          ...imageParts
-        ]);
-        
-        personDescription = analysisResult.response.text().trim();
-        console.log("✅ Portrait Guide Ready");
-      }
-    } catch (visionError) {
-      console.error("❌ Vision analysis failed, falling back to basic:", visionError);
+      const buffer = Buffer.from(base64Data, "base64");
+      const fileName = `generated-${Date.now()}.png`;
+      const publicDir = path.join(process.cwd(), "public");
+      if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+      const filePath = path.join(publicDir, fileName);
+      fs.writeFileSync(filePath, buffer);
+    } catch (saveError) {
+      console.error("⚠️ Failed to save image:", saveError);
     }
 
-    // Step 2: Image Generation
-    console.log("🎨 Attempting image generation with 2.5-flash-image...");
-    // We use gemini-2.5-flash-image which supports generateContent and was in your list
-    const imageModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
-
-    const enhancedPrompt = `
-      PHOTOREALISTIC 8K CINEMATIC IMAGE.
-      SUBJECT: ${personDescription}. 
-      MUST MATCH THE SUBJECT 100% IN LOOK AND FACIAL FEATURES.
-      SCENE: ${prompt}.
-      LIGHTING: High-contrast shadows, soft rim light, professional color grading.
-      The result must look like a real photograph of this person.
-    `;
-
-    const result = await imageModel.generateContent(enhancedPrompt);
-    const response = await result.response;
-    
-    const candidate = response.candidates?.[0];
-    const imagePart = candidate?.content?.parts?.find(p => p.inlineData);
-
-    if (imagePart && imagePart.inlineData) {
-        const base64 = imagePart.inlineData.data;
-        const mimeType = imagePart.inlineData.mimeType;
-        return NextResponse.json({ url: `data:${mimeType};base64,${base64}` });
-    }
-
-    throw new Error("No image data in response. The model might be overloaded or restricted.");
+    return NextResponse.json({ image: imageDataWithPrefix, success: true });
 
   } catch (error: any) {
-    console.error("Gemini Route Error:", error);
-    // If it's a 503, tell the user to wait a moment
-    const isOverloaded = error.message?.includes("503") || error.message?.includes("high demand");
-    return NextResponse.json(
-      { error: isOverloaded ? "AI is busy (503). Please wait 10 seconds and try again." : error.message },
-      { status: isOverloaded ? 503 : 500 }
-    );
+    console.error("💥 Internal Route Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
