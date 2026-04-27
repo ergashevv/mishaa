@@ -172,7 +172,12 @@ export const translations = {
       faq: 'FAQ',
       customer: 'Customer_Support',
       legal: 'Legal'
-    }
+    },
+    edit_forge: 'Edit_Forge',
+    composition: 'Composition',
+    page_allocation: 'Page_Allocation',
+    release_export: 'Release_Export',
+    cast_registry: 'Cast_Registry'
   },
   ru: {
     nav: {
@@ -344,7 +349,12 @@ export const translations = {
       faq: 'Вопросы',
       customer: 'Поддержка_Клиентов',
       legal: 'Правовое'
-    }
+    },
+    edit_forge: 'Режим_Правки',
+    composition: 'Композиция',
+    page_allocation: 'Распределение_Страниц',
+    release_export: 'Экспорт_Выпуска',
+    cast_registry: 'Реестр_Персонажей'
   },
   uz: {
     nav: {
@@ -516,6 +526,11 @@ export const translations = {
       faq: 'Savollar',
       customer: 'Mijozlarni_Qo‘llab-Quvvatlash',
       legal: 'Huquqiy'
-    }
+    },
+    edit_forge: 'Tahrir_Rejimi',
+    composition: 'Kompozitsiya',
+    page_allocation: 'Sahifa_Taqsimoti',
+    release_export: 'Eksport_Qilish',
+    cast_registry: 'Qahramonlar_Reestri'
   }
 };

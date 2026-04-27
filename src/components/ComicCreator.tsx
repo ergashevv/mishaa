@@ -32,7 +32,10 @@ export default function ComicCreator() {
   const [cursorMode, setCursorMode] = useState<'move' | 'hand'>('move');
   const [zoom, setZoom] = useState(0.8);
   const [lang, setLang] = useState('en');
-  const t = (key: string) => translations[lang as keyof typeof translations]?.[key as keyof (typeof translations)['en']] || key;
+  const t = (key: string): string => {
+    const val = (translations[lang as keyof typeof translations] as any)?.[key];
+    return typeof val === 'string' ? val : key;
+  };
 
   const [isArchitectOpen, setIsArchitectOpen] = useState(false);
   const [isCharacterForgeOpen, setIsCharacterForgeOpen] = useState(false);
