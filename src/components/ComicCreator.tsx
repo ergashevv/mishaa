@@ -416,63 +416,65 @@ export default function ComicCreator() {
             <div className="p-8 flex-1 flex flex-col space-y-12">
                {selectedPanel ? (
                   <>
-                  <div className="space-y-4">
-                     <div className="flex items-center justify-between px-1">
-                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Scene_Blueprint</label>
-                        <Zap size={14} className="text-[var(--accent)]" />
-                     </div>
-                     <textarea 
-                        value={selectedPanel.prompt || ''}
-                        onChange={(e) => updatePanel(selectedPanel.id, { prompt: e.target.value })}
-                        className="w-full h-56 bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-sm text-white/90 outline-none focus:border-[var(--accent)] transition-all resize-none placeholder:text-white/10"
-                        placeholder="Describe the cinematic layout and artistic vision..."
-                     />
-                  </div>
-
-                  <div className="pt-8 border-t border-white/5 space-y-6">
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1.5">
-                           <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Dimensions</span>
-                           <span className="text-[11px] font-black text-white">{selectedPanel.colSpan || 6}U Scale</span>
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                           <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Scene_Blueprint</label>
+                           <Zap size={14} className="text-[var(--accent)]" />
                         </div>
-                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1.5">
-                           <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Neural_Status</span>
-                           <span className="text-[11px] font-black text-[var(--accent)] uppercase">{selectedPanel.status}</span>
-                        </div>
+                        <textarea 
+                           value={selectedPanel.prompt || ''}
+                           onChange={(e) => updatePanel(selectedPanel.id, { prompt: e.target.value })}
+                           className="w-full h-56 bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-sm text-white/90 outline-none focus:border-[var(--accent)] transition-all resize-none placeholder:text-white/10"
+                           placeholder="Describe the cinematic layout and artistic vision..."
+                        />
                      </div>
-                     <button onClick={() => updatePanel(selectedPanel.id, { colSpan: 12, customHeight: `${metrics.safeHeight}px`, size: 'mega' })} className="w-full py-4 bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-[3px] rounded-xl hover:bg-white hover:text-black transition-all">Create_Splash_Master</button>
-                  </div>
 
-                  <button 
-                     onClick={() => generatePanelImage(selectedPanel.id)}
-                     disabled={!selectedPanel.prompt || selectedPanel.status === 'loading'}
-                     className="flex-1 py-6 bg-[var(--accent)] text-white text-[11px] font-black uppercase tracking-[4px] rounded-2xl hover:brightness-110 shadow-[0_20px_40px_rgba(255,77,0,0.3)] disabled:opacity-20 transition-all"
-                  >
-                     Initiate_Neural_Forge
-                  </button>
-                  <button 
-                     onClick={() => {
-                        currentTargetPanelRef.current = selectedPanel.id;
-                        fileInputRef.current?.click();
-                     }}
-                     className="w-20 py-6 bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all"
-                     title="Upload Original Artwork"
-                  >
-                     <Monitor size={20} />
-                  </button>
-               </div>
+                     <div className="pt-8 border-t border-white/5 space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1.5">
+                              <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Dimensions</span>
+                              <span className="text-[11px] font-black text-white">{selectedPanel.colSpan || 6}U Scale</span>
+                           </div>
+                           <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1.5">
+                              <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Neural_Status</span>
+                              <span className="text-[11px] font-black text-[var(--accent)] uppercase">{selectedPanel.status}</span>
+                           </div>
+                        </div>
+                        <button onClick={() => updatePanel(selectedPanel.id, { colSpan: 12, customHeight: `${metrics.safeHeight}px`, size: 'mega' })} className="w-full py-4 bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-[3px] rounded-xl hover:bg-white hover:text-black transition-all">Create_Splash_Master</button>
+                     </div>
+
+                     <div className="flex items-center gap-4">
+                        <button 
+                           onClick={() => generatePanelImage(selectedPanel.id)}
+                           disabled={!selectedPanel.prompt || selectedPanel.status === 'loading'}
+                           className="flex-1 py-6 bg-[var(--accent)] text-white text-[11px] font-black uppercase tracking-[4px] rounded-2xl hover:brightness-110 shadow-[0_20px_40px_rgba(255,77,0,0.3)] disabled:opacity-20 transition-all"
+                        >
+                           Initiate_Neural_Forge
+                        </button>
+                        <button 
+                           onClick={() => {
+                              currentTargetPanelRef.current = selectedPanel.id;
+                              fileInputRef.current?.click();
+                           }}
+                           className="w-20 py-6 bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all"
+                           title="Upload Original Artwork"
+                        >
+                           <Monitor size={20} />
+                        </button>
+                     </div>
                   </>
                ) : (
-               <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-8 opacity-20 mt-20">
-                  <div className="w-20 h-20 border-2 border-dashed border-white/10 rounded-3xl flex items-center justify-center">
-                     <MousePointer2 size={32} className="text-white" />
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-8 opacity-20 mt-20">
+                     <div className="w-20 h-20 border-2 border-dashed border-white/10 rounded-3xl flex items-center justify-center">
+                        <MousePointer2 size={32} className="text-white" />
+                     </div>
+                     <div className="flex flex-col gap-4">
+                        <span className="text-[12px] font-black uppercase tracking-[0.5em] text-white">System_Idle</span>
+                        <p className="text-[9px] font-medium leading-relaxed uppercase tracking-widest text-white/40">Select a blueprint from any artboard or drafting zone to initiate sequence.</p>
+                     </div>
                   </div>
-                  <div className="flex flex-col gap-4">
-                     <span className="text-[12px] font-black uppercase tracking-[0.5em] text-white">System_Idle</span>
-                     <p className="text-[9px] font-medium leading-relaxed uppercase tracking-widest text-white/40">Select a blueprint from any artboard or drafting zone to initiate sequence.</p>
-                  </div>
-               </div>
-            )}
+               )}
+            </div>
          </aside>
       </main>
 
