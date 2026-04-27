@@ -415,6 +415,7 @@ export default function ComicCreator() {
 
             <div className="p-8 flex-1 flex flex-col space-y-12">
                {selectedPanel ? (
+                  <>
                   <div className="space-y-4">
                      <div className="flex items-center justify-between px-1">
                         <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Scene_Blueprint</label>
@@ -460,7 +461,8 @@ export default function ComicCreator() {
                      <Monitor size={20} />
                   </button>
                </div>
-            ) : (
+                  </>
+               ) : (
                <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-8 opacity-20 mt-20">
                   <div className="w-20 h-20 border-2 border-dashed border-white/10 rounded-3xl flex items-center justify-center">
                      <MousePointer2 size={32} className="text-white" />
