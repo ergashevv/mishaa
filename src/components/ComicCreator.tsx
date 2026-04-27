@@ -39,6 +39,17 @@ export default function ComicCreator() {
 
   const [isArchitectOpen, setIsArchitectOpen] = useState(false);
   const [isCharacterForgeOpen, setIsCharacterForgeOpen] = useState(false);
+  const [storyInput, setStoryInput] = useState('');
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+
+  const handleSynthesize = async () => {
+    setIsSynthesizing(true);
+    // Logic for synthesizing logic can be added here
+    setTimeout(() => {
+      setIsSynthesizing(false);
+      setIsArchitectOpen(false);
+    }, 2000);
+  };
 
   // -- KEYBOARD SHORTCUTS --
   useEffect(() => {
@@ -547,7 +558,14 @@ export default function ComicCreator() {
         onChange={handleFileUpload} 
       />
 
-      <StoryArchitectModal isOpen={isArchitectOpen} onClose={() => setIsArchitectOpen(false)} onSynthesize={() => setIsArchitectOpen(false)} />
+      <StoryArchitectModal 
+        isOpen={isArchitectOpen} 
+        onClose={() => setIsArchitectOpen(false)} 
+        storyInput={storyInput}
+        setStoryInput={setStoryInput}
+        isSynthesizing={isSynthesizing}
+        onSynthesize={handleSynthesize} 
+      />
       <CharacterForgeModal isOpen={isCharacterForgeOpen} onClose={() => { setIsCharacterForgeOpen(false); }} onSave={(char) => { engine.setCharacters([...engine.characters, char]); setIsCharacterForgeOpen(false); }} />
     </div>
   );
