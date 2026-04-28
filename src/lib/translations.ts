@@ -8,7 +8,8 @@ export const translations = {
       about: 'About',
       support: 'Support',
       terminal: 'Studio',
-      registry: 'Join'
+      registry: 'Join',
+      library: 'Library'
     },
     hero: {
       title: 'THE COMIC FOUNDRY.',
@@ -201,7 +202,8 @@ export const translations = {
       about: 'О нас',
       support: 'Поддержка',
       terminal: 'Студия',
-      registry: 'Вход'
+      registry: 'Вход',
+      library: 'Библиотека'
     },
     hero: {
       title: 'КУЗНИЦА КОМИКСОВ.',
@@ -394,7 +396,8 @@ export const translations = {
       about: 'Haqida',
       support: 'Yordam',
       terminal: 'Studiya',
-      registry: 'Kirish'
+      registry: 'Kirish',
+      library: 'Kutubxona'
     },
     hero: {
       title: 'KOMIKSLAR USTAXONASI.',

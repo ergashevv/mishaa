@@ -1,9 +1,4 @@
 import { ReactNode } from 'react';
-import { 
-  Plus, Trash2, Zap, MessageCircle, Cloud, Star, AlignLeft, 
-  RotateCcw, Sparkles, User, FileDown, Smartphone, Monitor, BookOpen, 
-  BookMarked, FilePlus, Copy, Command, Smartphone as PhoneIcon
-} from 'lucide-react';
 
 export type Lang = 'en' | 'ru' | 'uz';
 export type BubbleType = 'speech' | 'thought' | 'shout' | 'caption' | 'narration' | 'sfx';
@@ -87,4 +82,21 @@ export interface BubbleConfig {
   bgColor: string;
   textColor: string;
   borderStyle: string;
+}
+
+// --- Library Feature Types ---
+export interface ComicBook {
+  id: string;
+  title: string;
+  issueNumber: number;
+  coverImage: string;
+  description: string;
+  publisher: string;
+  publishedDate: string;
+  pages: string[]; // List of image URLs for the pages
+  category: 'Golden Age' | 'Silver Age' | 'Modern' | 'Indie';
+}
+
+export interface ComicGalleryProps {
+  comics: ComicBook[];
 }

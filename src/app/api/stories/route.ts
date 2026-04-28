@@ -25,6 +25,7 @@ export async function GET(req: Request) {
     });
     return NextResponse.json(stories);
   } catch (error: unknown) {
+    console.error("Fetch Stories Error:", error);
     return NextResponse.json({ error: "Failed to load stories" }, { status: 500 });
   }
 }

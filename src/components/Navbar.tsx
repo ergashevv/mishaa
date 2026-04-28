@@ -51,6 +51,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: t.gallery, href: '/gallery' },
+    { name: t.library, href: '/library' },
     { name: t.about, href: '/about' },
     { name: t.support, href: '/support' },
   ];
