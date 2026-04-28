@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Copy, MoreVertical, Maximize2, Zap, Layout, Move, Plus } from 'lucide-react';
 import { Panel } from '@/types/comic';
 import { SpeechBubble } from './SpeechBubble';
+import { InkCanvas } from './InkCanvas';
 
 interface PanelCardProps {
   panel: Panel;
@@ -92,52 +93,84 @@ export function PanelCard({
         gridColumn: `span ${finalColSpan}`, 
         gridRowEnd: `span ${Math.ceil(parseInt(panel.customHeight || height) / 4)}`,
         height: panel.customHeight || height,
+        transform: `rotate(${panel.rotation || 0}deg)`,
+        zIndex: panel.zIndex || 10,
+        position: 'relative',
+        borderWidth: `${panel.borderWidth ?? 2}px`,
+        borderColor: panel.borderColor || '#000000',
+        borderRadius: `${panel.borderRadius || 0}px`,
+        borderStyle: 'solid'
       }}
     >
       <div className={`relative w-full h-full overflow-hidden transition-all duration-700 ${
         isForge 
-          ? `rounded-2xl border-2 ${isSelected ? 'border-[var(--accent)] shadow-[0_0_40px_rgba(255,77,0,0.2)] bg-black/40' : 'border-white/5 hover:border-white/20 bg-black/20'}`
-          : 'rounded-none border-none bg-black'
+          ? `rounded-2xl border-2 ${isSelected ? 'border-[var(--accent)] shadow-[0_20px_50px_rgba(255,77,0,0.1)] bg-white' : 'border-black/5 hover:border-black/10 bg-[var(--studio-bg)]/30'}`
+          : 'rounded-none border-none bg-white'
       }`}>
         
         {panel.image ? (
-          <div className="relative w-full h-full group/img overflow-hidden">
-             <img src={panel.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Scene" />
-             {isForge && <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-40" />}
+          <div className={`relative w-full h-full group/img overflow-hidden ${
+            panel.filter === 'halftone' ? 'halftone-overlay' : 
+            panel.filter === 'noir' ? 'noir-filter' : 
+            panel.filter === 'warm' ? 'filmic-warm' : ''
+          }`} style={{ 
+            clipPath: panel.clipPath || 'none',
+            filter: `brightness(${panel.brightness || 100}%) contrast(${panel.contrast || 100}%)`,
+            borderRadius: `${panel.borderRadius || 0}px`
+          }}>
+             <img 
+               src={panel.image} 
+               className="w-full h-full object-cover transition-transform duration-1000" 
+               style={{ 
+                 transform: `scale(${panel.imageScale || 1}) translate(${panel.imageX || 0}%, ${panel.imageY || 0}%)` 
+               }}
+               alt="Scene" 
+             />
+             
+             {/* MANUAL INK LAYER (PRO DETAILING) */}
+             <InkCanvas 
+                inkData={panel.inkData} 
+                onUpdate={(data) => onResize({ inkData: data })} 
+                isLocked={!isSelected} 
+                color="#000000"
+                weight={2}
+             />
+
+             {isForge && <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-40 transition-opacity duration-700 group-hover:opacity-20" />}
           </div>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#0a0a0a] relative">
-             <Layout className="text-white/5 group-hover:text-[var(--accent)]/20 transition-all duration-700" size={48} />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[var(--studio-bg)]/20 relative">
+             <Layout className="text-black/5 group-hover:text-[var(--accent)]/20 transition-all duration-700" size={48} />
              {isForge && (
                 <div className="flex flex-col items-center gap-1 opacity-20 group-hover:opacity-100 transition-all">
-                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">Grid_Phase_{index + 1}</span>
-                   <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Awaiting_Forge_Input</span>
+                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-black">Grid_Phase_{index + 1}</span>
+                   <span className="text-[8px] font-bold text-black/40 uppercase tracking-widest">Awaiting_Forge_Input</span>
                 </div>
              )}
           </div>
         )}
 
         {panel.status === 'loading' && (
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center gap-4 z-[100]">
-             <div className="w-10 h-10 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin shadow-[0_0_20px_rgba(255,77,0,0.5)]" />
-             <span className="text-[8px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Forging_Art...</span>
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-xl flex flex-col items-center justify-center gap-4 z-[100]">
+             <div className="w-10 h-10 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin shadow-[0_0_20px_rgba(255,77,0,0.3)]" />
+             <span className="text-[8px] font-black text-black uppercase tracking-[0.4em] animate-pulse">Forging_Art...</span>
           </div>
         )}
 
         {isForge && (
           <div className="absolute bottom-4 left-5 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
-             <div className="px-2 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg flex items-center gap-2">
+             <div className="px-2 py-1 bg-white/60 backdrop-blur-md border border-black/5 rounded-lg flex items-center gap-2">
                 <span className="text-[8px] font-black text-[var(--accent)] uppercase">{finalColSpan}U</span>
-                <div className="w-[1px] h-2 bg-white/10" />
-                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{panel.customHeight || height}</span>
+                <div className="w-[1px] h-2 bg-black/10" />
+                <span className="text-[8px] font-black text-black/40 uppercase tracking-widest">{panel.customHeight || height}</span>
              </div>
           </div>
         )}
 
         {isForge && isSelected && (
           <div className="absolute top-4 right-4 flex items-center gap-2 z-[60]">
-             <div className="flex bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl p-1 shadow-2xl">
-                <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all" title="Duplicate">
+             <div className="flex bg-white/80 backdrop-blur-xl border border-black/5 rounded-xl p-1 shadow-xl">
+                <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} className="w-8 h-8 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/5 rounded-lg transition-all" title="Duplicate">
                    <Copy size={14} />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="w-8 h-8 flex items-center justify-center text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">

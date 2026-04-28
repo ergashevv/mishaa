@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 
 export default function StudioPage() {
   return (
-    <div className="min-h-screen bg-[#080808]">
+    <div className="min-h-screen bg-[#111111]">
       <Navbar />
       <div className="pt-24 pb-20">
         <ComicCreator />

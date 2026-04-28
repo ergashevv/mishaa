@@ -7,8 +7,8 @@ export const translations = {
       gallery: 'Gallery',
       about: 'About',
       support: 'Support',
-      terminal: 'Terminal',
-      registry: 'Registry'
+      terminal: 'Studio',
+      registry: 'Join'
     },
     hero: {
       title: 'THE COMIC FOUNDRY.',
@@ -177,15 +177,31 @@ export const translations = {
     composition: 'Composition',
     page_allocation: 'Page_Allocation',
     release_export: 'Release_Export',
-    cast_registry: 'Cast_Registry'
+    cast_registry: 'Cast_Registry',
+    neural_suggestion: 'Neural_Logic_Suggestion',
+    story_architect: 'Story Architect',
+    architect_sub: 'SENSE_MAKING_PROTOCOL_V2',
+    initialize_foundry: 'INITIALIZE_FOUNDRY',
+    synthesizing: 'SYNTHESIZING...',
+    visual_signature: 'Visual_Signature',
+    ai_core: 'AI_Core_Signature',
+    global_assets: 'Global_Assets',
+    registry_sync: 'Registry_Sync_Active',
+    matrix_editor: 'Matrix_Editor',
+    system_latent: 'System_Latent_Space',
+    vram_usage: 'VRAM_Usage',
+    forge_core: 'Forge_Core',
+    properties: 'Properties',
+    layers: 'Layers',
+    neural: 'Neural'
   },
   ru: {
     nav: {
       gallery: 'Галерея',
       about: 'О нас',
       support: 'Поддержка',
-      terminal: 'Терминал',
-      registry: 'Регистрация'
+      terminal: 'Студия',
+      registry: 'Вход'
     },
     hero: {
       title: 'КУЗНИЦА КОМИКСОВ.',
@@ -354,15 +370,31 @@ export const translations = {
     composition: 'Композиция',
     page_allocation: 'Распределение_Страниц',
     release_export: 'Экспорт_Выпуска',
-    cast_registry: 'Реестр_Персонажей'
+    cast_registry: 'Реестр_Персонажей',
+    neural_suggestion: 'Нейронное_Предложение',
+    story_architect: 'Архитектор_Истории',
+    architect_sub: 'ПРОТОКОЛ_СИНТЕЗА_V2',
+    initialize_foundry: 'ИНИЦИАЛИЗАЦИЯ_КУЗНИЦЫ',
+    synthesizing: 'СИНТЕЗ...',
+    visual_signature: 'Визуальная_Подпись',
+    ai_core: 'Ядро_ИИ',
+    global_assets: 'Глобальные_Активы',
+    registry_sync: 'Синхронизация_Реестра_Активна',
+    matrix_editor: 'Редактор_Матрицы',
+    system_latent: 'Системное_Латентное_Пространство',
+    vram_usage: 'Использование_VRAM',
+    forge_core: 'Ядро_Кузницы',
+    properties: 'Свойства',
+    layers: 'Слои',
+    neural: 'Нейрон'
   },
   uz: {
     nav: {
       gallery: 'Galereya',
       about: 'Haqida',
       support: 'Yordam',
-      terminal: 'Terminal',
-      registry: 'Ro‘yxat'
+      terminal: 'Studiya',
+      registry: 'Kirish'
     },
     hero: {
       title: 'KOMIKSLAR USTAXONASI.',
@@ -531,6 +563,22 @@ export const translations = {
     composition: 'Kompozitsiya',
     page_allocation: 'Sahifa_Taqsimoti',
     release_export: 'Eksport_Qilish',
-    cast_registry: 'Qahramonlar_Reestri'
-  }
+    cast_registry: 'Qahramonlar_Reestri',
+    neural_suggestion: 'Neyron_Taklif',
+    story_architect: 'Hikoya_Arxitektori',
+    architect_sub: 'SINTEZ_PROTOKOLI_V2',
+    initialize_foundry: 'USTAXONANI_FAOL_QILISH',
+    synthesizing: 'SINTEZLANMOQDA...',
+    visual_signature: 'Vizual_Imzo',
+    ai_core: 'AI_Yadro_Imzosi',
+    global_assets: 'Global_Aktivlar',
+    registry_sync: 'Reestr_Sinxronizatsiyasi_Faol',
+    matrix_editor: 'Matritsa_Tahrirlovchisi',
+    system_latent: 'Tizim_Latent_Fazosi',
+    vram_usage: 'VRAM_Ishlatilishi',
+    forge_core: 'Bolg‘a_Yadrosi',
+    properties: 'Xususiyatlar',
+    layers: 'Qatlamlar',
+    neural: 'Neyron'
+  },
 };

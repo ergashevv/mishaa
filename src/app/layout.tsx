@@ -37,6 +37,9 @@ const bangers = Bangers({
 export const metadata: Metadata = {
   title: "iComics Studio | Professional Sequential Production",
   description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with iComics.",
+  verification: {
+    google: "Q3JUtRB_65-cXXd1FocDiCQ-Y4bOA_zmDpzJQfhU9mE",
+  },
 };
 
 import SmoothAnimations from "@/components/SmoothAnimations";

@@ -35,8 +35,8 @@ export function StoryArchitectModal({
                   <Sparkles size={32} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-display font-black uppercase tracking-tight text-white">Story Architect</h3>
-                  <p className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em] mt-1">SENSE_MAKING_PROTOCOL_V2</p>
+                  <h3 className="text-2xl font-display font-black uppercase tracking-tight text-white">{t('story_architect')}</h3>
+                  <p className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em] mt-1">{t('architect_sub')}</p>
                 </div>
                 <button onClick={onClose}
                   className="ml-auto w-12 h-12 rounded-2xl hover:bg-white/10 flex items-center justify-center bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all">
@@ -63,7 +63,7 @@ export function StoryArchitectModal({
                   className="w-full py-6 bg-[var(--accent)] text-white font-display font-black text-lg uppercase tracking-[0.4em] rounded-2xl shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-20 flex items-center justify-center gap-4"
                 >
                   {isSynthesizing ? <RefreshCw size={24} className="animate-spin" /> : <Zap size={24} />}
-                  {isSynthesizing ? 'SYNTHESIZING...' : 'INITIALIZE_FOUNDRY'}
+                  {isSynthesizing ? t('synthesizing') : t('initialize_foundry')}
                 </button>
               </div>
             </div>

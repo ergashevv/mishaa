@@ -34,24 +34,24 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
       {settings.showRulers && (
         <>
           {/* Horizontal Ruler */}
-          <div className="absolute inset-x-0 -top-12 h-8 flex border-b border-white/10 pointer-events-none">
+          <div className="absolute inset-x-0 -top-12 h-8 flex border-b border-black/5 pointer-events-none">
             {Array.from({ length: Math.ceil(format.width / 10) + 1 }).map((_, i) => (
-              <div key={i} className="relative flex-1 border-l border-white/5 h-full">
+              <div key={i} className="relative flex-1 border-l border-black/5 h-full">
                 {i % 5 === 0 && (
-                  <span className="absolute -top-4 left-1 text-[7px] font-mono text-white/20 uppercase tracking-tighter">{i * 10}MM</span>
+                  <span className="absolute -top-4 left-1 text-[7px] font-mono text-black/20 uppercase tracking-tighter">{i * 10}MM</span>
                 )}
-                <div className={`absolute bottom-0 left-0 w-[1px] bg-white/10 ${i % 5 === 0 ? 'h-4' : 'h-2'}`} />
+                <div className={`absolute bottom-0 left-0 w-[1px] bg-black/10 ${i % 5 === 0 ? 'h-4' : 'h-2'}`} />
               </div>
             ))}
           </div>
           {/* Vertical Ruler */}
-          <div className="absolute top-0 -left-12 w-8 bottom-0 flex flex-col border-r border-white/10 pointer-events-none">
+          <div className="absolute top-0 -left-12 w-8 bottom-0 flex flex-col border-r border-black/5 pointer-events-none">
             {Array.from({ length: Math.ceil(format.height / 10) + 1 }).map((_, i) => (
-              <div key={i} className="relative flex-1 border-t border-white/5 w-full">
+              <div key={i} className="relative flex-1 border-t border-black/5 w-full">
                 {i % 5 === 0 && (
-                  <span className="absolute left-[-45px] top-1 text-[7px] font-mono text-white/20 uppercase tracking-tighter -rotate-90">{i * 10}MM</span>
+                  <span className="absolute left-[-45px] top-1 text-[7px] font-mono text-black/20 uppercase tracking-tighter -rotate-90">{i * 10}MM</span>
                 )}
-                <div className={`absolute top-0 right-0 h-[1px] bg-white/10 ${i % 5 === 0 ? 'w-4' : 'w-2'}`} />
+                <div className={`absolute top-0 right-0 h-[1px] bg-black/10 ${i % 5 === 0 ? 'w-4' : 'w-2'}`} />
               </div>
             ))}
           </div>
@@ -60,23 +60,30 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
 
       {/* THE PHYSICAL BOARD */}
       <div 
-        className="relative bg-white shadow-[0_40px_120px_rgba(0,0,0,0.9)] transition-all duration-700 ease-out preserve-3d"
+        className="relative bg-white shadow-[0_40px_120px_rgba(0,0,0,0.1)] transition-all duration-700 ease-out preserve-3d"
         style={{ 
           width: boardWidth, 
           height: boardHeight,
         }}
       >
         {/* CLEANER GRID (Less Distracting) */}
-        <div className="absolute -inset-20 bg-[#0c0c0c] -z-10 rounded-[2.5rem] border border-white/5 flex items-center justify-center overflow-hidden">
+        <div className="absolute -inset-20 bg-white -z-10 rounded-[2.5rem] border border-black/5 flex items-center justify-center overflow-hidden">
            <div className="absolute inset-0" style={{ 
-              backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+              backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.02) 1px, transparent 1px)`,
               backgroundSize: '40px 40px'
            }} />
         </div>
 
-        {/* PAPER TEXTURE OVERLAY */}
+        {/* PAPER TEXTURE OVERLAY (Professional Marvel Grain) */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06] mix-blend-multiply" style={{
+           backgroundImage: 'url("https://www.transparenttextures.com/patterns/p6.png")',
+           backgroundRepeat: 'repeat'
+        }} />
+        
+        {/* SUBTLE DOT GAIN / HALFTONE GLOBAL OVERLAY */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.02]" style={{
-           backgroundImage: 'url("https://www.transparenttextures.com/patterns/p6.png")'
+           backgroundImage: 'radial-gradient(circle, #000 1px, transparent 0)',
+           backgroundSize: '4px 4px'
         }} />
 
         {/* BLEED AREA GUIDE */}
@@ -91,16 +98,25 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
         <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
            {/* Corner Trim Marks */}
            {[-1, 1].map(x => [-1, 1].map(y => (
-             <div key={`${x}-${y}`} className="absolute w-8 h-8" style={{ 
-               top: y === -1 ? 0 : 'auto', 
-               bottom: y === 1 ? 0 : 'auto',
-               left: x === -1 ? 0 : 'auto', 
-               right: x === 1 ? 0 : 'auto'
+             <div key={`${x}-${y}`} className="absolute w-12 h-12" style={{ 
+               top: y === -1 ? -4 : 'auto', 
+               bottom: y === 1 ? -4 : 'auto',
+               left: x === -1 ? -4 : 'auto', 
+               right: x === 1 ? -4 : 'auto'
              }}>
-               <div className={`w-full h-[1px] bg-cyan-500/30 absolute ${y === -1 ? 'top-0' : 'bottom-0'}`} />
-               <div className={`h-full w-[1px] bg-cyan-500/30 absolute ${x === -1 ? 'left-0' : 'right-0'}`} />
+               <div className={`w-full h-[1px] bg-black/20 absolute ${y === -1 ? 'top-1' : 'bottom-1'}`} />
+               <div className={`h-full w-[1px] bg-black/20 absolute ${x === -1 ? 'left-1' : 'right-1'}`} />
+               {/* Technical Circles */}
+               <div className={`absolute w-3 h-3 rounded-full border border-black/10 ${y === -1 ? 'top-2' : 'bottom-2'} ${x === -1 ? 'left-2' : 'right-2'}`} />
              </div>
            )))}
+           
+           {/* Color Bars (Pro detail) */}
+           <div className="absolute top-1/2 -right-8 -translate-y-1/2 flex flex-col gap-1 opacity-20 group-hover/canvas:opacity-60 transition-opacity">
+              {['#00ffff', '#ff00ff', '#ffff00', '#000000'].map(c => (
+                 <div key={c} className="w-4 h-4" style={{ backgroundColor: c }} />
+              ))}
+           </div>
         </div>
 
         {/* SAFE AREA GUIDE */}
@@ -124,12 +140,24 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
         )}
 
         {/* CONTENT AREA */}
-        <div className="relative w-full h-full overflow-hidden z-10">
+        <div className="relative w-full h-full overflow-hidden z-10 bg-black">
           {children}
+          
+          {/* CINEMATIC VIGNETTE OVERLAY */}
+          <div className="absolute inset-0 pointer-events-none z-20 shadow-[inset_0_0_150px_rgba(0,0,0,0.5)]" />
+          
+          {/* PROFESSIONAL OVERLAYS (Grain, Dust, Ink Splatters) */}
+          <div className="absolute inset-0 pointer-events-none z-25 opacity-[0.07] mix-blend-overlay" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/felt.png')` }} />
+          <div className="absolute inset-0 pointer-events-none z-25 opacity-[0.03] mix-blend-color-burn" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/stardust.png')` }} />
+          <div className="absolute inset-0 pointer-events-none z-25 opacity-[0.05] mix-blend-multiply" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/natural-paper.png')` }} />
+          
+          {/* CINEMA BARS */}
+          <div className="absolute top-0 inset-x-0 h-4 bg-black/40 backdrop-blur-sm z-30 pointer-events-none" />
+          <div className="absolute bottom-0 inset-x-0 h-4 bg-black/40 backdrop-blur-sm z-30 pointer-events-none" />
         </div>
 
-        {/* READING FLOW GUIDE (Cinematic Paths) */}
-        {showFlow && (
+        {/* READING FLOW GUIDE (Cinematic Action Path) */}
+        {settings.showFlow && (
           <svg className="absolute inset-0 pointer-events-none z-[100] opacity-60">
              <defs>
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
@@ -137,7 +165,7 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
                 </marker>
              </defs>
              <path 
-                d={`M ${safePx + 40} ${safePx + 40} C ${boardWidth/2} ${safePx}, ${boardWidth/2} ${boardHeight/2}, ${boardWidth - safePx - 40} ${safePx + 40} S ${boardWidth/2} ${boardHeight}, ${boardWidth - safePx - 40} ${boardHeight - safePx - 40}`}
+                d={`M ${80} ${80} C ${500} ${50}, ${500} ${500}, ${400} ${80} S ${500} ${1000}, ${400} ${1000}`}
                 fill="none"
                 stroke="var(--accent)"
                 strokeWidth="2"
@@ -145,29 +173,29 @@ export function ProfessionalCanvas({ children, settings, isPreview }: Profession
                 markerEnd="url(#arrowhead)"
                 className="animate-[dash_20s_linear_infinite]"
              />
-             <text x={safePx + 50} y={safePx + 30} fill="var(--accent)" className="text-[10px] font-black italic tracking-widest uppercase">Visual_Entry</text>
+             <text x={100} y={100} fill="var(--accent)" className="text-[10px] font-black italic tracking-widest uppercase">Visual_Entry_Sequence</text>
           </svg>
         )}
 
         {/* TECHNICAL METADATA OVERLAY (Hidden in Preview) */}
         {!isPreview && (
-          <div className="absolute -bottom-20 left-0 flex justify-between w-full p-4 border-t-2 border-white/5 bg-black/40 backdrop-blur-md rounded-b-3xl">
+          <div className="absolute -bottom-20 left-0 flex justify-between w-full p-4 border-t border-black/5 bg-white/80 backdrop-blur-md rounded-b-3xl">
              <div className="flex gap-8">
                 <div className="flex flex-col gap-1">
-                   <span className="text-[7px] text-white/20 font-black uppercase tracking-[0.2em]">Technical_Format</span>
+                   <span className="text-[7px] text-black/20 font-black uppercase tracking-[0.2em]">Technical_Format</span>
                    <span className="text-[10px] text-[var(--accent)] font-black italic">{format.label} // {format.width}x{format.height}MM</span>
                 </div>
-                <div className="flex flex-col border-l border-white/5 pl-8 gap-1">
-                   <span className="text-[7px] text-white/20 font-black uppercase tracking-[0.2em]">Foundry_Res</span>
-                   <span className="text-[10px] text-white/60 font-black tracking-widest">{dpi} DPI // CMYK:FOUNDRY_PRO</span>
+                <div className="flex flex-col border-l border-black/5 pl-8 gap-1">
+                   <span className="text-[7px] text-black/20 font-black uppercase tracking-[0.2em]">Foundry_Res</span>
+                   <span className="text-[10px] text-black/60 font-black tracking-widest">{dpi} DPI // CMYK:FOUNDRY_PRO</span>
                 </div>
              </div>
              <div className="flex flex-col items-end gap-1">
                 <div className="flex items-center gap-2">
                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                   <span className="text-[8px] font-black text-green-500/80 uppercase tracking-widest">Live_Calibration_OK</span>
+                   <span className="text-[8px] font-black text-green-600 uppercase tracking-widest">Live_Calibration_OK</span>
                 </div>
-                <span className="text-[7px] text-white/10 font-bold uppercase tracking-widest">Studio_Admin_Verified</span>
+                <span className="text-[7px] text-black/10 font-bold uppercase tracking-widest">Studio_Admin_Verified</span>
              </div>
           </div>
         )}

@@ -19,6 +19,8 @@ export interface TextElement {
   position?: BubblePosition;
   x?: number; // %
   y?: number; // %
+  tailX?: number; // % offset
+  tailY?: number; // % offset
   charName?: string;
   fontSize?: number;
   rotation?: number;
@@ -42,6 +44,19 @@ export interface Panel {
   lighting?: string;      // cinematic, moody, etc.
   draftX?: number;        // Figma-style drafting X
   draftY?: number;        // Figma-style drafting Y
+  filter?: string;        // Visual filter (halftone, noir, etc.)
+  clipPath?: string;      // Non-rectangular panel cuts
+  rotation?: number;      // Panel rotation (degrees)
+  zIndex?: number;        // Depth layering
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  brightness?: number;    // Image adjustment
+  contrast?: number;      // Image adjustment
+  inkData?: string;       // Serialized ink paths (SVG/Base64)
+  imageScale?: number;    // Zoom inside panel
+  imageX?: number;        // Pan X inside panel
+  imageY?: number;        // Pan Y inside panel
 }
 
 export interface ComicPage {
@@ -62,6 +77,7 @@ export interface Character {
   role: string;
   description: string;
   imageUrl: string;
+  promptBase?: string;    // Core visual prompt for AI consistency
 }
 
 export interface BubbleConfig {

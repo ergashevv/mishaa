@@ -9,19 +9,26 @@
 }
 
 :root {
-  --obsidian: #121212;
-  --surface: #1e1e1e;
-  --canvas-bg: #2a2a2a;
+  --obsidian: #1a1a1c;
+  --surface: #242426;
+  --canvas-bg: #121212;
   --accent: #ff4d00;
   --accent-alt: #ffffff;
   --text-primary: #f0f0f0;
   --text-secondary: #a0a0a0;
-  --border-dim: rgba(255, 255, 255, 0.08);
+  --border-dim: rgba(255, 255, 255, 0.12);
   --mouse-x: 50vw;
   --mouse-y: 50vh;
   --mystic-cyan: #73f7ff;
   --mystic-gold: #ffd66b;
   --mystic-ember: #ff4d00;
+
+  /* Studio Light Theme Tokens */
+  --studio-bg: #fcfaf2;
+  --studio-panel: #ffffff;
+  --studio-text: #000000;
+  --studio-text-dim: rgba(0,0,0,0.4);
+  --studio-border: rgba(0,0,0,0.08);
 }
 
 body {
@@ -46,6 +53,36 @@ body {
 .perspective-card {
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* 🟢 CINEMATIC FILTERS (Foundry Pro) */
+.halftone-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.halftone-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#000 1.2px, transparent 0);
+  background-size: 4px 4px;
+  opacity: 0.15;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.noir-filter {
+  filter: grayscale(1) contrast(1.4) brightness(0.9);
+}
+
+.filmic-warm {
+  filter: sepia(0.3) saturate(1.4) contrast(1.1) brightness(1.05);
+}
+
+.chromatic-aberration {
+  filter: drop-shadow(2px 0px 0px rgba(255,0,0,0.2)) drop-shadow(-2px 0px 0px rgba(0,255,255,0.2));
 }
 
 .magnetic-target {
