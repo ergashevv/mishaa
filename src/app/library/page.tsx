@@ -19,10 +19,6 @@ interface Comic {
 }
 
 const CATEGORIES = [
-  { label: 'Marvel Universe', query: '(subject:"Marvel Comics" OR subject:"Spider-man" OR subject:"Avengers") AND mediatype:texts AND -subject:"Art Book" AND -subject:"Making of" AND -collection:printdisabled AND date:[1960-01-01 TO 2025-12-31]', source: 'archive' },
-  { label: 'DC Universe', query: '(subject:"DC Comics" OR subject:"Batman" OR subject:"Justice League") AND mediatype:texts AND -subject:"Art Book" AND -subject:"Making of" AND -collection:printdisabled AND date:[1960-01-01 TO 2025-12-31]', source: 'archive' },
-  { label: 'Classic Comics', query: 'collection:(comic_books_archive) AND mediatype:texts AND -subject:magazine AND -subject:fanzine AND -collection:printdisabled AND date:[1950-01-01 TO 2025-12-31]', source: 'archive' },
-  { label: 'Graphic Novels', query: 'subject:("Graphic Novel" OR "Comic Book") AND mediatype:texts AND language:(eng) AND -subject:"Art Book" AND -collection:printdisabled AND date:[1980-01-01 TO 2025-12-31]', source: 'archive' },
   { label: 'Manga Hub', query: '', source: 'mangadex' },
   { label: 'Webtoons', query: 'webtoon', source: 'mangadex' },
   { label: 'Manhwa', query: 'manhwa', source: 'mangadex' },
@@ -43,7 +39,7 @@ export default function ComicLibrary() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [reading, setReading] = useState(false);
-  const [viewMode, setViewMode] = useState<'single' | 'webtoon' | 'double'>('single');
+  const [viewMode, setViewMode] = useState<'single' | 'webtoon' | 'spread'>('single');
   const [nsfwEnabled, setNsfwEnabled] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(false);
@@ -134,23 +130,28 @@ export default function ComicLibrary() {
   // Fetch from nhentai
   const fetchNHentai = async (query: string, page: number) => {
     try {
-      let path = query === 'all' || !query ? `galleries/all?page=${page + 1}` : `galleries/search?query=${query}&page=${page + 1}`;
+      let path = (query === 'all' || !query) 
+        ? `galleries?page=${page + 1}` 
+        : `search?query=${encodeURIComponent(query)}&page=${page + 1}`;
+        
       const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(path)}`);
       if (!res.ok) return [];
       const data = await res.json();
-      const results = data.result || data.galleries || [];
+      const results = data.result || data || [];
       return results.map((item: any) => {
-        const typeMap: Record<string, string> = { j: 'jpg', p: 'png', g: 'gif' };
-        const ext = typeMap[item.images.cover.t] || 'jpg';
         return {
           id: item.id.toString(),
-          title: item.title.english || item.title.japanese || item.title.pretty,
-          coverUrl: `https://t.nhentai.net/galleries/${item.media_id}/cover.${ext}`,
+          title: item.english_title || item.title?.english || item.title?.japanese || "Untitled",
+          description: `${item.num_pages} pages`,
+          coverUrl: `https://t3.nhentai.net/${item.thumbnail?.path || item.thumbnail}`,
           source: 'nhentai',
           rating: 'pornographic'
         };
       });
-    } catch (e) { return []; }
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
   };
 
   const loadData = async (append: boolean = false) => {
@@ -281,13 +282,13 @@ export default function ComicLibrary() {
         setPages(archivePages);
       } 
       else if (comic.source === 'nhentai') {
-        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`gallery/${comic.id}`)}`);
+        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${comic.id}`)}`);
         if (!res.ok) throw new Error("Failed to fetch nhentai gallery");
         const data = await res.json();
-        const typeMap: Record<string, string> = { j: 'jpg', p: 'png', g: 'gif' };
-        const nhPages = data.images.pages.map((p: any, i: number) => {
-           const ext = typeMap[p.t] || 'jpg';
-           return `https://i.nhentai.net/galleries/${data.media_id}/${i + 1}.${ext}`;
+        
+        // nhentai v2 provides direct paths
+        const nhPages = data.pages.map((p: any) => {
+           return `https://i.nhentai.net/${p.path}`;
         });
         setPages(nhPages);
       }

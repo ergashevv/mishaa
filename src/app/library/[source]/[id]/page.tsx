@@ -8,7 +8,7 @@ import {
   Layers, Globe, BookOpen, Share2, 
   Bookmark, Heart, Download, X,
   ZoomIn, ZoomOut, Maximize2, Minimize2,
-  ChevronRight, Loader2, Sparkles, Flag,
+  ChevronRight, Loader2, Sparkles, Flag, List,
   Settings, Columns, Smartphone, Monitor,
   ChevronDown, ChevronUp, Menu, MousePointer2
 } from 'lucide-react';
@@ -59,6 +59,8 @@ export default function ComicDetailsPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSpreadCover, setIsSpreadCover] = useState(true);
   const [showNav, setShowNav] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
   
   const readerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -71,6 +73,12 @@ export default function ComicDetailsPage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFs);
+    return () => document.removeEventListener('fullscreenchange', handleFs);
   }, []);
 
   // UI Auto-hide logic
@@ -178,21 +186,19 @@ export default function ComicDetailsPage() {
         }
         setComic(details);
       } else if (source === 'nhentai') {
-        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`gallery/${id}`)}`);
+        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${id}`)}`);
         if (!res.ok) throw new Error("Failed to fetch nhentai");
         const data = await res.json();
-        const typeMap: Record<string, string> = { j: 'jpg', p: 'png', g: 'gif' };
-        const ext = typeMap[data.images.cover.t] || 'jpg';
         
         setComic({
           id: data.id.toString(),
-          title: data.title.english || data.title.japanese || data.title.pretty,
-          description: data.tags.map((t: any) => t.name).join(', '),
-          coverUrl: `https://t.nhentai.net/galleries/${data.media_id}/cover.${ext}`,
+          title: data.english_title || data.title?.english || data.title?.japanese || data.title?.pretty || "Untitled",
+          description: data.tags?.map((t: any) => t.name).join(', ') || "",
+          coverUrl: `https://t3.nhentai.net/${data.cover?.path || data.thumbnail?.path || data.thumbnail}`,
           rating: 'pornographic',
-          genres: data.tags.filter((t: any) => t.type === 'tag').map((t: any) => t.name),
+          genres: data.tags?.filter((t: any) => t.type === 'tag').map((t: any) => t.name) || [],
           status: 'Completed',
-          author: data.tags.find((t: any) => t.type === 'artist')?.name || 'Unknown',
+          author: data.tags?.find((t: any) => t.type === 'artist')?.name || 'Unknown',
           source: 'nhentai'
         });
         setChapters([{ id: data.id.toString(), title: 'Full Gallery', chapterNum: '1' }]);
@@ -213,7 +219,25 @@ export default function ComicDetailsPage() {
           author: meta.creator || 'Unknown',
           source: 'archive'
         });
-        setChapters([{ id: id as string, title: 'Complete Volume', chapterNum: '1' }]);
+
+        // Smart Chapter Detection for Archive.org
+        const bookFiles = data.files?.filter((f: any) => 
+          f.format === "Image Container PDF" || 
+          f.format === "PDF" || 
+          f.format === "EPUB" || 
+          f.format === "Comic Book Archive"
+        ) || [];
+
+        if (bookFiles.length > 1) {
+          const chList = bookFiles.map((f: any, i: number) => ({
+            id: f.name, // Store filename
+            title: f.title || f.name.replace(/\.[^/.]+$/, "").replace(/_/g, " "),
+            chapterNum: (i + 1).toString()
+          }));
+          setChapters(chList);
+        } else {
+          setChapters([{ id: id as string, title: 'Complete Volume', chapterNum: '1' }]);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -237,24 +261,45 @@ export default function ComicDetailsPage() {
         // Preload first 3 pages
         urls.slice(0, 3).forEach((u: string) => { const img = new Image(); img.src = u; });
       } else if (source === 'nhentai') {
-        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`gallery/${id}`)}`);
+        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${id}`)}`);
+        if (!res.ok) throw new Error("Failed to fetch nhentai gallery");
         const data = await res.json();
-        const typeMap: Record<string, string> = { j: 'jpg', p: 'png', g: 'gif' };
-        const nhPages = data.images.pages.map((p: any, i: number) => {
-           const ext = typeMap[p.t] || 'jpg';
-           return `https://i.nhentai.net/galleries/${data.media_id}/${i + 1}.${ext}`;
+        const nhPages = data.pages.map((p: any) => {
+           return `https://i.nhentai.net/${p.path}`;
         });
         setPages(nhPages);
       } else {
         const res = await fetch(`https://archive.org/metadata/${id}`);
         const data = await res.json();
         let archivePages = [];
-        let count = parseInt(data.metadata?.page_count || data.item_last_updated || "60");
-        // Limit to 1000 pages to avoid infinite loops if data is weird
-        count = Math.min(count, 1000);
+        
+        const ch = chapters[idx];
+        const isSubFile = ch.id !== id;
+        
+        // Find the most reliable page count
+        let jp2File;
+        if (isSubFile) {
+          // If it's a sub-file, we need to find its related jp2.zip or just use metadata
+          const baseName = ch.id.replace(/\.[^/.]+$/, "");
+          jp2File = data.files?.find((f: any) => f.name.includes(baseName) && f.format === "Single Page Processed JP2 ZIP");
+        } else {
+          jp2File = data.files?.find((f: any) => f.format === "Single Page Processed JP2 ZIP");
+        }
+
+        let count = parseInt(jp2File?.filecount || data.metadata?.page_count || "1");
+        
+        if (count <= 1) {
+          // Fallback to searching the file list for the specific file's page count if available
+          const targetFile = data.files?.find((f: any) => f.name === ch.id);
+          count = parseInt(targetFile?.page_count || targetFile?.filecount || data.metadata?.page_count || "60");
+        }
+
+        count = Math.min(count, 1500);
         for(let i=0; i<count; i++) {
-          // Use high quality scale and fullsize for comics
-          archivePages.push(`https://archive.org/services/img/${id}/${i}?scale=8&fullsize=1`);
+          const url = isSubFile 
+            ? `https://archive.org/services/img/${id}/${i}?scale=8&fullsize=1&file=${encodeURIComponent(ch.id)}`
+            : `https://archive.org/services/img/${id}/${i}?scale=8&fullsize=1`;
+          archivePages.push(url);
         }
         setPages(archivePages);
       }
@@ -422,7 +467,7 @@ export default function ComicDetailsPage() {
                <div 
                  className="text-xl md:text-2xl text-white/50 font-medium leading-relaxed max-w-3xl italic description-content"
                  dangerouslySetInnerHTML={{ 
-                   __html: comic.description
+                   __html: String(comic.description || "")
                      .replace(/\[b\]/g, '<strong>').replace(/\[\/b\]/g, '</strong>')
                      .replace(/\[i\]/g, '<em>').replace(/\[\/i\]/g, '</em>')
                      .replace(/\n/g, '<br />')
@@ -498,11 +543,15 @@ export default function ComicDetailsPage() {
                   </button>
                 </div>
 
-               <div className="flex items-center gap-4">
-                  <div className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-4 py-2 hidden md:block">CH_{chapters[currentChapterIdx]?.chapterNum} <span className="text-white/20 ml-2">P_{currentPage + 1}/{pages.length}</span></div>
-                  <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-12 h-12 flex items-center justify-center hover:bg-white/5 border border-white/10"><Maximize2 size={18}/></button>
-               </div>
-            </motion.div>
+                <div className="flex items-center gap-3">
+                   <button onClick={() => setShowGrid(true)} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md" title="Page Overview"><List size={16}/></button>
+                   <div className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-4 h-10 flex items-center hidden md:flex">
+                      CH_{chapters[currentChapterIdx]?.chapterNum} <span className="text-white/20 ml-3">P_{currentPage + 1}/{pages.length}</span>
+                   </div>
+                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md"><Maximize2 size={16}/></button>
+                </div>
+             </motion.div>
+
 
             {/* Reader Canvas */}
             <div ref={canvasRef} className="flex-1 w-full bg-[#020202] overflow-y-auto custom-scrollbar relative scroll-smooth" id="reader-canvas">
@@ -558,7 +607,7 @@ export default function ComicDetailsPage() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Empty_Chapter_Buffer</div>
                  </div>
                ) : (
-                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${viewMode === 'flow' ? 'max-w-4xl pt-32 pb-20 px-4' : 'min-h-full justify-center pt-20 pb-20'}`}>
+                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${viewMode === 'flow' ? 'w-full pt-32 pb-20' : 'min-h-full justify-center pt-20 pb-20'}`}>
                     
                     {viewMode === 'classic' ? (
                        <div className="relative flex items-center justify-center w-full min-h-[80vh]">
@@ -614,8 +663,14 @@ export default function ComicDetailsPage() {
                             )}
                           </AnimatePresence>
                        </div>
-                    ) : (
-                       <div className="flex flex-col items-center gap-0 w-full transition-all duration-300" style={{ maxWidth: isMobile ? '100%' : `${zoom * 800}px` }}>
+                     ) : (
+                       <div 
+                         className="flex flex-col items-center gap-0 w-full transition-all duration-500" 
+                         style={{ 
+                           maxWidth: (isMobile || isFullscreen) ? '100%' : `${zoom * 800}px`,
+                           width: '100%'
+                         }}
+                       >
                           {pages.map((p, i) => <img key={i} id={`page-${i}`} src={p + (source === 'archive' ? '?scale=2' : '')} className="w-full h-auto" loading="lazy" />)}
                           {currentChapterIdx < chapters.length - 1 && (
                             <button onClick={nextChapter} className="w-full py-40 mt-20 border-2 border-dashed border-white/5 hover:border-[#ff4d00]/50 hover:bg-[#ff4d00]/5 transition-all group flex flex-col items-center gap-4">
@@ -679,6 +734,58 @@ export default function ComicDetailsPage() {
                    <button onClick={nextChapter} className="px-6 py-2 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black disabled:opacity-10 transition-all" disabled={currentChapterIdx === chapters.length - 1}>Next_Chapter</button>
                 </div>
             </motion.div>
+ 
+             {/* Page Grid Overview Overlay */}
+             <AnimatePresence>
+               {showGrid && (
+                 <motion.div 
+                   initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                   animate={{ opacity: 1, backdropFilter: 'blur(20px)' }}
+                   exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                   className="fixed inset-0 z-[10050] bg-black/90 overflow-y-auto custom-scrollbar p-8 md:p-16"
+                 >
+                    {/* Grid Header */}
+                    <div className="fixed top-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-md z-[10060] px-8 flex items-center justify-between border-b border-white/5">
+                       <button onClick={() => setShowGrid(false)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all">
+                          <ChevronLeft size={16} /> BACK_TO_READER
+                       </button>
+                       <div className="text-[11px] font-black uppercase tracking-[0.4em] text-white/60 text-center flex-1 hidden sm:block">
+                          {comic.title} <span className="text-[#ff4d00]">/ OVERVIEW</span>
+                       </div>
+                       <button onClick={() => setShowGrid(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-red-600 transition-colors"><X size={20}/></button>
+                    </div>
+
+                    <div className="mt-24 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8 max-w-7xl mx-auto">
+                       {pages.map((p, i) => (
+                         <motion.button
+                           key={i}
+                           initial={{ opacity: 0, y: 20 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           transition={{ delay: i * 0.01 }}
+                           onClick={() => {
+                             setCurrentPage(i);
+                             setShowGrid(false);
+                             if (viewMode === 'flow') {
+                               document.getElementById(`page-${i}`)?.scrollIntoView({ behavior: 'instant' });
+                             } else {
+                               canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+                             }
+                           }}
+                           className={`group relative aspect-[2/3] bg-[#0a0a0a] border ${currentPage === i ? 'border-[#ff4d00] ring-4 ring-[#ff4d00]/20 scale-105 z-10' : 'border-white/10 hover:border-white/30'} transition-all overflow-hidden`}
+                         >
+                            <img src={p} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy" />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                               <div className="px-3 py-1.5 bg-black/80 backdrop-blur-md border border-white/10 text-[14px] font-black text-white group-hover:bg-[#ff4d00] group-hover:border-[#ff4d00] transition-all">
+                                  {String(i + 1).padStart(2, '0')}
+                                </div>
+                            </div>
+                         </motion.button>
+                       ))}
+                    </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
 
           </motion.div>
         )}
