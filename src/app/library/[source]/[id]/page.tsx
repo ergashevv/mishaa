@@ -16,6 +16,13 @@ import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
 import { translations, Lang } from '@/lib/translations';
+import { 
+  DEFAULT_MANGA_LANGUAGE,
+  getMangaDexTranslatedLanguages,
+  resolveMangaDexLocalizedText,
+  readStoredMangaLanguage,
+  MangaLanguage,
+} from '@/lib/manga-language';
 
 interface Chapter {
   id: string;
@@ -120,6 +127,7 @@ export default function ComicDetailsPage() {
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [lang, setLang] = useState<Lang>('en');
+  const [mangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
   const t = (translations[lang] as any).library;
   
   const readerRef = useRef<HTMLDivElement>(null);
@@ -245,14 +253,19 @@ export default function ComicDetailsPage() {
         const coverFileName = manga.relationships.find((r: any) => r.type === 'cover_art')?.attributes?.fileName;
         const author = manga.relationships.find((r: any) => r.type === 'author')?.attributes?.name;
         const aniListId = manga.attributes.links?.al;
+        const title = resolveMangaDexLocalizedText(manga.attributes.title, mangaLanguage);
+        const description = resolveMangaDexLocalizedText(manga.attributes.description, mangaLanguage);
+        const genres = manga.attributes.tags.map((t: any) =>
+          resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage)
+        ).filter(Boolean);
 
         let details: ComicDetails = {
           id: manga.id,
-          title: manga.attributes.title.en || Object.values(manga.attributes.title)[0] as string,
-          description: manga.attributes.description.en || "No description available.",
+          title: title || Object.values(manga.attributes.title || {})[0] as string,
+          description: description || "No description available.",
           coverUrl: coverFileName ? `https://uploads.mangadex.org/covers/${manga.id}/${coverFileName}.512.jpg` : '/logo.png',
           rating: manga.attributes.contentRating,
-          genres: manga.attributes.tags.map((t: any) => t.attributes.name.en),
+          genres: genres.length > 0 ? genres : manga.attributes.tags.map((t: any) => t.attributes.name.en),
           status: manga.attributes.status,
           year: manga.attributes.year,
           author: author,
@@ -260,14 +273,30 @@ export default function ComicDetailsPage() {
           aniListId: aniListId
         };
 
-        const tags = manga.attributes.tags.map((t: any) => t.attributes.name.en.toLowerCase());
+        const tags = manga.attributes.tags.map((t: any) =>
+          resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage).toLowerCase()
+        );
         if (tags.includes('long strip') || tags.includes('webtoon')) {
           setIsLongStrip(true);
         }
 
         // Fetch Chapters Feed
-        const feedRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?translatedLanguage[]=en&limit=100&order[chapter]=asc&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic`);
-        const feedData = await feedRes.json();
+        const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
+        const feedParams = new URLSearchParams();
+        feedParams.set('limit', '100');
+        feedParams.set('order[chapter]', 'asc');
+        feedParams.append('contentRating[]', 'safe');
+        feedParams.append('contentRating[]', 'suggestive');
+        feedParams.append('contentRating[]', 'erotica');
+        feedParams.append('contentRating[]', 'pornographic');
+        translatedLanguages?.forEach((language) => feedParams.append('translatedLanguage[]', language));
+
+        let feedRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?${feedParams.toString()}`);
+        let feedData = await feedRes.json();
+        if ((!feedData.data || feedData.data.length === 0) && mangaLanguage === DEFAULT_MANGA_LANGUAGE) {
+          feedRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?limit=100&order[chapter]=asc&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic`);
+          feedData = await feedRes.json();
+        }
         const chList = feedData.data?.map((ch: any) => ({
           id: ch.id,
           title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,

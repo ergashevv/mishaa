@@ -11,6 +11,15 @@ import {
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
 import { translations, Lang } from '@/lib/translations';
+import { 
+  DEFAULT_MANGA_LANGUAGE,
+  MANGA_LANGUAGE_OPTIONS,
+  MangaLanguage,
+  getMangaDexTranslatedLanguages,
+  persistStoredMangaLanguage,
+  resolveMangaDexLocalizedText,
+  readStoredMangaLanguage,
+} from '@/lib/manga-language';
 
 interface Comic {
   id: string;
@@ -112,6 +121,7 @@ export default function ComicLibrary() {
     const savedLang = localStorage.getItem('lang') as Lang;
     return savedLang && translations[savedLang] ? savedLang : 'en';
   });
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
   const t_lib = (translations[lang] as any).library;
   const requestIdRef = useRef(0);
   const skipNextOffsetFetchRef = useRef(false);
@@ -125,6 +135,10 @@ export default function ComicLibrary() {
       persistAgeVerification();
     }
   }, [isAgeVerified]);
+
+  useEffect(() => {
+    persistStoredMangaLanguage(mangaLanguage);
+  }, [mangaLanguage]);
 
   const handleAgeVerify = () => {
     persistAgeVerification();
@@ -149,7 +163,8 @@ export default function ComicLibrary() {
     query: string,
     currentOffset: number,
     ratingsOverride?: string[],
-    originalLanguages?: string[]
+    originalLanguages?: string[],
+    translatedLanguage?: MangaLanguage
   ): Promise<LoadResult> => {
     try {
       const ratings = ratingsOverride || ['safe', 'suggestive'];
@@ -157,7 +172,8 @@ export default function ComicLibrary() {
       params.set('limit', LIMIT.toString());
       params.set('offset', String(currentOffset * LIMIT));
       params.append('includes[]', 'cover_art');
-      params.append('availableTranslatedLanguage[]', 'en');
+      const translatedLanguages = getMangaDexTranslatedLanguages(translatedLanguage || DEFAULT_MANGA_LANGUAGE);
+      translatedLanguages?.forEach((language) => params.append('availableTranslatedLanguage[]', language));
       ratings.forEach((rating) => params.append('contentRating[]', rating));
       originalLanguages?.forEach((language) => params.append('originalLanguage[]', language));
       // Added order by relevance if query exists, else followedCount
@@ -181,9 +197,12 @@ export default function ComicLibrary() {
       return {
         items: items.map((item: any) => {
           const coverFileName = item.relationships?.find((r: any) => r.type === 'cover_art')?.attributes?.fileName;
+          const title = resolveMangaDexLocalizedText(item.attributes.title, translatedLanguage || DEFAULT_MANGA_LANGUAGE);
+          const description = resolveMangaDexLocalizedText(item.attributes.description, translatedLanguage || DEFAULT_MANGA_LANGUAGE);
           return {
             id: item.id,
-            title: item.attributes.title.en || Object.values(item.attributes.title)[0],
+            title: title || Object.values(item.attributes.title || {})[0] || 'Untitled',
+            description: description || 'No description available.',
             coverUrl: coverFileName ? `https://uploads.mangadex.org/covers/${item.id}/${coverFileName}.512.jpg` : '/logo.png',
             source: 'mangadex',
             rating: item.attributes.contentRating
@@ -361,7 +380,7 @@ export default function ComicLibrary() {
           // Global search: search all sources
           const nhentaiSearch = canAccessAdultContent ? fetchNHentai(query, pageIndex) : Promise.resolve<LoadResult>({ items: [], hasMore: false });
           const [mdResults, arcResults, nhResults] = await Promise.all([
-            fetchMangaDex(query, pageIndex, defaultRatings),
+            fetchMangaDex(query, pageIndex, defaultRatings, undefined, mangaLanguage),
             fetchArchive(query, pageIndex),
             nhentaiSearch
           ]);
@@ -377,7 +396,7 @@ export default function ComicLibrary() {
         const catQuery = cat?.query || '';
         
         if (source === 'mangadex') {
-          result = await fetchMangaDex(catQuery, pageIndex, cat?.ratings || defaultRatings, cat?.originalLanguages);
+          result = await fetchMangaDex(catQuery, pageIndex, cat?.ratings || defaultRatings, cat?.originalLanguages, mangaLanguage);
         } else if (source === 'nhentai') {
           if (!canAccessAdultContent) {
             setShowAgeGate(true);
@@ -414,7 +433,7 @@ export default function ComicLibrary() {
         setLoadingMore(false);
       }
     }
-  }, [activeCategory, fetchArchive, fetchMangaDex, fetchMarvelIssues, fetchNHentai, isAgeVerified, nsfwEnabled, searchQuery]);
+  }, [activeCategory, fetchArchive, fetchMangaDex, fetchMarvelIssues, fetchNHentai, isAgeVerified, mangaLanguage, nsfwEnabled, searchQuery]);
 
   useEffect(() => {
     // Filters intentionally refetch the library; this is the synchronization point.
@@ -451,11 +470,16 @@ export default function ComicLibrary() {
     try {
       if (comic.source === 'mangadex') {
         // Try English first
-        let feedRes = await fetch(`https://api.mangadex.org/manga/${comic.id}/feed?translatedLanguage[]=en&limit=5&order[chapter]=asc`);
+        const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
+        const feedParams = new URLSearchParams();
+        feedParams.set('limit', '5');
+        feedParams.set('order[chapter]', 'asc');
+        translatedLanguages?.forEach((language) => feedParams.append('translatedLanguage[]', language));
+        let feedRes = await fetch(`https://api.mangadex.org/manga/${comic.id}/feed?${feedParams.toString()}`);
         let feedData = await feedRes.json();
         
-        // Fallback to any language if English is not available
-        if (!feedData.data || feedData.data.length === 0) {
+        // Fallback to any language only for the default English browse mode.
+        if ((!feedData.data || feedData.data.length === 0) && mangaLanguage === DEFAULT_MANGA_LANGUAGE) {
           feedRes = await fetch(`https://api.mangadex.org/manga/${comic.id}/feed?limit=5&order[chapter]=asc`);
           feedData = await feedRes.json();
         }
@@ -566,38 +590,57 @@ export default function ComicLibrary() {
 
       {!selectedComic && (
         <div className="p-8 md:p-16">
-          <header className="max-w-7xl mx-auto mb-20 space-y-12">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-10">
-              <div>
-                <h1 className="text-8xl md:text-[120px] font-black italic tracking-tighter uppercase leading-[0.7]">
-                   COMIC<span className="text-[#ff4d00]">.</span>HUB
-                </h1>
-                <div className="flex items-center gap-6 mt-10">
-                   <div className="h-[2px] w-16 bg-[#ff4d00]" />
-                   <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.4em] text-white/30">
-                      <Sparkles size={12} className="text-[#ff4d00]" /> Global_Library_Active
-                   </div>
+          <header className="max-w-7xl mx-auto mb-16">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="inline-flex items-center gap-3 border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/70 hover:bg-white/10 hover:text-white transition-all"
+                >
+                  <ChevronLeft size={14} />
+                  Back
+                </button>
+
+                <div className="hidden md:flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.45em] text-white/25">
+                  <div className="h-[2px] w-16 bg-[#ff4d00]" />
+                  <span>Archive Index</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-4 py-3 border border-white/10 bg-white/5">
+                    <Globe size={14} className="text-[#ff4d00]" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/40">Manga Language</span>
+                  </div>
+                  <select
+                    value={mangaLanguage}
+                    onChange={(e) => setMangaLanguage(e.target.value as MangaLanguage)}
+                    className="min-w-[220px] bg-[#0a0a0a] border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-[#ff4d00]"
+                  >
+                    {MANGA_LANGUAGE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 w-full md:w-auto">
-                 <div className="flex items-center gap-2">
-                    <button onClick={() => {
-                      const randomOffset = Math.floor(Math.random() * 10);
-                      skipNextOffsetFetchRef.current = true;
-                      setOffset(randomOffset);
-                      loadData(randomOffset, false);
-                    }} className="w-16 h-16 flex items-center justify-center border border-white/10 text-white/20 hover:bg-[#ff4d00] hover:text-white transition-all">
-                       <Shuffle size={20} />
-                    </button>
-                    <div className="relative flex-1 md:w-96">
-                       <input type="text" placeholder="SEARCH_GLOBAL_ARCHIVES..." className="w-full bg-white/5 border border-white/10 py-5 px-12 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    </div>
-                    <button onClick={() => { if (!isAgeVerified) { setShowAgeGate(true); } else { setNsfwEnabled(!nsfwEnabled); } }} className={`w-16 h-16 flex items-center justify-center border transition-all ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-white/10 text-white/20'}`}>
-                      {nsfwEnabled ? <Eye /> : <EyeOff />}
-                    </button>
-                 </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => {
+                  const randomOffset = Math.floor(Math.random() * 10);
+                  skipNextOffsetFetchRef.current = true;
+                  setOffset(randomOffset);
+                  loadData(randomOffset, false);
+                }} className="w-16 h-16 flex items-center justify-center border border-white/10 text-white/20 hover:bg-[#ff4d00] hover:text-white transition-all">
+                  <Shuffle size={20} />
+                </button>
+                <div className="relative flex-1 md:w-96">
+                  <input type="text" placeholder="SEARCH_GLOBAL_ARCHIVES..." className="w-full bg-white/5 border border-white/10 py-5 px-12 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                </div>
+                <button onClick={() => { if (!isAgeVerified) { setShowAgeGate(true); } else { setNsfwEnabled(!nsfwEnabled); } }} className={`w-16 h-16 flex items-center justify-center border transition-all ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-white/10 text-white/20'}`}>
+                  {nsfwEnabled ? <Eye /> : <EyeOff />}
+                </button>
               </div>
             </div>
 
