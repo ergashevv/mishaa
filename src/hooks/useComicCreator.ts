@@ -287,7 +287,7 @@ export function useComicCreator() {
     updatePanel, addPanel, deletePanel, duplicatePanel, generatePanelImage, 
     addPage, setActivePageIndex, insertPanelAfter, addTextElement,
     draftPanels, addDraftPanel, setPages, setCharacters,
-    saveToCloud, isSaving, lastSaved, storyId,
+    saveToCloud, isSaving, setIsSaving, lastSaved, storyId,
     undo, redo, canUndo: history.past.length > 0, canRedo: history.future.length > 0,
     synthesizeStory
   };

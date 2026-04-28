@@ -29,7 +29,7 @@ export default function ComicCreator() {
     updatePanel, addPanel, deletePanel, duplicatePanel, generatePanelImage, 
     addPage, setActivePageIndex, insertPanelAfter, addTextElement,
     draftPanels, addDraftPanel, setSelectedPanelId,
-    saveToCloud, isSaving, lastSaved,
+    saveToCloud, isSaving, setIsSaving, lastSaved,
     undo, redo, canUndo, canRedo
   } = engine;
   
@@ -296,6 +296,7 @@ export default function ComicCreator() {
             <button className="h-10 px-8 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--accent)] hover:text-white transition-all shadow-2xl">
                {t('release_export')}
             </button>
+         </div>
       </header>
 
       <main className="flex-1 flex overflow-hidden relative">
@@ -926,8 +927,9 @@ export default function ComicCreator() {
                   </div>
                )}
             </div>
-         </aside>
-      </main>
+         </div>
+      </aside>
+   </main>
 
       {/* 🟢 FLOATING INTERFACE CONTROLS */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[500] flex flex-col items-center gap-6">

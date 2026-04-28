@@ -9,9 +9,10 @@ interface OnboardingWizardProps {
   onClose: () => void;
   onStartCharacter: () => void;
   onStartPage: () => void;
+  t: (key: string) => string;
 }
 
-export function OnboardingWizard({ isOpen, onClose, onStartCharacter, onStartPage }: OnboardingWizardProps) {
+export function OnboardingWizard({ isOpen, onClose, onStartCharacter, onStartPage, t }: OnboardingWizardProps) {
   const [step, setStep] = useState(0);
 
   const steps = [

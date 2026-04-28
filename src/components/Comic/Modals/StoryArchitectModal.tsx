@@ -9,10 +9,11 @@ interface StoryArchitectModalProps {
   setStoryInput: (val: string) => void;
   isSynthesizing: boolean;
   onSynthesize: () => void;
+  t: (key: string) => string;
 }
 
 export function StoryArchitectModal({
-  isOpen, onClose, storyInput, setStoryInput, isSynthesizing, onSynthesize
+  isOpen, onClose, storyInput, setStoryInput, isSynthesizing, onSynthesize, t
 }: StoryArchitectModalProps) {
   return (
     <AnimatePresence>
