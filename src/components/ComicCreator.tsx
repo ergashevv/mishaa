@@ -17,7 +17,7 @@ import { StoryArchitectModal } from './Comic/Modals/StoryArchitectModal';
 import { CharacterForgeModal } from './Comic/Modals/CharacterForgeModal';
 import { OnboardingWizard } from './Comic/Modals/OnboardingWizard';
 import { GlobalLogicHUD } from './Comic/GlobalLogicHUD';
-import { translations } from '@/lib/translations';
+import { translations, type Lang } from '@/lib/translations';
 import type { BubbleType, Panel } from '@/types/comic';
 
 export default function ComicCreator() {
@@ -38,10 +38,10 @@ export default function ComicCreator() {
   const [activeRightTab, setActiveRightTab] = useState<RightTab>('properties');
   const [cursorMode, setCursorMode] = useState<'move' | 'hand'>('move');
   const [zoom, setZoom] = useState(0.8);
-  const [lang] = useState('en');
+  const [lang] = useState<Lang>('en');
   const t = (key: string): string => {
-    const locale = translations[lang as keyof typeof translations] as Record<string, string>;
-    const val = locale?.[key];
+    const locale = translations[lang];
+    const val = locale[key as keyof typeof locale];
     return typeof val === 'string' ? val : key;
   };
 
