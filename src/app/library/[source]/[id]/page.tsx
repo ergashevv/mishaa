@@ -700,7 +700,7 @@ export default function ComicDetailsPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="sticky top-28 space-y-6"
+              className="space-y-6 lg:sticky lg:top-28"
             >
               <div className="relative aspect-[2/3] w-full overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
                 <img
@@ -930,15 +930,15 @@ export default function ComicDetailsPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_58%,rgba(0,0,0,0.6)_100%)]" />
       </div>
 
-      <main className="relative z-10 pt-24 pb-24 px-6 md:px-20 max-w-7xl mx-auto">
+      <main className="relative z-10 pt-24 pb-24 px-4 sm:px-6 md:px-20 max-w-7xl mx-auto">
         <motion.button initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} onClick={() => router.back()} className="mb-12 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-[#ff4d00] transition-all group">
           <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Neural_Backtrack
         </motion.button>
 
         <div className="rounded-[2rem] border border-white/8 bg-white/[0.03] backdrop-blur-xl shadow-[0_40px_140px_rgba(0,0,0,0.45)] overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-16 lg:gap-24 items-start p-6 md:p-10 lg:p-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 lg:gap-24 items-start p-4 sm:p-6 md:p-10 lg:p-12">
           {/* Side Info */}
-          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 sticky top-32">
+          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 lg:sticky lg:top-32">
             <div className="group relative aspect-[2/3] w-full bg-[#0a0a0a] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.9)] overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                <img src={comic.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={comic.title} />
@@ -1041,9 +1041,9 @@ export default function ComicDetailsPage() {
           >
             
             {/* Minimal Top Header */}
-            <motion.div animate={{ y: uiVisible ? 0 : -100 }} transition={{ type: 'spring', damping: 25 }} className="fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto">
-               <div className="flex items-center gap-6">
-                  <button onClick={() => setReading(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-red-600 transition-colors"><X size={20}/></button>
+            <motion.div animate={{ y: uiVisible ? 0 : -100 }} transition={{ type: 'spring', damping: 25 }} className="fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
+               <div className="flex items-center gap-6 max-md:w-full max-md:justify-between max-md:gap-3">
+                  <button onClick={() => setReading(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-red-600 transition-colors max-md:w-9 max-md:h-9"><X size={20}/></button>
                   <div className="hidden sm:block space-y-0.5">
                      <div className="text-[8px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Active_Matrix</div>
                      <div className="text-[11px] font-black uppercase tracking-tight max-w-[300px] truncate">{comic.title}</div>
@@ -1051,30 +1051,30 @@ export default function ComicDetailsPage() {
                </div>
 
                {/* View Mode Controls (Responsive) */}
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center bg-white/5 border border-white/10 rounded-full p-1 shadow-2xl backdrop-blur-xl">
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center bg-white/5 border border-white/10 rounded-full p-1 shadow-2xl backdrop-blur-xl max-md:static max-md:w-full max-md:translate-x-0 max-md:justify-between max-md:rounded-2xl max-md:p-1.5">
                   {!isLongStrip && (
-                    <button onClick={() => setViewMode('classic')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                    <button onClick={() => setViewMode('classic')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
                       <Monitor size={14} className="hidden sm:block"/>
                       <Smartphone size={14} className="sm:hidden"/>
                       Classic
                     </button>
                   )}
                   {!isLongStrip && !isMobile && (
-                    <button onClick={() => setViewMode('journal')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                    <button onClick={() => setViewMode('journal')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
                       <Columns size={14}/> Journal
                     </button>
                   )}
-                  <button onClick={() => setViewMode('flow')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                  <button onClick={() => setViewMode('flow')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
                     <Smartphone size={14}/> Flow
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 max-md:w-full max-md:justify-between">
                    <button onClick={() => setShowGrid(true)} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md" title="Page Overview"><List size={16}/></button>
                    <div className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-4 h-10 flex items-center hidden md:flex">
                       CH_{chapters[currentChapterIdx]?.chapterNum} <span className="text-white/20 ml-3">P_{currentPage + 1}/{pages.length}</span>
                    </div>
-                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md"><Maximize2 size={16}/></button>
+                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md max-md:w-9 max-md:h-9"><Maximize2 size={16}/></button>
                 </div>
              </motion.div>
 
@@ -1084,7 +1084,7 @@ export default function ComicDetailsPage() {
                {/* Scroll Hint */}
                <AnimatePresence>
                  {!scrolled && !readerLoading && pages.length > 0 && viewMode === 'flow' && (
-                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[10015] flex flex-col items-center gap-2 pointer-events-none">
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[10015] flex flex-col items-center gap-2 pointer-events-none max-md:bottom-28">
                       <div className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30">Initiate_Scroll</div>
                       <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}><ChevronDown className="text-[#ff4d00]" size={20}/></motion.div>
                    </motion.div>
@@ -1096,7 +1096,7 @@ export default function ComicDetailsPage() {
                  <>
                    {/* Left Hover Area */}
                    <div 
-                     className="fixed inset-y-0 left-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer" 
+                   className="fixed inset-y-0 left-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer max-md:hidden"
                      onClick={handlePrevPage}
                    >
                       <div className="absolute top-1/2 left-8 -translate-y-1/2 opacity-0 group-hover/nav:opacity-100 transition-all duration-300 transform -translate-x-4 group-hover/nav:translate-x-0 hidden md:block">
@@ -1109,7 +1109,7 @@ export default function ComicDetailsPage() {
 
                    {/* Right Hover Area */}
                    <div 
-                     className="fixed inset-y-0 right-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer" 
+                   className="fixed inset-y-0 right-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer max-md:hidden"
                      onClick={handleNextPage}
                    >
                       <div className="absolute top-1/2 right-8 -translate-y-1/2 opacity-0 group-hover/nav:opacity-100 transition-all duration-300 transform translate-x-4 group-hover/nav:translate-x-0 text-right hidden md:block">
@@ -1133,7 +1133,7 @@ export default function ComicDetailsPage() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Empty_Chapter_Buffer</div>
                  </div>
                ) : (
-                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${viewMode === 'flow' ? 'w-full pt-32 pb-20' : 'min-h-full justify-center pt-20 pb-20'}`}>
+                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${viewMode === 'flow' ? 'w-full pt-32 pb-20 max-md:pt-24 max-md:pb-28' : 'min-h-full justify-center pt-20 pb-20 max-md:pt-24 max-md:pb-28'}`}>
                     
                     {viewMode === 'classic' ? (
                        <div className="relative flex items-center justify-center w-full min-h-[80vh]">
@@ -1211,8 +1211,8 @@ export default function ComicDetailsPage() {
             </div>
 
             {/* Bottom Status Bar */}
-            <motion.div animate={{ y: uiVisible ? 0 : 100 }} transition={{ type: 'spring', damping: 25 }} className="fixed bottom-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-t from-black via-black/90 to-transparent px-10 flex items-center justify-between backdrop-blur-sm">
-                <div className="flex items-center gap-8">
+            <motion.div animate={{ y: uiVisible ? 0 : 100 }} transition={{ type: 'spring', damping: 25 }} className="fixed bottom-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-t from-black via-black/90 to-transparent px-10 flex items-center justify-between backdrop-blur-sm max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
+                <div className="flex items-center gap-8 max-md:flex-wrap max-md:justify-between max-md:gap-3">
                    <div className="flex items-center gap-4">
                       <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"><ZoomOut size={16}/></button>
                       <div className="text-[9px] font-black text-white/40 w-12 text-center uppercase tracking-tighter">{Math.round(zoom * 100)}%</div>
@@ -1233,7 +1233,7 @@ export default function ComicDetailsPage() {
                 </div>
 
                  {/* Intelligent Progress Scrubber */}
-                 <div className="flex-1 max-w-2xl mx-10 sm:mx-20 relative flex items-center">
+                 <div className="flex-1 max-w-2xl mx-10 sm:mx-20 relative flex items-center max-md:mx-0 max-md:w-full">
                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] font-black text-white/20 uppercase tracking-[0.3em] whitespace-nowrap">
                        {viewMode === 'flow' ? 'Reading_Progress' : `Page_Sequence_${currentPage + 1}_of_${pages.length}`}
                     </div>
@@ -1255,7 +1255,7 @@ export default function ComicDetailsPage() {
                     />
                  </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 max-md:w-full max-md:justify-between max-md:gap-3">
                    <button onClick={prevChapter} className="hidden sm:block px-6 py-2 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 disabled:opacity-10 transition-all" disabled={currentChapterIdx === 0}>Prev_Chapter</button>
                    <button onClick={nextChapter} className="px-6 py-2 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black disabled:opacity-10 transition-all" disabled={currentChapterIdx === chapters.length - 1}>Next_Chapter</button>
                 </div>
@@ -1268,10 +1268,10 @@ export default function ComicDetailsPage() {
                    initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
                    animate={{ opacity: 1, backdropFilter: 'blur(20px)' }}
                    exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                   className="fixed inset-0 z-[10050] bg-black/90 overflow-y-auto custom-scrollbar p-8 md:p-16"
+                   className="fixed inset-0 z-[10050] bg-black/90 overflow-y-auto custom-scrollbar p-4 md:p-16"
                  >
                     {/* Grid Header */}
-                    <div className="fixed top-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-md z-[10060] px-8 flex items-center justify-between border-b border-white/5">
+                    <div className="fixed top-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-md z-[10060] px-4 flex items-center justify-between border-b border-white/5 md:px-8">
                        <button onClick={() => setShowGrid(false)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all">
                           <ChevronLeft size={16} /> BACK_TO_READER
                        </button>
@@ -1281,7 +1281,7 @@ export default function ComicDetailsPage() {
                        <button onClick={() => setShowGrid(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-red-600 transition-colors"><X size={20}/></button>
                     </div>
 
-                    <div className="mt-24 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8 max-w-7xl mx-auto">
+                    <div className="mt-24 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-8 max-w-7xl mx-auto">
                        {pages.map((p, i) => (
                          <motion.button
                            key={i}

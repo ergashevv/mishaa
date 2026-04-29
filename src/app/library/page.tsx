@@ -820,13 +820,13 @@ function ComicLibrary() {
       </AnimatePresence>
 
       {!selectedComic && (
-        <div className="p-8 md:p-16">
+        <div className="px-4 py-6 md:p-16">
           <header className="max-w-7xl mx-auto mb-16">
             <div className="flex flex-col gap-6">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <button
                   onClick={() => router.push('/')}
-                  className="inline-flex items-center gap-3 border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/70 hover:bg-white/10 hover:text-white transition-all"
+                  className="inline-flex w-full items-center justify-center gap-3 border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/70 hover:bg-white/10 hover:text-white transition-all md:w-auto"
                 >
                   <ChevronLeft size={14} />
                   Back
@@ -837,7 +837,7 @@ function ComicLibrary() {
                   <span>Library Vault</span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <div className="flex items-center gap-2 px-4 py-3 border border-white/10 bg-white/5">
                     <Globe size={14} className="text-[#ff4d00]" />
                     <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/40">Manga Language</span>
@@ -845,7 +845,7 @@ function ComicLibrary() {
                   <select
                     value={mangaLanguage}
                     onChange={(e) => setMangaLanguage(e.target.value as MangaLanguage)}
-                    className="min-w-[220px] bg-[#0a0a0a] border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-[#ff4d00]"
+                    className="w-full bg-[#0a0a0a] border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-[#ff4d00] md:min-w-[220px] md:w-auto"
                   >
                     {MANGA_LANGUAGE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -856,31 +856,31 @@ function ComicLibrary() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <button onClick={() => {
                   const randomOffset = Math.floor(Math.random() * 10);
                   skipNextOffsetFetchRef.current = true;
                   setOffset(randomOffset);
                   loadData(randomOffset, false);
-                }} className="w-16 h-16 flex items-center justify-center border border-white/10 text-white/20 hover:bg-[#ff4d00] hover:text-white transition-all">
+                }} className="h-12 w-full flex items-center justify-center border border-white/10 text-white/20 hover:bg-[#ff4d00] hover:text-white transition-all md:h-16 md:w-16">
                   <Shuffle size={20} />
                 </button>
                 <div className="relative flex-1 md:w-96">
-                  <input type="text" placeholder="SEARCH_GLOBAL_ARCHIVES..." className="w-full bg-white/5 border border-white/10 py-5 px-12 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none" value={searchQuery} onChange={e => handleSearchQueryChange(e.target.value)} />
+                  <input type="text" placeholder="SEARCH_GLOBAL_ARCHIVES..." className="w-full bg-white/5 border border-white/10 py-4 pl-12 pr-4 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none md:py-5 md:px-12" value={searchQuery} onChange={e => handleSearchQueryChange(e.target.value)} />
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 </div>
-                <button onClick={handleNsfwToggle} className={`w-16 h-16 flex items-center justify-center border transition-all ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-white/10 text-white/20'}`}>
+                <button onClick={handleNsfwToggle} className={`h-12 w-full flex items-center justify-center border transition-all md:h-16 md:w-16 ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-white/10 text-white/20'}`}>
                   {isMounted && nsfwEnabled ? <Eye /> : <EyeOff />}
                 </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-white/5">
+            <div className="flex gap-2 overflow-x-auto pb-2 pt-6 border-t border-white/5 md:flex-wrap md:overflow-visible md:gap-3 md:pb-0">
               {CATEGORIES.map(cat => (
                 <button 
                   key={cat.label} 
                   onClick={() => handleCategoryChange(cat)} 
-                  className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest border transition-all ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-white/10 text-white/30 hover:border-white/80'}`}
+                  className={`shrink-0 whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase tracking-widest border transition-all md:px-6 md:py-3 ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-white/10 text-white/30 hover:border-white/80'}`}
                 >
                   {cat.source === 'archive' && <Flag size={10} className="inline mr-2" />}
                   {cat.source === 'marvel' && <BookOpen size={10} className="inline mr-2" />}
@@ -892,7 +892,7 @@ function ComicLibrary() {
           </header>
 
           {loading ? (
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-10 gap-y-20">
+            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-10 md:gap-y-20">
               {[...Array(12)].map((_, i) => <ComicSkeleton key={i} />)}
             </div>
           ) : comics.length === 0 ? (
@@ -901,7 +901,7 @@ function ComicLibrary() {
                 <h3 className="text-[10px] font-black uppercase tracking-[0.8em] text-white/20">Empty_Archive_Detected</h3>
              </div>
           ) : (
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-10 gap-y-20">
+            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-10 md:gap-y-20">
               {comics.map((comic, index) => (
                 <motion.div 
                   ref={comics.length === index + 1 ? lastComicRef : null}
@@ -965,7 +965,7 @@ function ComicLibrary() {
           )}
 
           {loadingMore && (
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-10 gap-y-20 mt-20">
+            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-10 md:gap-y-20 mt-20">
               {[...Array(6)].map((_, i) => <ComicSkeleton key={i} />)}
             </div>
           )}
@@ -976,21 +976,21 @@ function ComicLibrary() {
       <AnimatePresence>
         {selectedComic && (
           <motion.div ref={readerRef} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-[5000] bg-black flex flex-col">
-             <div className="h-20 bg-black border-b border-white/10 flex items-center justify-between px-8">
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setSelectedComic(null)} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-red-600"><X /></button>
+             <div className="h-20 bg-black border-b border-white/10 flex items-center justify-between px-8 max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
+                <div className="flex items-center gap-4 max-md:justify-between max-md:gap-3">
+                  <button onClick={() => setSelectedComic(null)} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-red-600 max-md:w-9 max-md:h-9"><X /></button>
                   <div className="hidden md:block">
                      <h4 className="text-[10px] font-black uppercase tracking-widest text-white/40 max-w-xs truncate">{selectedComic.title}</h4>
                   </div>
                 </div>
 
-                <div className="flex bg-white/5 p-1 border border-white/10 rounded-full">
-                  <button onClick={() => setViewMode('single')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all ${viewMode === 'single' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Single</button>
-                  <button onClick={() => setViewMode('spread')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all ${viewMode === 'spread' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Journal</button>
-                  <button onClick={() => setViewMode('webtoon')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all ${viewMode === 'webtoon' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Vertical</button>
+                <div className="flex w-full flex-wrap justify-center bg-white/5 p-1 border border-white/10 rounded-full max-md:justify-between max-md:rounded-2xl max-md:p-1.5">
+                  <button onClick={() => setViewMode('single')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'single' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Single</button>
+                  <button onClick={() => setViewMode('spread')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'spread' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Journal</button>
+                  <button onClick={() => setViewMode('webtoon')} className={`px-4 py-2 text-[9px] font-black uppercase rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'webtoon' ? 'bg-[#ff4d00]' : 'text-white/20 hover:text-white'}`}>Vertical</button>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 max-md:w-full max-md:justify-between">
                    <button 
                     onClick={() => {
                       if (!document.fullscreenElement) {
@@ -999,7 +999,7 @@ function ComicLibrary() {
                         document.exitFullscreen();
                       }
                     }}
-                    className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5"
+                    className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 max-md:w-9 max-md:h-9"
                    >
                      <Maximize2 size={16} />
                    </button>
@@ -1023,7 +1023,7 @@ function ComicLibrary() {
                        <div className="relative h-full w-full flex items-center justify-center group">
                           {/* Navigation Zones */}
                           <div 
-                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity" 
+                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
                             onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                           >
                              <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
@@ -1032,7 +1032,7 @@ function ComicLibrary() {
                           </div>
                           
                           <div 
-                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity" 
+                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
                             onClick={() => setCurrentPage(p => Math.min(pages.length - 1, p + 1))}
                           >
                              <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
@@ -1052,7 +1052,7 @@ function ComicLibrary() {
                     ) : viewMode === 'spread' ? (
                       <div className="relative h-full w-full flex items-center justify-center group">
                           <div 
-                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity" 
+                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
                             onClick={() => setCurrentPage(p => Math.max(0, p - 2))}
                           >
                              <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
@@ -1061,7 +1061,7 @@ function ComicLibrary() {
                           </div>
                           
                           <div 
-                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity" 
+                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
                             onClick={() => setCurrentPage(p => Math.min(pages.length - 1, p + 2))}
                           >
                              <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
