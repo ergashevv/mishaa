@@ -113,6 +113,9 @@ const fetchMangaDexProxy = (path: string) =>
     cache: 'no-store',
   });
 
+const proxyImageUrl = (url: string) =>
+  `/api/proxy/image?url=${encodeURIComponent(url)}`;
+
 const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: Record<string, string>) => {
   const searchParams = new URLSearchParams({ source, kind, ...params });
   return fetch(`/api/proxy/booru?${searchParams.toString()}`, {
@@ -224,7 +227,7 @@ export default function ComicLibrary() {
             title: title || Object.values(item.attributes.title || {})[0] || 'Untitled',
             description: description || 'No description available.',
             coverUrl: coverFileName
-              ? `https://uploads.mangadex.org/covers/${item.id}/${coverFileName}.512.jpg`
+              ? proxyImageUrl(`https://uploads.mangadex.org/covers/${item.id}/${coverFileName}.512.jpg`)
               : '/logo.png',
             source: 'mangadex',
             rating: item.attributes.contentRating

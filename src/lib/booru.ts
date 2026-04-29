@@ -22,6 +22,10 @@ function normalizeUrl(url?: string | null) {
   return String(url).replace(/^http:\/\//, 'https://');
 }
 
+function proxyImageUrl(url: string) {
+  return `/api/proxy/image?url=${encodeURIComponent(url)}`;
+}
+
 function compactTags(tags: string[], fallback: string) {
   const unique = tags.filter(Boolean).slice(0, 3);
   if (unique.length === 0) return fallback;
@@ -92,7 +96,7 @@ function extractImageUrl(source: BooruSource, post: any) {
       ? post?.file_url || post?.large_file_url || post?.preview_file_url
       : post?.file_url || post?.sample_url || post?.preview_url;
 
-  return normalizeUrl(candidate);
+  return proxyImageUrl(normalizeUrl(candidate));
 }
 
 function extractExternalUrl(source: BooruSource, post: any) {

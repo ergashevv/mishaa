@@ -106,6 +106,9 @@ const fetchMangaDexProxy = (path: string) =>
     cache: 'no-store',
   });
 
+const proxyImageUrl = (url: string) =>
+  `/api/proxy/image?url=${encodeURIComponent(url)}`;
+
 const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: Record<string, string>) => {
   const searchParams = new URLSearchParams({ source, kind, ...params });
   return fetch(`/api/proxy/booru?${searchParams.toString()}`, {
@@ -281,7 +284,7 @@ export default function ComicDetailsPage() {
           title: title || Object.values(manga.attributes.title || {})[0] as string,
           description: description || "No description available.",
           coverUrl: coverFileName
-            ? `https://uploads.mangadex.org/covers/${manga.id}/${coverFileName}.512.jpg`
+            ? proxyImageUrl(`https://uploads.mangadex.org/covers/${manga.id}/${coverFileName}.512.jpg`)
             : '/logo.png',
           rating: manga.attributes.contentRating,
           genres: genres.length > 0 ? genres : manga.attributes.tags.map((t: any) => t.attributes.name.en),
@@ -458,9 +461,9 @@ export default function ComicDetailsPage() {
         const res = await fetchMangaDexProxy(`at-home/server/${chapters[idx].id}`);
         const data = await res.json();
         const urls = data.chapter.data.map((n: string) => `${data.baseUrl}/data/${data.chapter.hash}/${n}`);
-        setPages(urls);
+        setPages(urls.map((url: string) => proxyImageUrl(url)));
         // Preload first 3 pages
-        urls.slice(0, 3).forEach((u: string) => { const img = new Image(); img.src = u; });
+        urls.slice(0, 3).forEach((u: string) => { const img = new Image(); img.src = proxyImageUrl(u); });
       } else if (source === 'nhentai') {
         const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${id}`)}`);
         if (!res.ok) throw new Error("Failed to fetch nhentai gallery");
