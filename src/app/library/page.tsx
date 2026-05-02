@@ -102,9 +102,7 @@ const formatMarvelDate = (value?: string) => {
 
 const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: Record<string, string>) => {
   const searchParams = new URLSearchParams({ source, kind, ...params });
-  return fetch(`/api/proxy/booru?${searchParams.toString()}`, {
-    cache: 'no-store',
-  });
+  return fetch(`/api/proxy/booru?${searchParams.toString()}`);
 };
 
 const fetchDanbooruDirect = (kind: 'search' | 'post', params: Record<string, string>) =>

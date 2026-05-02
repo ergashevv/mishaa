@@ -374,7 +374,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       void fetchComicDetails();
     }, 0);
     return () => clearTimeout(timer);
-  }, [fetchComicDetails]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, source, mangaLanguage]);
 
   useEffect(() => {
     if (comic && isAdultComic(comic) && !isAgeVerified && !showAgeGate) {
@@ -536,6 +537,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             className="object-cover opacity-20 grayscale blur-3xl scale-110"
             alt=""
             priority
+            unoptimized
           />
         </div>
 
@@ -562,6 +564,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   fill
                   className="object-cover"
                   alt={comic.title}
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-[0.35em]">
@@ -777,6 +780,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                         alt={marvelSeries.title || marvelIssue.seriesName}
                         fill
                         className="object-cover"
+                        unoptimized
                       />
                     </div>
                     <div className="space-y-4">
@@ -880,6 +884,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  fill
                  className="object-cover group-hover:scale-105 transition-transform duration-700" 
                  alt={comic.title} 
+                 unoptimized
                />
                <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase italic shadow-lg">HQ_Asset</div>
             </div>
@@ -1138,6 +1143,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                     fill
                                     className="object-contain shadow-2xl border border-white/10 rounded-sm" 
                                     alt="cover" 
+                                    unoptimized
                                   />
                                 </div>
                               </motion.div>
@@ -1154,6 +1160,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                     fill
                                     className={`object-contain shadow-2xl ${pages[currentPage + 1] ? 'border-r border-white/5 rounded-l-sm' : 'border border-white/10 rounded-sm'}`}
                                     alt={`Page ${currentPage + 1}`}
+                                    unoptimized
                                   />
                                 </motion.div>
                                 {pages[currentPage + 1] && (
@@ -1168,6 +1175,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                       fill
                                       className="object-contain shadow-2xl border-l border-white/5 rounded-r-sm"
                                       alt={`Page ${currentPage + 2}`}
+                                      unoptimized
                                     />
                                   </motion.div>
                                 )}
@@ -1192,6 +1200,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                 fill
                                 className="w-full h-auto object-contain" 
                                 loading="lazy" 
+                                unoptimized
                               />
                             </div>
                           ))}
@@ -1330,6 +1339,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                 fill
                                 className="object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                                 alt={`Page ${i + 1}`}
+                                unoptimized
                               />
                             </div>
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />

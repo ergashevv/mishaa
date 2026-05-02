@@ -18,6 +18,7 @@ export async function GET(req: Request) {
       headers: {
         Accept: "application/json",
       },
+      next: { revalidate: 3600 },
     });
 
     if (!response.ok) {

@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const targetUrl = `https://nhentai.net/api/v2/${path}`;
     console.log(`Proxying to: ${targetUrl}`);
     
-    const res = await fetch(targetUrl, { headers });
+    const res = await fetch(targetUrl, { headers, next: { revalidate: 3600 } });
 
     // If 404/403, try fallback search
     if (!res.ok) {
@@ -43,7 +43,11 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown proxy error';
     console.error('Proxy Error:', error);

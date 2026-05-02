@@ -66,7 +66,7 @@ async function fetchJson(
   try {
     res = await fetch(targetUrl, {
       headers,
-      cache: 'no-store',
+      next: { revalidate: 3600 },
     });
   } catch (error) {
     if (source !== 'gelbooru' || kind !== 'search') {
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([], {
         status: 200,
         headers: {
-          'Cache-Control': 'no-store',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         },
       });
     }
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
       status,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'no-store',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
       },
     });
   } catch (error: unknown) {
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([], {
         status: 200,
         headers: {
-          'Cache-Control': 'no-store',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         },
       });
     }

@@ -33,13 +33,13 @@ export async function GET(req: NextRequest) {
           ? `(${q}) AND (collection:comic_books_archive OR subject:"Comic Books") AND -subject:magazine AND -subject:fanzine`
           : '(collection:comic_books_archive OR subject:"Comic Books") AND -subject:magazine AND -subject:fanzine';
       const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(`${searchFilter} AND mediatype:texts`)}&fl[]=identifier,title,description,downloads,avg_rating&sort[]=downloads+desc&rows=${limit}&page=${page + 1}&output=json`;
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, { next: { revalidate: 3600 } });
       const body = await res.text();
       return new NextResponse(body, {
         status: res.status,
         headers: {
           'Content-Type': res.headers.get('content-type') || 'application/json',
-          'Cache-Control': 'no-store',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         },
       });
     }
@@ -50,21 +50,21 @@ export async function GET(req: NextRequest) {
 
     if (action === 'metadata') {
       const res = await fetch(`https://archive.org/metadata/${encodeURIComponent(id)}`, {
-        cache: 'no-store',
+        next: { revalidate: 3600 },
       });
       const body = await res.text();
       return new NextResponse(body, {
         status: res.status,
         headers: {
           'Content-Type': res.headers.get('content-type') || 'application/json',
-          'Cache-Control': 'no-store',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         },
       });
     }
 
     if (action === 'cover') {
       const res = await fetch(`https://archive.org/services/img/${encodeURIComponent(id)}`, {
-        cache: 'no-store',
+        next: { revalidate: 86400 },
       });
       return imageResponse(res);
     }
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
       }
 
       const res = await fetch(`https://archive.org/download/${encodeURIComponent(id)}/${encodeURIComponent(file)}`, {
-        cache: 'no-store',
+        next: { revalidate: 86400 },
       });
       return imageResponse(res);
     }
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
         url.searchParams.set('file', file);
       }
 
-      const res = await fetch(url.toString(), { cache: 'no-store' });
+      const res = await fetch(url.toString(), { next: { revalidate: 86400 } });
       return imageResponse(res);
     }
 

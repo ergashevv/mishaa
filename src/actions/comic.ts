@@ -114,12 +114,12 @@ async function fetchNHentaiGallery(id: string) {
     // Fallback to a mirror or proxy if blocked by Cloudflare
     console.warn(`nHentai direct fetch failed (${res.status}), trying mirror...`);
     const mirrorUrl = `https://cinemur.com/api/gallery/${id}`;
-    const mirrorRes = await fetch(mirrorUrl, { headers: NHENTAI_HEADERS });
+    const mirrorRes = await fetch(mirrorUrl, { headers: NHENTAI_HEADERS, next: { revalidate: 3600 } });
     if (mirrorRes.ok) return await mirrorRes.json();
 
     console.warn(`nHentai mirror fetch failed, trying allorigins proxy...`);
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const proxyRes = await fetch(proxyUrl);
+    const proxyRes = await fetch(proxyUrl, { next: { revalidate: 3600 } });
     if (proxyRes.ok) {
       const data = await proxyRes.json();
       if (data.contents) return JSON.parse(data.contents);
@@ -134,7 +134,7 @@ async function fetchNHentaiGallery(id: string) {
 export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
     if (source === 'marvel') {
-      const res = await fetch(`${MARVEL_API_BASE}/issues/${id}`);
+      const res = await fetch(`${MARVEL_API_BASE}/issues/${id}`, { next: { revalidate: 3600 } });
       if (!res.ok) throw new Error('Marvel fetch failed');
       const data = await res.json();
       const issue = data?.data?.results?.[0] || data?.items?.[0] || data;
@@ -151,8 +151,8 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
       if (seriesId) {
         try {
           const [seriesRes, seriesIssuesRes] = await Promise.all([
-            fetch(`${MARVEL_API_BASE}/series/${seriesId}`),
-            fetch(`${MARVEL_API_BASE}/series/${seriesId}/issues`)
+            fetch(`${MARVEL_API_BASE}/series/${seriesId}`, { next: { revalidate: 3600 } }),
+            fetch(`${MARVEL_API_BASE}/series/${seriesId}/issues`, { next: { revalidate: 3600 } })
           ]);
           if (seriesRes.ok) series = (await seriesRes.json()).data?.results?.[0] || null;
           if (seriesIssuesRes.ok) seriesIssues = (await seriesIssuesRes.json()).data?.results || [];
@@ -180,7 +180,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
 
     if (source === 'mangadex') {
-      const res = await fetch(`https://api.mangadex.org/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`);
+      const res = await fetch(`https://api.mangadex.org/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`, { next: { revalidate: 3600 } });
       if (!res.ok) throw new Error('MangaDex fetch failed');
       const data = await res.json();
       const manga = data.data;
@@ -225,7 +225,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
     if (['e621', 'danbooru', 'gelbooru'].includes(source)) {
       // Logic for Boorus... simpler to just call existing proxy for now but we can move it here
-      const res = await fetch(`https://${source}.net/posts/${id}.json`); // Simplified for example
+      const res = await fetch(`https://${source}.net/posts/${id}.json`, { next: { revalidate: 3600 } }); // Simplified for example
       if (!res.ok) throw new Error('Booru fetch failed');
       const data = await res.json();
       const post = mapBooruDetail(source as BooruSource, data);
@@ -245,7 +245,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
     }
 
     // Default to archive
-    const res = await fetch(`https://archive.org/metadata/${id}`);
+    const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error('Archive fetch failed');
     const data = await res.json();
     const meta = data.metadata;
@@ -277,7 +277,7 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
       });
       translatedLanguages?.forEach(lang => params.append('translatedLanguage[]', lang));
       
-      const res = await fetch(`https://api.mangadex.org/manga/${id}/feed?${params.toString()}`);
+      const res = await fetch(`https://api.mangadex.org/manga/${id}/feed?${params.toString()}`, { next: { revalidate: 3600 } });
       let data = await res.json();
       
       // Fallback to English if no chapters found in preferred languages
@@ -287,7 +287,7 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
           'order[chapter]': 'asc',
           'translatedLanguage[]': 'en'
         });
-        const fallbackRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?${fallbackParams.toString()}`);
+        const fallbackRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?${fallbackParams.toString()}`, { next: { revalidate: 3600 } });
         data = await fallbackRes.json();
       }
 
@@ -304,7 +304,7 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
     }
 
     if (source === 'archive') {
-      const res = await fetch(`https://archive.org/metadata/${id}`);
+      const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
       const data = await res.json();
       const bookFiles = data.files?.filter((f: { format: string }) => 
         ["Image Container PDF", "PDF", "EPUB", "Comic Book Archive"].includes(f.format)
@@ -330,7 +330,7 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
 export async function getChapterPages(source: string, id: string, chapterId: string) {
   try {
     if (source === 'mangadex') {
-      const res = await fetch(`https://api.mangadex.org/at-home/server/${chapterId}`);
+      const res = await fetch(`https://api.mangadex.org/at-home/server/${chapterId}`, { next: { revalidate: 3600 } });
       if (!res.ok) {
         console.error(`MangaDex at-home error: ${res.status}`);
         return [];
@@ -358,7 +358,7 @@ export async function getChapterPages(source: string, id: string, chapterId: str
     }
 
     if (source === 'archive') {
-      const res = await fetch(`https://archive.org/metadata/${id}`);
+      const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
       const data = await res.json();
       const isSubFile = chapterId !== id;
       
@@ -406,7 +406,7 @@ export async function searchComics(params: {
         searchParams.set('offset', String(page * LIMIT));
       }
 
-      const res = await fetch(`${MARVEL_API_BASE}/issues?${searchParams.toString()}`);
+      const res = await fetch(`${MARVEL_API_BASE}/issues?${searchParams.toString()}`, { next: { revalidate: 900 } });
       const data = await res.json();
       const items = data.items || [];
       
@@ -447,7 +447,7 @@ export async function searchComics(params: {
         searchParams.set('order[followedCount]', 'desc');
       }
 
-      const res = await fetch(`https://api.mangadex.org/manga?${searchParams.toString()}`);
+      const res = await fetch(`https://api.mangadex.org/manga?${searchParams.toString()}`, { next: { revalidate: 900 } });
       const data = await res.json();
       const items = data.data || [];
 
@@ -470,7 +470,7 @@ export async function searchComics(params: {
     if (source === 'archive') {
        const baseQuery = '(collection:comics OR mediatype:comic OR subject:manga OR subject:comics)';
        const finalQuery = query ? `(${query}) AND ${baseQuery}` : baseQuery;
-       const res = await fetch(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(finalQuery)}&output=json&rows=${LIMIT}&page=${page + 1}`);
+       const res = await fetch(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(finalQuery)}&output=json&rows=${LIMIT}&page=${page + 1}`, { next: { revalidate: 900 } });
        const data = await res.json();
        const docs = data.response.docs || [];
        return {

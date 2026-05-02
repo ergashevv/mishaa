@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     const targetUrl = `https://api.mangadex.org/${path}`;
     const res = await fetch(targetUrl, {
       headers,
-      cache: 'no-store',
+      next: { revalidate: 900 },
     });
 
     const contentType = res.headers.get('content-type') || 'application/json';
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       status: res.status,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'no-store',
+        'Cache-Control': 'public, max-age=900, stale-while-revalidate=86400',
       },
     });
   } catch (error: unknown) {
