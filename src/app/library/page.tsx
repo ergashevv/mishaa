@@ -652,6 +652,7 @@ function ComicLibrary() {
                           <Image
                             src={comic.coverUrl}
                             fill
+                            unoptimized
                             className="object-cover opacity-100 transition-all duration-700"
                             alt={comic.title}
                           />
@@ -661,7 +662,7 @@ function ComicLibrary() {
                           <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                           <div className="absolute inset-0 flex flex-col justify-between p-4">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] bg-white text-black">MARVEL</span>
+                              <span className="px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] bg-white text-white">MARVEL</span>
                               <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/35">{comic.yearPage || '----'}</span>
                             </div>
                             <div className="space-y-2">
@@ -674,7 +675,7 @@ function ComicLibrary() {
                       )
                     ) : (
                       <div className="relative w-full h-full">
-                        <Image src={comic.coverUrl || '/logo.png'} fill className="object-cover opacity-100 transition-all duration-700" alt={comic.title} />
+                        <Image src={comic.coverUrl || '/logo.png'} fill unoptimized className="object-cover opacity-100 transition-all duration-700" alt={comic.title} />
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent flex items-center justify-between">

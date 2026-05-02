@@ -43,9 +43,9 @@ export default function FAQPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fcfaf2] text-[#111111] selection:bg-[#ffca3a] selection:text-black overflow-x-hidden halftone-bg">
-      <div className="noise-overlay" />
-      <div className="paper-grain" />
+    <div className="min-h-screen bg-[#020202] text-white selection:bg-[#ff4d00] selection:text-white overflow-x-hidden ">
+      
+      
       <Navbar />
 
       <main className="container mx-auto px-8 pt-48 pb-32">
@@ -56,8 +56,8 @@ export default function FAQPage() {
         >
           {/* Header */}
           <div className="text-center space-y-8">
-            <div className="inline-block bg-[#ffca3a] px-6 py-2 border-3 border-black shadow-[6px_6px_0px_#000]">
-              <span className="text-black text-[10px] font-black uppercase tracking-[0.4em]">{t.badge}</span>
+            <div className="inline-block bg-[#ff4d00] px-6 py-2 border border-white/10 rounded-xl shadow-[6px_6px_0px_#000]">
+              <span className="text-white text-[10px] font-black uppercase tracking-[0.4em]">{t.badge}</span>
             </div>
             <h1 className="text-6xl md:text-9xl font-display uppercase tracking-tighter leading-none italic">
                {t.title.split(' ')[0]} <br /><span className="text-[#3b82f6]">{t.title.split(' ')[1]}</span>
@@ -69,7 +69,7 @@ export default function FAQPage() {
             {FAQS.map((faq, i) => (
               <div 
                 key={i} 
-                className={`studio-panel bg-white border-4 border-black transition-all cursor-pointer ${openIndex === i ? 'shadow-[12px_12px_0px_#ffca3a]' : 'shadow-[6px_6px_0px_#000]'}`}
+                className={` bg-white border border-white/10 rounded-xl transition-all cursor-pointer ${openIndex === i ? 'shadow-[12px_12px_0px_#ffca3a]' : 'shadow-[6px_6px_0px_#000]'}`}
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
               >
                 <div className="p-8 flex items-center justify-between gap-8">
@@ -88,7 +88,7 @@ export default function FAQPage() {
                   animate={{ height: openIndex === i ? 'auto' : 0, opacity: openIndex === i ? 1 : 0 }}
                   className="overflow-hidden"
                 >
-                   <div className="px-8 pb-10 pt-4 border-t-2 border-black/5">
+                   <div className="px-8 pb-10 pt-4 border-t-2 border-white/5">
                       <p className="text-lg opacity-60 leading-relaxed font-medium max-w-2xl">
                         {faq.a}
                       </p>

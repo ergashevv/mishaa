@@ -188,10 +188,15 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const lastScrollY = useRef(0);
   const chapterPageCacheRef = useRef<Map<string, string[]>>(new Map());
   const chapterPageRequestRef = useRef<Map<string, Promise<string[]>>>(new Map());
+  const touchStartRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
+    const initialMobile = window.innerWidth < 768;
+    setIsMobile(initialMobile);
+    if (initialMobile) {
+      setViewMode('flow');
+    }
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
     window.addEventListener('resize', checkMobile);
 
     const verified = readAgeVerification();
@@ -1005,7 +1010,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             
             {/* Minimal Top Header */}
             <motion.div 
-              animate={{ y: uiVisible ? 0 : -120 }} 
+              animate={{ y: uiVisible ? 0 : "-100%" }} 
               transition={{ type: 'spring', damping: 30, stiffness: 120 }} 
               className="fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto max-md:h-24 max-md:px-4 max-md:pt-[env(safe-area-inset-top)]"
             >
@@ -1054,13 +1059,44 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             </motion.div>
 
             {/* Reader Canvas */}
-            <div ref={canvasRef} className="flex-1 w-full bg-[#020202] overflow-y-auto custom-scrollbar relative scroll-smooth" id="reader-canvas">
+            <div 
+              ref={canvasRef} 
+              className="flex-1 w-full bg-[#020202] overflow-y-auto custom-scrollbar relative scroll-smooth touch-pan-y" 
+              id="reader-canvas"
+              onTouchStart={(e) => {
+                if (viewMode === 'flow') return;
+                touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+              }}
+              onTouchEnd={(e) => {
+                if (viewMode === 'flow') return;
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const diffX = touchStartRef.current.x - endX;
+                const diffY = touchStartRef.current.y - endY;
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                  if (diffX > 0) handleNextPage();
+                  else handlePrevPage();
+                }
+              }}
+            >
                {/* Scroll Hint */}
                <AnimatePresence>
                  {!scrolled && !readerLoading && pages.length > 0 && viewMode === 'flow' && (
-                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[10015] flex flex-col items-center gap-2 pointer-events-none max-md:bottom-28">
-                      <div className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30">Initiate_Scroll</div>
-                      <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}><ChevronDown className="text-[#ff4d00]" size={20}/></motion.div>
+                   <motion.div 
+                     initial={{ opacity: 0, y: 20 }} 
+                     animate={{ opacity: 1, y: 0 }} 
+                     exit={{ opacity: 0, y: 20 }} 
+                     className="fixed bottom-32 max-md:bottom-40 left-1/2 -translate-x-1/2 z-[10015] flex flex-col items-center gap-3 pointer-events-none drop-shadow-[0_0_20px_rgba(255,77,0,0.4)] bg-black/60 px-8 py-5 rounded-full border border-white/10 backdrop-blur-xl"
+                   >
+                      <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white flex items-center gap-2">
+                        Scroll Down
+                      </div>
+                      <motion.div 
+                        animate={{ y: [0, 8, 0], opacity: [0.5, 1, 0.5] }} 
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      >
+                        <ChevronDown className="text-[#ff4d00]" size={24}/>
+                      </motion.div>
                    </motion.div>
                  )}
                </AnimatePresence>
@@ -1218,7 +1254,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
             {/* Bottom Status Bar */}
             <motion.div 
-              animate={{ y: uiVisible ? 0 : 130 }} 
+              animate={{ y: uiVisible ? 0 : "100%" }} 
               transition={{ type: 'spring', damping: 30, stiffness: 120 }} 
               className="fixed bottom-0 left-0 right-0 z-[10020] bg-[#0a0a0a]/95 border-t border-white/10 px-10 flex flex-col items-center backdrop-blur-2xl max-md:px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6 gap-6 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
             >

@@ -99,29 +99,29 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfaf2] text-[#111111] halftone-bg overflow-x-hidden">
-      <div className="noise-overlay" />
-      <div className="paper-grain" />
+    <div className="min-h-screen bg-[#020202] text-white  overflow-x-hidden">
+      
+      
       <Navbar />
 
       <main className="container mx-auto px-6 pt-40 pb-24">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="studio-panel bg-white p-8 md:p-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
-            <div className="inline-block bg-[#e63946] px-4 py-1 border-2 border-black mb-6">
+          <section className=" bg-white p-8 md:p-12 shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
+            <div className="inline-block bg-[#ff4d00] px-4 py-1 border border-white/10 rounded-xl mb-6">
               <span className="text-white text-[9px] font-black uppercase tracking-widest">Profile Control</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-display uppercase tracking-tighter leading-none mb-4">
               Your Account
             </h1>
-            <p className="text-black/60 max-w-2xl text-lg leading-relaxed">
+            <p className="text-white/60 max-w-2xl text-lg leading-relaxed">
               Manage your avatar, username, email, and password. If you connect Google and password login to the same email, both sign-in methods can point to one account.
             </p>
 
             {loading ? (
-              <div className="mt-10 h-64 animate-pulse bg-black/5 border-2 border-black/10" />
+              <div className="mt-10 h-64 animate-pulse bg-black/5 border border-white/10 rounded-xl/10" />
             ) : user ? (
               <div className="mt-10 grid gap-6 md:grid-cols-[220px_1fr] items-start">
-                <div className="bg-[#111111] text-white p-6 border-2 border-black shadow-[8px_8px_0_#111]">
+                <div className="bg-[#111111] text-white p-6 border border-white/10 rounded-xl shadow-[8px_8px_0_#111]">
                   <div className="aspect-square bg-white overflow-hidden border-2 border-white/10">
                     <img
                       src={user.avatar || '/logo.png'}
@@ -138,52 +138,52 @@ export default function ProfilePage() {
                 <form onSubmit={handleSave} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className="space-y-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40">First name</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">First name</span>
                       <input
                         value={form.firstName}
                         onChange={handleChange('firstName')}
-                        className="w-full border-2 border-black px-4 py-3 bg-white font-black uppercase"
+                        className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white font-black uppercase"
                       />
                     </label>
                     <label className="space-y-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40">Last name</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Last name</span>
                       <input
                         value={form.lastName}
                         onChange={handleChange('lastName')}
-                        className="w-full border-2 border-black px-4 py-3 bg-white font-black uppercase"
+                        className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white font-black uppercase"
                       />
                     </label>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className="space-y-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40">Unique username</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Unique username</span>
                       <input
                         value={form.username}
                         onChange={handleChange('username')}
-                        className="w-full border-2 border-black px-4 py-3 bg-white font-black uppercase"
+                        className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white font-black uppercase"
                       />
                     </label>
                     <label className="space-y-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40">Email</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Email</span>
                       <input
                         value={form.email}
                         onChange={handleChange('email')}
-                        className="w-full border-2 border-black px-4 py-3 bg-white font-black"
+                        className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white font-black"
                         placeholder="optional, but useful for account linking"
                       />
                     </label>
                   </div>
 
                   <label className="space-y-2 block">
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40">
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">
                       Password {user.hasPassword ? '(change or leave empty)' : '(set one now)'}
                     </span>
                     <input
                       type="password"
                       value={form.password}
                       onChange={handleChange('password')}
-                      className="w-full border-2 border-black px-4 py-3 bg-white font-black"
+                      className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white font-black"
                       placeholder={user.hasPassword ? '••••••••' : 'Create a password'}
                     />
                   </label>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex items-center gap-3 bg-[#111111] text-white px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border-2 border-black shadow-[6px_6px_0_#e63946]"
+                    className="inline-flex items-center gap-3 bg-[#111111] text-white px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border border-white/10 rounded-xl shadow-[6px_6px_0_#e63946]"
                   >
                     {saving ? 'Saving...' : 'Save Profile'}
                   </button>
@@ -217,7 +217,7 @@ export default function ProfilePage() {
           </section>
 
           <aside className="space-y-6">
-            <div className="bg-[#111111] text-white p-8 border-2 border-black shadow-[12px_12px_0_#ffca3a]">
+            <div className="bg-[#111111] text-white p-8 border border-white/10 rounded-xl shadow-[12px_12px_0_#ffca3a]">
               <p className="text-[9px] uppercase tracking-[0.5em] text-white/40 mb-4">Linked Methods</p>
               <div className="space-y-4 text-sm">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -239,30 +239,30 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-white p-8 border-2 border-black">
-              <p className="text-[9px] uppercase tracking-[0.5em] text-black/40 mb-4">Stats</p>
+            <div className="bg-white p-8 border border-white/10 rounded-xl">
+              <p className="text-[9px] uppercase tracking-[0.5em] text-white/40 mb-4">Stats</p>
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 border-2 border-black">
+                <div className="p-4 border border-white/10 rounded-xl">
                   <div className="text-3xl font-display">{user?._count.stories ?? 0}</div>
-                  <div className="text-[10px] uppercase tracking-widest text-black/40">Stories</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/40">Stories</div>
                 </div>
-                <div className="p-4 border-2 border-black">
+                <div className="p-4 border border-white/10 rounded-xl">
                   <div className="text-3xl font-display">{user?._count.characters ?? 0}</div>
-                  <div className="text-[10px] uppercase tracking-widest text-black/40">Characters</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/40">Characters</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#f8f1e4] p-8 border-2 border-black">
-              <p className="text-[9px] uppercase tracking-[0.5em] text-black/40 mb-4">Tip</p>
-              <p className="text-sm leading-relaxed text-black/70">
+            <div className="bg-[#f8f1e4] p-8 border border-white/10 rounded-xl">
+              <p className="text-[9px] uppercase tracking-[0.5em] text-white/40 mb-4">Tip</p>
+              <p className="text-sm leading-relaxed text-white/70">
                 If you want the same person to use Google and password login, set the same email here. Google sign-in will then merge to this account on the next login.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/" className="flex-1 sm:flex-none">
-                <button className="w-full bg-[#111111] text-white px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border-2 border-black shadow-[6px_6px_0_#111] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                <button className="w-full bg-[#111111] text-white px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border border-white/10 rounded-xl shadow-[6px_6px_0_#111] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
                   Back Home
                 </button>
               </Link>
@@ -271,7 +271,7 @@ export default function ProfilePage() {
                   const res = await fetch('/api/auth/logout', { method: 'POST' });
                   if (res.ok) router.push('/');
                 }}
-                className="flex-1 sm:flex-none bg-white text-red-600 px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border-2 border-black shadow-[6px_6px_0_#e63946] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                className="flex-1 sm:flex-none bg-white text-red-600 px-6 py-4 font-black uppercase tracking-[0.3em] text-[10px] border border-white/10 rounded-xl shadow-[6px_6px_0_#e63946] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
               >
                 Logout_Session
               </button>

@@ -112,7 +112,7 @@ function AuthPageContent() {
               animate={{ scale: 1, opacity: 1 }}
               className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.2)] mb-2"
             >
-              <span className="text-3xl font-display font-black text-black">iC</span>
+              <span className="text-3xl font-display font-black text-white">iC</span>
             </motion.div>
             <div className="space-y-1">
               <h1 className="text-4xl font-black uppercase tracking-tight text-white leading-none">
@@ -128,13 +128,13 @@ function AuthPageContent() {
           <div className="flex p-1 bg-white/5 rounded-2xl mb-8 border border-white/10">
             <button
               onClick={() => setMode('login')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'login' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'login' ? 'bg-white text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
             >
               Sign In
             </button>
             <button
               onClick={() => setMode('signup')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'signup' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'signup' ? 'bg-white text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
             >
               Register
             </button>
@@ -242,7 +242,7 @@ function AuthPageContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-xl bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,90,31,0.3)] hover:bg-[#ff5a1f] hover:text-white transition-all transform active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-4 rounded-xl bg-white text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,90,31,0.3)] hover:bg-[#ff5a1f] hover:text-white transition-all transform active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? 'Authenticating...' : (mode === 'login' ? 'Establish Connection' : 'Initialize Account')}
             </button>
