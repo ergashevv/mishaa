@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
         username,
         password: hashed,
         avatar: avatar || `https://api.dicebear.com/9.x/identicon/svg?seed=${username}`,
+        authProvider: 'local',
       },
     });
 

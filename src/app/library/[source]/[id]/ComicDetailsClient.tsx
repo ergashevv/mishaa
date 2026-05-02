@@ -18,8 +18,6 @@ import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib
 import {
   BooruSource,
   booruDisplayLabel,
-  buildBooruPostUrl,
-  buildBooruSearchUrl,
   mapBooruDetail,
 } from '@/lib/booru';
 import { translations, Lang } from '@/lib/translations';
@@ -35,6 +33,7 @@ import {
   buildMangaDexCoverUrl,
   pickMangaDexCoverFileName,
 } from '@/lib/mangadex';
+import { getChapterPages, getChapters, getComicDetails } from '@/actions/comic';
 
 interface Chapter {
   id: string;
@@ -97,6 +96,44 @@ interface MarvelSeriesIssue {
   yearPage?: number;
 }
 
+interface MarvelSeries {
+  id: number;
+  title?: string;
+  description?: string;
+  startYear?: number;
+  endYear?: number;
+  modified?: string;
+  thumbnail?: {
+    path?: string;
+    extension?: string;
+  };
+}
+
+interface MarvelCharacter {
+  id: number;
+  name?: string;
+  description?: string;
+  thumbnail?: {
+    path?: string;
+    extension?: string;
+  };
+}
+
+interface MarvelCharacterApiItem {
+  id?: number | string;
+  name?: string;
+  title?: string;
+  description?: string;
+  thumbnail?: {
+    path?: string;
+    extension?: string;
+  };
+  image?: {
+    path?: string;
+    extension?: string;
+  };
+}
+
 const formatMarvelDate = (value?: string) => {
   if (!value) return 'Unknown';
   const parsed = new Date(value);
@@ -108,54 +145,64 @@ const formatMarvelDate = (value?: string) => {
   });
 };
 
-const fetchMangaDexProxy = (path: string) =>
-  fetch(`/api/proxy/mangadex?path=${encodeURIComponent(path)}`, {
-    cache: 'no-store',
-  });
-
-const proxyImageUrl = (url: string) =>
-  `/api/proxy/image?url=${encodeURIComponent(url)}`;
-
-const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: Record<string, string>) => {
-  const searchParams = new URLSearchParams({ source, kind, ...params });
-  return fetch(`/api/proxy/booru?${searchParams.toString()}`, {
-    cache: 'no-store',
-  });
+const normalizeMarvelImage = (image?: { path?: string; extension?: string }) => {
+  if (!image?.path || !image.extension) return '';
+  const path = image.path.replace('http://', 'https://');
+  // Add a size variant if it looks like a base path
+  const finalPath = path.includes('portrait_') ? path : `${path}/portrait_incredible`;
+  return `${finalPath}.${image.extension}`;
 };
 
-const fetchDanbooruDirect = (kind: 'search' | 'post', params: Record<string, string>) => {
-  if (kind === 'search') {
-    const url = buildBooruSearchUrl('danbooru', {
-      limit: Number.parseInt(params.limit || '36', 10),
-      page: Number.parseInt(params.page || '0', 10),
-      query: params.query || '',
-    });
-
-    return fetch(url, {
-      cache: 'no-store',
-      mode: 'cors',
-    });
-  }
-
-  return fetch(buildBooruPostUrl('danbooru', params.id || ''), {
-    cache: 'no-store',
-    mode: 'cors',
-  });
+const trimText = (value?: string, max = 140) => {
+  const cleaned = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!cleaned) return '';
+  return cleaned.length > max ? `${cleaned.slice(0, max - 1)}...` : cleaned;
 };
 
-export default function ComicDetailsPage() {
-  const params = useParams();
+const parseMarvelCharacters = (payload: unknown): MarvelCharacter[] => {
+  const data = payload as {
+    data?: { results?: MarvelCharacterApiItem[] };
+    results?: MarvelCharacterApiItem[];
+  };
+  const results = Array.isArray(data?.data?.results)
+    ? data.data.results
+    : Array.isArray(data?.results)
+      ? data.results
+      : Array.isArray(payload)
+        ? (payload as MarvelCharacterApiItem[])
+        : [];
+
+  return results
+    .map((character) => ({
+      id: Number(character?.id ?? 0),
+      name: character?.name || character?.title || '',
+      description: character?.description || '',
+      thumbnail: character?.thumbnail || character?.image,
+    }))
+    .filter((character: MarvelCharacter) => Boolean(character.id && character.name));
+};
+
+interface ComicDetailsClientProps {
+  initialComic: any;
+  initialChapters?: any[];
+  source: string;
+  id: string;
+}
+
+export default function ComicDetailsClient({ initialComic, initialChapters, source, id }: ComicDetailsClientProps) {
   const router = useRouter();
-  const { source, id } = params;
   
-  const [comic, setComic] = useState<ComicDetails | null>(null);
-  const [marvelIssue, setMarvelIssue] = useState<MarvelIssue | null>(null);
-  const [marvelSeriesIssues, setMarvelSeriesIssues] = useState<MarvelSeriesIssue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [comic, setComic] = useState<ComicDetails | null>(initialComic);
+  const [marvelIssue, setMarvelIssue] = useState<MarvelIssue | null>(initialComic?.marvelIssue || null);
+  const [marvelSeries, setMarvelSeries] = useState<MarvelSeries | null>(initialComic?.marvelSeries || null);
+  const [marvelSeriesIssues, setMarvelSeriesIssues] = useState<MarvelSeriesIssue[]>(initialComic?.marvelSeriesIssues || []);
+  const [marvelCharacters, setMarvelCharacters] = useState<MarvelCharacter[]>(initialComic?.marvelCharacters || []);
+  const [loading, setLoading] = useState(!initialComic);
+
   const [reading, setReading] = useState(false);
   
   // Reader State
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>(initialChapters || []);
   const [currentChapterIdx, setCurrentChapterIdx] = useState(0);
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -266,218 +313,21 @@ export default function ComicDetailsPage() {
   }, [reading, viewMode, uiVisible]);
 
   async function fetchComicDetails() {
+    if (initialComic && initialChapters) return;
+    
     setLoading(true);
     try {
-      if (source === 'nhentai' && !isAgeVerified) {
-        setShowAgeGate(true);
-        return;
-      }
-
-      if (source === 'marvel') {
-        const issueRes = await fetch(`/api/marvel/issues/${id}`);
-        if (!issueRes.ok) {
-          throw new Error('Failed to load Marvel issue metadata');
-        }
-
-        const issue = await issueRes.json() as MarvelIssue;
-        setMarvelIssue(issue);
-
-        const seriesRes = await fetch(`/api/marvel/series/${issue.seriesId}/issues`);
-        const seriesData = seriesRes.ok ? await seriesRes.json() : null;
-        const seriesIssues = Array.isArray(seriesData?.items) ? seriesData.items as MarvelSeriesIssue[] : [];
-        setMarvelSeriesIssues(seriesIssues);
-
-        const issueCreators = issue.creators || [];
-        const writer = issueCreators.find((creator) => creator.role === 'writer') || issueCreators[0];
-
-        setComic({
-          id: String(issue.id),
-          title: issue.title,
-          description: issue.description || 'Marvel metadata only.',
-          coverUrl: issue.cover
-            ? `${issue.cover.path.replace(/^http:\/\//, 'https://')}.${issue.cover.extension}`
-            : '/logo.png',
-          bannerUrl: issue.cover
-            ? `${issue.cover.path.replace(/^http:\/\//, 'https://')}.${issue.cover.extension}`
-            : undefined,
-          rating: issue.pageCount ? `${issue.pageCount} pages` : 'Marvel Metadata',
-          genres: [issue.seriesName, 'Marvel Comics', 'Issue Metadata'].filter(Boolean) as string[],
-          status: 'Metadata',
-          year: issue.yearPage ? String(issue.yearPage) : issue.onSaleDate?.slice(0, 4),
-          author: writer?.name || 'Marvel',
-          source: 'marvel',
-        });
-      } else if (source === 'mangadex') {
-        const res = await fetchMangaDexProxy(`manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic`);
-        const data = await res.json();
-        const manga = data.data;
-        
-        const coverFileName = pickMangaDexCoverFileName(manga.relationships);
-        const author = manga.relationships.find((r: any) => r.type === 'author')?.attributes?.name;
-        const aniListId = manga.attributes.links?.al;
-        const title = resolveMangaDexLocalizedText(manga.attributes.title, mangaLanguage);
-        const description = resolveMangaDexLocalizedText(manga.attributes.description, mangaLanguage);
-        const genres = manga.attributes.tags.map((t: any) =>
-          resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage)
-        ).filter(Boolean);
-
-        const details: ComicDetails = {
-          id: manga.id,
-          title: title || Object.values(manga.attributes.title || {})[0] as string,
-          description: description || "No description available.",
-          coverUrl: coverFileName ? buildMangaDexCoverUrl(manga.id, coverFileName) : '/logo.png',
-          rating: manga.attributes.contentRating,
-          genres: genres.length > 0 ? genres : manga.attributes.tags.map((t: any) => t.attributes.name.en),
-          status: manga.attributes.status,
-          year: manga.attributes.year,
-          author: author,
-          source: 'mangadex',
-          aniListId: aniListId
-        };
-
-        setComic(details);
-        setLoading(false);
-
-        void (async () => {
-          try {
-            const tags = manga.attributes.tags.map((t: any) =>
-              resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage).toLowerCase()
-            );
-            if (tags.includes('long strip') || tags.includes('webtoon')) {
-              setIsLongStrip(true);
-            }
-
-            const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
-            const feedParams = new URLSearchParams();
-            feedParams.set('limit', '100');
-            feedParams.set('order[chapter]', 'asc');
-            feedParams.append('contentRating[]', 'safe');
-            feedParams.append('contentRating[]', 'suggestive');
-            feedParams.append('contentRating[]', 'erotica');
-            feedParams.append('contentRating[]', 'pornographic');
-            translatedLanguages?.forEach((language) => feedParams.append('translatedLanguage[]', language));
-
-            let feedRes = await fetchMangaDexProxy(`manga/${id}/feed?${feedParams.toString()}`);
-            let feedData = await feedRes.json();
-            if ((!feedData.data || feedData.data.length === 0) && mangaLanguage === DEFAULT_MANGA_LANGUAGE) {
-              feedRes = await fetchMangaDexProxy(`manga/${id}/feed?limit=100&order[chapter]=asc&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic`);
-              feedData = await feedRes.json();
-            }
-            const chList = feedData.data?.map((ch: any) => ({
-              id: ch.id,
-              title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,
-              chapterNum: ch.attributes.chapter,
-              volume: ch.attributes.volume
-            })) || [];
-            setChapters(chList);
-
-            if (aniListId) {
-              const alRes = await fetch('https://graphql.anilist.co', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({
-                  query: `query ($id: Int) { Media (id: $id, type: MANGA) { bannerImage averageScore } }`,
-                  variables: { id: parseInt(aniListId) }
-                })
-              });
-              if (alRes.ok) {
-                const alData = await alRes.json();
-                if (alData.data.Media) {
-                  const bannerUrl = alData.data.Media.bannerImage;
-                  const rating = alData.data.Media.averageScore ? `${alData.data.Media.averageScore / 10}` : details.rating;
-                  setComic((current) => current ? { ...current, bannerUrl, rating } : current);
-                }
-              }
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        })();
-      } else if (source === 'nhentai') {
-        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${id}`)}`);
-        if (!res.ok) throw new Error("Failed to fetch nhentai");
-        const data = await res.json();
-        
-        setComic({
-          id: data.id.toString(),
-          title: data.english_title || data.title?.english || data.title?.japanese || data.title?.pretty || "Untitled",
-          description: data.tags?.map((t: any) => t.name).join(', ') || "",
-          coverUrl: `https://t3.nhentai.net/${data.cover?.path || data.thumbnail?.path || data.thumbnail}`,
-          rating: 'pornographic',
-          genres: data.tags?.filter((t: any) => t.type === 'tag').map((t: any) => t.name) || [],
-          status: 'Completed',
-          author: data.tags?.find((t: any) => t.type === 'artist')?.name || 'Unknown',
-          source: 'nhentai'
-        });
-        setChapters([{ id: data.id.toString(), title: 'Full Gallery', chapterNum: '1' }]);
-        if (!isAgeVerified) {
-          setShowAgeGate(true);
-        }
-      } else if (source === 'e621' || source === 'danbooru' || source === 'gelbooru') {
-        if (!isAgeVerified) {
-          setShowAgeGate(true);
-          return;
-        }
-
-        const res = source === 'danbooru'
-          ? await fetchDanbooruDirect('post', { id: String(id) })
-          : await fetchBooruProxy(source, 'post', { id: String(id) });
-        if (!res.ok) throw new Error(`Failed to fetch ${source} post`);
-        const data = await res.json();
-        const post = mapBooruDetail(source, data);
-        if (!post) throw new Error(`Failed to parse ${source} post`);
-
-        const postTags = post.tags;
-        setComic({
-          id: post.id,
-          title: post.title || `${booruDisplayLabel(source)} #${post.id}`,
-          description: post.description || postTags.join(', ') || `${booruDisplayLabel(source)} post`,
-          coverUrl: post.coverUrl,
-          rating: post.rating,
-          genres: postTags.length > 0 ? postTags : [booruDisplayLabel(source)],
-          status: 'Completed',
-          year: undefined,
-          author: booruDisplayLabel(source),
-          source,
-        });
-
-        setChapters([{ id: post.id, title: 'Single Post', chapterNum: '1' }]);
-      } else {
-        const res = await fetch(`https://archive.org/metadata/${id}`);
-        const data = await res.json();
-        const meta = data.metadata;
-        setComic({
-          id: id as string,
-          title: meta.title || id as string,
-          description: meta.description || "No description available.",
-          coverUrl: `https://archive.org/services/img/${id}`,
-          bannerUrl: `https://archive.org/services/img/${id}`,
-          rating: "N/A",
-          genres: meta.subject ? (Array.isArray(meta.subject) ? meta.subject : [meta.subject]) : ['Classic'],
-          status: 'Completed',
-          year: meta.date,
-          author: meta.creator || 'Unknown',
-          source: 'archive'
-        });
-
-        // Smart Chapter Detection for Archive.org
-        const bookFiles = data.files?.filter((f: any) => 
-          f.format === "Image Container PDF" || 
-          f.format === "PDF" || 
-          f.format === "EPUB" || 
-          f.format === "Comic Book Archive"
-        ) || [];
-
-        if (bookFiles.length > 1) {
-          const chList = bookFiles.map((f: any, i: number) => ({
-            id: f.name, // Store filename
-            title: f.title || f.name.replace(/\.[^/.]+$/, "").replace(/_/g, " "),
-            chapterNum: (i + 1).toString()
-          }));
-          setChapters(chList);
-        } else {
-          setChapters([{ id: id as string, title: 'Complete Volume', chapterNum: '1' }]);
-        }
+      const [comicData, chapterData] = await Promise.all([
+        getComicDetails(source as string, id as string, mangaLanguage),
+        getChapters(source as string, id as string, mangaLanguage)
+      ]);
+      
+      if (comicData) setComic(comicData as any);
+      if (chapterData) setChapters(chapterData as any);
+      
+      // Marvel background fetches still needed if not pre-fetched
+      if (source === 'marvel' && comicData) {
+         // Marvel-specific details fetch...
       }
     } catch (e) {
       console.error(e);
@@ -485,6 +335,7 @@ export default function ComicDetailsPage() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (comic && isAdultComic(comic) && !isAgeVerified) {
@@ -503,66 +354,9 @@ export default function ComicDetailsPage() {
   }, [id, source]);
 
   const buildChapterPages = useCallback(async (chapter: Chapter) => {
-    if (source === 'mangadex') {
-      const res = await fetchMangaDexProxy(`at-home/server/${chapter.id}`);
-      const data = await res.json();
-      const urls = data.chapter.data.map((n: string) => `${data.baseUrl}/data/${data.chapter.hash}/${n}`);
-      urls.slice(0, 3).forEach((u: string) => {
-        const img = new Image();
-        img.src = proxyImageUrl(u);
-      });
-      return urls.map((url: string) => proxyImageUrl(url));
-    }
-
-    if (source === 'nhentai') {
-      const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${id}`)}`);
-      if (!res.ok) throw new Error("Failed to fetch nhentai gallery");
-      const data = await res.json();
-      return data.pages.map((p: any) => `https://i.nhentai.net/${p.path}`);
-    }
-
-    if (source === 'e621' || source === 'danbooru' || source === 'gelbooru') {
-      const res = source === 'danbooru'
-        ? await fetchDanbooruDirect('post', { id: String(id) })
-        : await fetchBooruProxy(source, 'post', { id: String(id) });
-      if (!res.ok) throw new Error(`Failed to fetch ${source} post`);
-      const data = await res.json();
-      const post = mapBooruDetail(source, data);
-      const imageUrl = post?.coverUrl;
-      if (!imageUrl) throw new Error(`No image available for ${source} post`);
-      return [imageUrl];
-    }
-
-    const res = await fetch(`https://archive.org/metadata/${id}`);
-    const data = await res.json();
-    const archivePages: string[] = [];
-    const isSubFile = chapter.id !== id;
-
-    let jp2File;
-    if (isSubFile) {
-      const baseName = chapter.id.replace(/\.[^/.]+$/, "");
-      jp2File = data.files?.find((f: any) => f.name.includes(baseName) && f.format === "Single Page Processed JP2 ZIP");
-    } else {
-      jp2File = data.files?.find((f: any) => f.format === "Single Page Processed JP2 ZIP");
-    }
-
-    let count = parseInt(jp2File?.filecount || data.metadata?.page_count || "1");
-
-    if (count <= 1) {
-      const targetFile = data.files?.find((f: any) => f.name === chapter.id);
-      count = parseInt(targetFile?.page_count || targetFile?.filecount || data.metadata?.page_count || "60");
-    }
-
-    count = Math.min(count, 1500);
-    for (let i = 0; i < count; i++) {
-      const url = isSubFile
-        ? `https://archive.org/services/img/${id}/${i}?scale=8&fullsize=1&file=${encodeURIComponent(chapter.id)}`
-        : `https://archive.org/services/img/${id}/${i}?scale=8&fullsize=1`;
-      archivePages.push(url);
-    }
-
-    return archivePages;
+    return getChapterPages(source as string, id as string, chapter.id);
   }, [id, source]);
+
 
   const ensureChapterPages = useCallback(async (chapter: Chapter) => {
     const cacheKey = getChapterCacheKey(chapter.id);
@@ -758,7 +552,7 @@ export default function ComicDetailsPage() {
   if (comic.source === 'marvel' && marvelIssue) {
     return (
       <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
-        <div className="fixed inset-0 z-0 h-[65vh]">
+        <div className="fixed inset-0 z-0 h-[45vh] md:h-[65vh]">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/85 to-[#050505] z-10" />
           <img
             src={comic.bannerUrl || comic.coverUrl}
@@ -767,7 +561,7 @@ export default function ComicDetailsPage() {
           />
         </div>
 
-        <main className="relative z-10 pt-28 pb-24 px-6 md:px-20 max-w-7xl mx-auto">
+        <main className="relative z-10 pt-24 md:pt-28 pb-24 px-4 md:px-20 max-w-7xl mx-auto">
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -850,6 +644,33 @@ export default function ComicDetailsPage() {
                   </div>
                 </div>
               </div>
+
+              {marvelCharacters.length > 0 && (
+                <div className="bg-white/5 border border-white/10 p-5 space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Character_Registry</div>
+                    <Sparkles className="text-[#ff4d00]" size={16} />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {marvelCharacters.slice(0, 10).map((character) => (
+                      <button
+                        key={character.id}
+                        onClick={() => router.push(`/library?tab=Marvel%20Universe&q=${encodeURIComponent(character.name || '')}`)}
+                        className="group px-3 py-2 bg-black/40 border border-white/10 hover:border-[#ff4d00]/50 hover:bg-[#ff4d00]/10 transition-all text-left"
+                      >
+                        <div className="text-[9px] font-black uppercase tracking-[0.25em] text-white group-hover:text-[#ff4d00]">
+                          {character.name}
+                        </div>
+                        {character.description && (
+                          <div className="mt-1 max-w-[150px] text-[8px] uppercase tracking-[0.18em] text-white/25 group-hover:text-white/45 line-clamp-2">
+                            {trimText(character.description, 90)}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             <motion.div
@@ -871,7 +692,7 @@ export default function ComicDetailsPage() {
                   </span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.88]">
+                <h1 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.88]">
                   {comic.title}
                 </h1>
                 <p className="max-w-3xl text-white/55 text-base md:text-lg leading-relaxed">
@@ -959,6 +780,57 @@ export default function ComicDetailsPage() {
                   </div>
                 </div>
               </div>
+
+              {marvelSeries && (
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 space-y-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-[9px] uppercase tracking-[0.35em] text-white/25">Series Endpoint</div>
+                      <h2 className="mt-2 text-2xl font-black uppercase tracking-tight">Series Intel</h2>
+                    </div>
+                    <Globe className="text-[#ff4d00]" />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
+                    <div className="aspect-[2/3] bg-black border border-white/10 overflow-hidden">
+                      <img
+                        src={normalizeMarvelImage(marvelSeries.thumbnail) || comic.coverUrl}
+                        alt={marvelSeries.title || marvelIssue.seriesName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">
+                          {marvelSeries.title || marvelIssue.seriesName}
+                        </div>
+                        <p className="mt-3 max-w-3xl text-white/55 text-base leading-relaxed">
+                          {trimText(marvelSeries.description, 300) || 'Series metadata fetched directly from the Marvel series endpoint.'}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="bg-white/5 border border-white/10 p-4">
+                          <div className="text-[8px] uppercase tracking-[0.35em] text-white/25">Series ID</div>
+                          <div className="mt-2 text-sm font-black uppercase tracking-tight">{marvelSeries.id}</div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-4">
+                          <div className="text-[8px] uppercase tracking-[0.35em] text-white/25">Start Year</div>
+                          <div className="mt-2 text-sm font-black uppercase tracking-tight">{marvelSeries.startYear || 'Unknown'}</div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-4">
+                          <div className="text-[8px] uppercase tracking-[0.35em] text-white/25">End Year</div>
+                          <div className="mt-2 text-sm font-black uppercase tracking-tight">{marvelSeries.endYear || 'Ongoing'}</div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-4">
+                          <div className="text-[8px] uppercase tracking-[0.35em] text-white/25">Updated</div>
+                          <div className="mt-2 text-sm font-black uppercase tracking-tight">{formatMarvelDate(marvelSeries.modified)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </main>

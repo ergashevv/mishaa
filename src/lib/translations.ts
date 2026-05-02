@@ -160,6 +160,7 @@ export const translations = {
       authenticating: 'Authenticating...',
       establishUplink: 'Establish_Uplink',
       initializeForge: 'Initialize_Forge',
+      google: 'Continue with Google',
       requestRegistry: '[ Request_Registry ]',
       abortRegistry: '[ Abort_Registry ]',
       usernamePlaceholder: 'USERNAME'
@@ -360,6 +361,7 @@ export const translations = {
       authenticating: 'Авторизация...',
       establishUplink: 'Установить_Связь',
       initializeForge: 'Инициализировать_Кузницу',
+      google: 'Продолжить через Google',
       requestRegistry: '[ Запросить_Регистрацию ]',
       abortRegistry: '[ Отменить_Регистрацию ]',
       usernamePlaceholder: 'ЛОГИН'
@@ -560,6 +562,7 @@ export const translations = {
       authenticating: 'Tekshirilmoqda...',
       establishUplink: 'Aloqa_O‘rnatish',
       initializeForge: 'Bolg‘ani_Ishga_Tushirish',
+      google: 'Google bilan davom etish',
       requestRegistry: '[ Ro‘yxatga_So‘rov_Yuborish ]',
       abortRegistry: '[ Ro‘yxatni_Bekor_Qilish ]',
       usernamePlaceholder: 'TAXALLUS'

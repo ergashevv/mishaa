@@ -33,10 +33,7 @@ import {
   MANGADEX_LONG_STRIP_TAG_ID,
   pickMangaDexCoverFileName,
 } from '@/lib/mangadex';
-import {
-  buildBooruSearchUrl,
-} from '@/lib/booru';
-
+import { searchComics, getChapters, getChapterPages } from '@/actions/comic';
 interface Comic {
   id: string;
   title: string;
@@ -130,6 +127,13 @@ const fetchMangaDexProxy = (path: string) =>
     cache: 'no-store',
   });
 
+const fetchArchiveProxy = (action: 'search' | 'metadata' | 'cover' | 'page', params: Record<string, string>) => {
+  const searchParams = new URLSearchParams({ action, ...params });
+  return fetch(`/api/proxy/archive?${searchParams.toString()}`, {
+    cache: 'no-store',
+  });
+};
+
 const resolveMangaDexCoverUrl = async (mangaId: string, coverFileName?: string | null) => {
   if (coverFileName) {
     return buildMangaDexCoverUrl(mangaId, coverFileName);
@@ -152,25 +156,8 @@ const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: R
   });
 };
 
-const fetchDanbooruDirect = (kind: 'search' | 'post', params: Record<string, string>) => {
-  if (kind === 'search') {
-    const url = buildBooruSearchUrl('danbooru', {
-      limit: Number.parseInt(params.limit || '36', 10),
-      page: Number.parseInt(params.page || '0', 10),
-      query: params.query || '',
-    });
-
-    return fetch(url, {
-      cache: 'no-store',
-      mode: 'cors',
-    });
-  }
-
-  return fetch(`https://danbooru.donmai.us/posts/${encodeURIComponent(params.id || '')}.json`, {
-    cache: 'no-store',
-    mode: 'cors',
-  });
-};
+const fetchDanbooruDirect = (kind: 'search' | 'post', params: Record<string, string>) =>
+  fetchBooruProxy('danbooru', kind, params);
 
 function ComicLibrary() {
   const router = useRouter();
@@ -328,90 +315,24 @@ function ComicLibrary() {
     excludedTagIds?: string[],
     translatedLanguage?: MangaLanguage
   ): Promise<LoadResult> => {
-    try {
-      const ratings = ratingsOverride || ['safe', 'suggestive'];
-      const params = new URLSearchParams();
-      params.set('limit', LIMIT.toString());
-      params.set('offset', String(currentOffset * LIMIT));
-      params.append('includes[]', 'cover_art');
-      const translatedLanguages = getMangaDexTranslatedLanguages(translatedLanguage || DEFAULT_MANGA_LANGUAGE);
-      appendMangaDexFilters(params, {
-        contentRatings: ratings,
-        includedTagIds,
-        excludedTagIds,
-        originalLanguages,
-        translatedLanguages,
-      });
-      // Added order by relevance if query exists, else followedCount
-      if (query.trim().length >= 2) {
-        params.set('title', query.trim());
-        params.set('order[relevance]', 'desc');
-      } else {
-        params.set('order[followedCount]', 'desc');
-      }
-
-      const res = await fetchMangaDexProxy(`manga?${params.toString()}`);
-      if (!res.ok) return { items: [], hasMore: false };
-      const data = await res.json();
-      const items = Array.isArray(data?.data) ? data.data : [];
-      const total = Number(data?.total ?? 0);
-      const hasMore = Number.isFinite(total)
-        ? (currentOffset + 1) * LIMIT < total
-        : items.length === LIMIT;
-
-      const mappedItems = await Promise.all(items.map(async (item: any) => {
-        const coverFileName = pickMangaDexCoverFileName(item.relationships);
-        const title = resolveMangaDexLocalizedText(item.attributes.title, translatedLanguage || DEFAULT_MANGA_LANGUAGE);
-        const description = resolveMangaDexLocalizedText(item.attributes.description, translatedLanguage || DEFAULT_MANGA_LANGUAGE);
-        return {
-          id: item.id,
-          title: title || Object.values(item.attributes.title || {})[0] || 'Untitled',
-          description: description || 'No description available.',
-          coverUrl: coverFileName
-            ? buildMangaDexCoverUrl(item.id, coverFileName)
-            : await resolveMangaDexCoverUrl(item.id, coverFileName),
-          source: 'mangadex',
-          rating: item.attributes.contentRating
-        };
-      }));
-
-      return {
-        items: mappedItems,
-        hasMore,
-      };
-    } catch (e) { return { items: [], hasMore: false }; }
+    return searchComics({
+      source: 'mangadex',
+      query,
+      page: currentOffset,
+      mangaLanguage: translatedLanguage,
+      ratings: ratingsOverride,
+      originalLanguages,
+      includedTagIds,
+      excludedTagIds
+    }) as Promise<LoadResult>;
   }, []);
+
 
   // Fetch from Archive.org
   const fetchArchive = useCallback(async (query: string, page: number): Promise<LoadResult> => {
-    try {
-      let searchFilter = `(${query})`;
-      if (!query.includes('collection:') && !query.includes('subject:')) {
-        searchFilter = `(${query}) AND (collection:comic_books_archive OR subject:"Comic Books") AND -subject:magazine AND -subject:fanzine`;
-      }
-      
-      const url = `https://archive.org/advancedsearch.php?q=${searchFilter}+AND+mediatype:texts&fl[]=identifier,title,description,downloads,avg_rating&sort[]=downloads+desc&rows=${LIMIT}&page=${page + 1}&output=json`;
-      const res = await fetch(url);
-      if (!res.ok) return { items: [], hasMore: false };
-      const data = await res.json();
-      
-      if (!data.response || !data.response.docs) return { items: [], hasMore: false };
-      const docs = Array.isArray(data.response.docs) ? data.response.docs : [];
-      const total = Number(data.response.numFound ?? 0);
-
-      return {
-        items: docs.map((item: any) => ({
-          id: item.identifier,
-          title: item.title,
-          coverUrl: `https://archive.org/services/img/${item.identifier}`,
-          source: 'archive'
-        })),
-        hasMore: Number.isFinite(total)
-          ? (page + 1) * LIMIT < total
-          : docs.length === LIMIT,
-      };
-    } catch (e) { return { items: [], hasMore: false }; }
+    return searchComics({ source: 'archive', query, page }) as Promise<LoadResult>;
   }, []);
+
 
   // Fetch from nhentai
   const fetchNHentai = useCallback(async (query: string, page: number): Promise<LoadResult> => {
@@ -432,7 +353,9 @@ function ComicLibrary() {
           id: item.id.toString(),
           title: item.english_title || item.title?.english || item.title?.japanese || "Untitled",
           description: `${item.num_pages} pages`,
-          coverUrl: `https://t3.nhentai.net/${item.thumbnail?.path || item.thumbnail}`,
+          coverUrl: item.thumbnail?.path || item.thumbnail
+            ? `/api/proxy/nhentai/image?path=${encodeURIComponent(item.thumbnail?.path || item.thumbnail)}`
+            : '/logo.png',
           source: 'nhentai',
           rating: 'pornographic'
         };
@@ -487,90 +410,9 @@ function ComicLibrary() {
   }, []);
 
   const fetchMarvelIssues = useCallback(async (query: string, currentOffset: number): Promise<LoadResult> => {
-    try {
-      const normalizedQuery = query.trim();
-      const shouldPrefetchCovers = normalizedQuery.length < 2;
-      const params = new URLSearchParams();
-      if (normalizedQuery.length >= 2) {
-        params.set('q', normalizedQuery);
-      } else {
-        params.set('limit', LIMIT.toString());
-        params.set('offset', String(currentOffset * LIMIT));
-      }
-
-      const res = await fetch(`/api/marvel/issues?${params.toString()}`);
-      if (!res.ok) return { items: [], hasMore: false };
-
-      const data = await res.json();
-      const items: MarvelIssueSummary[] = Array.isArray(data?.items) ? data.items : [];
-      const total = Number(data?.total ?? 0);
-      const hasNext = data?.has_next;
-
-      const mappedItems: Comic[] = items.map((item) => ({
-          id: String(item.id),
-          title: item.title || `Issue ${item.issueNumber || item.id}`,
-          description: item.seriesName || 'Marvel Comics metadata',
-          coverUrl: normalizeMarvelCover(item.cover),
-          rating: item.pageCount ? `${item.pageCount} pages` : item.yearPage ? String(item.yearPage) : 'Marvel',
-          source: 'marvel' as const,
-          issueNumber: item.issueNumber,
-          seriesName: item.seriesName,
-          onSaleDate: item.onSaleDate,
-          yearPage: item.yearPage,
-          detailUrl: item.detailUrl,
-          pageCount: item.pageCount,
-        }));
-
-      const preferredMarvelItems = shouldPrefetchCovers
-        ? await Promise.all(
-            mappedItems.map(async (comic, index) => {
-              if (index >= MARVEL_COVER_PREFETCH_COUNT || comic.coverUrl) return comic;
-
-              for (let attempt = 0; attempt <= MARVEL_COVER_FETCH_RETRIES; attempt += 1) {
-                try {
-                  const detailRes = await fetch(`/api/marvel/issues/${comic.id}`);
-                  if (!detailRes.ok) {
-                    if (attempt < MARVEL_COVER_FETCH_RETRIES) {
-                      await wait(400 * (attempt + 1));
-                      continue;
-                    }
-                    return comic;
-                  }
-
-                  const detail = await detailRes.json();
-                  const coverUrl = normalizeMarvelCover(detail?.cover);
-                  if (coverUrl) {
-                    return { ...comic, coverUrl };
-                  }
-
-                  return comic;
-                } catch {
-                  if (attempt < MARVEL_COVER_FETCH_RETRIES) {
-                    await wait(400 * (attempt + 1));
-                    continue;
-                  }
-                  return comic;
-                }
-              }
-
-              return comic;
-            })
-          )
-        : mappedItems;
-
-      return {
-        items: preferredMarvelItems,
-        hasMore: typeof hasNext === 'boolean'
-          ? hasNext
-          : Number.isFinite(total)
-            ? (currentOffset + 1) * LIMIT < total
-            : items.length === LIMIT,
-      };
-    } catch (error) {
-      console.error(error);
-      return { items: [], hasMore: false };
-    }
+    return searchComics({ source: 'marvel', query, page: currentOffset }) as Promise<LoadResult>;
   }, []);
+
 
   const loadData = useCallback(async (pageIndex: number = 0, append: boolean = false) => {
     const requestId = ++requestIdRef.current;
@@ -696,7 +538,7 @@ function ComicLibrary() {
     }, 350);
 
     return () => window.clearTimeout(timeout);
-  }, [activeCategory, searchQuery, nsfwEnabled, loadData]);
+  }, [activeCategory, searchQuery, nsfwEnabled, mangaLanguage, loadData]);
 
   useEffect(() => {
     // Infinite scroll advances the page index and fetches the next batch.
@@ -708,7 +550,6 @@ function ComicLibrary() {
   }, [offset, loadData]);
 
   const fetchPages = async (comic: Comic) => {
-    // Check for adult content age gate
     if (isAdultComic(comic) && !isAgeVerified) {
       setShowAgeGate(true);
       return;
@@ -717,87 +558,14 @@ function ComicLibrary() {
     setReading(true);
     setPages([]);
     try {
-      if (comic.source === 'mangadex') {
-        // Try English first
-        const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
-        const feedParams = new URLSearchParams();
-        feedParams.set('limit', '5');
-        feedParams.set('order[chapter]', 'asc');
-        translatedLanguages?.forEach((language) => feedParams.append('translatedLanguage[]', language));
-        let feedRes = await fetchMangaDexProxy(`manga/${comic.id}/feed?${feedParams.toString()}`);
-        let feedData = await feedRes.json();
-        
-        // Fallback to any language only for the default English browse mode.
-        if ((!feedData.data || feedData.data.length === 0) && mangaLanguage === DEFAULT_MANGA_LANGUAGE) {
-          feedRes = await fetchMangaDexProxy(`manga/${comic.id}/feed?limit=5&order[chapter]=asc`);
-          feedData = await feedRes.json();
-        }
-
-        if (!feedData.data || feedData.data.length === 0) throw new Error("No readable chapters found on MangaDex");
-        
-        const chId = feedData.data[0].id;
-        const srvRes = await fetchMangaDexProxy(`at-home/server/${chId}`);
-        const srvData = await srvRes.json();
-        
-        if (!srvData.chapter || !srvData.chapter.data) throw new Error("Chapter data is unavailable");
-        
-        setPages(srvData.chapter.data.map((n: string) => `${srvData.baseUrl}/data/${srvData.chapter.hash}/${n}`));
-      } 
-      else if (comic.source === 'archive') {
-        const url = `https://archive.org/metadata/${comic.id}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (!data.files) throw new Error("No files found");
-
-        const imageFiles = data.files.filter((f: any) => {
-          const name = f.name.toLowerCase();
-          return (
-            name.endsWith('.jpg') || 
-            name.endsWith('.png') || 
-            name.endsWith('.jpeg') ||
-            (f.format && (f.format.includes('Image') || f.format.includes('JPEG') || f.format.includes('PNG')))
-          ) && !name.includes('thumb') && !name.includes('cover');
-        });
-
-        const pdfFile = data.files.find((f: any) => f.name.toLowerCase().endsWith('.pdf'));
-        const jp2Zip = data.files.find((f: any) => f.name.toLowerCase().endsWith('_jp2.zip'));
-        const comicFile = data.files.find((f: any) => f.name.toLowerCase().endsWith('.cbr') || f.name.toLowerCase().endsWith('.cbz'));
-
-        let archivePages = [];
-        if (imageFiles.length > 5) { // If there are many direct images, use them
-          imageFiles.sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
-          archivePages = imageFiles.map((f: any) => `https://archive.org/download/${comic.id}/${f.name}`);
-        } else {
-          // Use the more stable Archive.org Image Service
-          let pageCount = parseInt(data.metadata?.page_count || "0");
-          if (!pageCount && jp2Zip) pageCount = parseInt(jp2Zip.filecount || "0");
-          if (!pageCount && comicFile) pageCount = parseInt(comicFile.filecount || "0");
-          if (!pageCount && pdfFile) pageCount = 60; // Better default
-
-          if (pageCount > 0) {
-            for(let i=0; i<pageCount; i++) {
-               // Official Archive.org Page Image Service (very stable)
-               archivePages.push(`https://archive.org/services/img/${comic.id}/${i}?scale=8&fullsize=1`);
-            }
-          }
-        }
-
-        if (archivePages.length === 0) throw new Error("No readable pages found");
-        setPages(archivePages);
-      } 
-      else if (comic.source === 'nhentai') {
-        const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries/${comic.id}`)}`);
-        if (!res.ok) throw new Error("Failed to fetch nhentai gallery");
-        const data = await res.json();
-        
-        // nhentai v2 provides direct paths
-        const nhPages = data.pages.map((p: any) => {
-           return `https://i.nhentai.net/${p.path}`;
-        });
-        setPages(nhPages);
-      }
+      // Use existing server action to get chapters first, then pages
+      const chapters = await getChapters(comic.source, comic.id, mangaLanguage);
+      if (!chapters || chapters.length === 0) throw new Error("No chapters found");
       
+      const chapterPages = await getChapterPages(comic.source, comic.id, chapters[0].id);
+      if (!chapterPages || chapterPages.length === 0) throw new Error("No pages found");
+      
+      setPages(chapterPages);
       setCurrentPage(0);
       setSelectedComic(comic);
     } catch (e) { 
@@ -808,6 +576,7 @@ function ComicLibrary() {
       setReading(false); 
     }
   };
+
 
   // Keyboard navigation
   useEffect(() => {

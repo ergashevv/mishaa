@@ -7,7 +7,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
-        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'uploads.mangadex.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.annihil.us',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
     ],
   },

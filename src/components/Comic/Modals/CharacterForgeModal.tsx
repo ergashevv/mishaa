@@ -5,6 +5,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Upload, Sparkles, RefreshCw, Check, Camera, Search, ShieldCheck, BookOpen } from 'lucide-react';
 import { Character } from '@/types/comic';
 
+interface MarvelCharacterResult {
+  id: number;
+  name: string;
+  description?: string;
+  thumbnail?: {
+    path?: string;
+    extension?: string;
+  };
+}
+
+const parseMarvelCharacterResults = (payload: unknown): MarvelCharacterResult[] => {
+  const results = Array.isArray((payload as { data?: { results?: unknown } })?.data?.results)
+    ? ((payload as { data?: { results: MarvelCharacterResult[] } }).data?.results || [])
+    : Array.isArray((payload as { results?: unknown })?.results)
+      ? ((payload as { results: MarvelCharacterResult[] }).results || [])
+      : Array.isArray(payload)
+        ? (payload as MarvelCharacterResult[])
+        : [];
+
+  return results
+    .map((character) => ({
+      id: Number(character?.id ?? 0),
+      name: String(character?.name || ''),
+      description: character?.description || '',
+      thumbnail: character?.thumbnail,
+    }))
+    .filter((character) => Boolean(character.id && character.name));
+};
+
 interface CharacterForgeModalProps {
   isOpen: boolean;
   initialData?: Character | null;
@@ -24,7 +53,7 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
 
   // -- MARVEL INTEGRATION STATE --
   const [marvelSearch, setMarvelSearch] = useState('');
-  const [marvelResults, setMarvelResults] = useState<any[]>([]);
+  const [marvelResults, setMarvelResults] = useState<MarvelCharacterResult[]>([]);
   const [isSearchingMarvel, setIsSearchingMarvel] = useState(false);
   const [activeTab, setActiveTab] = useState<'custom' | 'marvel'>('custom');
   const [marvelError, setMarvelError] = useState<string | null>(null);
@@ -76,15 +105,14 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
     }
   };
 
-  const searchMarvel = async () => {
-    if (!marvelSearch) return;
+  const searchMarvel = async (query = marvelSearch.trim()) => {
     setIsSearchingMarvel(true);
     setMarvelError(null);
     try {
       const res = await fetch('/api/marvel/characters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nameStartsWith: marvelSearch }),
+        body: JSON.stringify({ nameStartsWith: query, limit: query ? 10 : 12 }),
       });
       const data = await res.json();
       
@@ -93,17 +121,16 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
       }
 
       // RapidAPI Marvel usually returns an array directly or inside data.data.results
-      const results = data.data?.results || data.results || data || [];
-      setMarvelResults(Array.isArray(results) ? results : []);
-    } catch (err: any) {
+      setMarvelResults(parseMarvelCharacterResults(data));
+    } catch (err: unknown) {
       console.error('Marvel search failed:', err);
-      setMarvelError(err.message || 'Service Interruption Detected.');
+      setMarvelError(err instanceof Error ? err.message : 'Service Interruption Detected.');
     } finally {
       setIsSearchingMarvel(false);
     }
   };
 
-  const importMarvelCharacter = (mChar: any) => {
+  const importMarvelCharacter = (mChar: MarvelCharacterResult) => {
     setName(mChar.name);
     // Construct description from Marvel bio
     setDescription(mChar.description || `The iconic Marvel character ${mChar.name}.`);
@@ -165,7 +192,10 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
                         Custom_Build
                       </button>
                       <button 
-                        onClick={() => setActiveTab('marvel')}
+                        onClick={() => {
+                          setActiveTab('marvel');
+                          void searchMarvel('');
+                        }}
                         className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'marvel' ? 'bg-rose-600 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
                       >
                         Marvel_Registry
@@ -278,7 +308,7 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
                           />
                        </div>
                        <button 
-                         onClick={searchMarvel}
+                         onClick={() => searchMarvel()}
                          disabled={isSearchingMarvel}
                          className="px-10 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all flex items-center gap-3"
                        >

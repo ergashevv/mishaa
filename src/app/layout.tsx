@@ -35,9 +35,44 @@ const bangers = Bangers({
 });
 
 export const metadata: Metadata = {
-  title: "iComics Studio | Professional Sequential Production",
-  description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with iComics.",
+  title: {
+    default: "iComics Studio | AI-Powered Comic Creation",
+    template: "%s | iComics Studio",
+  },
+  description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics technology.",
+  keywords: ["comics", "AI comics", "comic creation", "manga", "webtoon", "digital art", "iComics", "storytelling", "visual narrative", "AI art"],
+  authors: [{ name: "iComics Team", url: "https://icomics.uz" }],
+  creator: "iComics Studio",
+  publisher: "iComics Studio",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://icomics.uz"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "iComics Studio | Professional Sequential Production",
+    description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics technology.",
+    url: "https://icomics.uz",
+    siteName: "iComics Studio",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "iComics Studio | AI-Powered Comic Creation",
+    description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics technology.",
+    creator: "@icomics_studio",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   verification: {
     google: "Q3JUtRB_65-cXXd1FocDiCQ-Y4bOA_zmDpzJQfhU9mE",
   },
@@ -55,7 +90,7 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${outfit.variable} ${bricolage.variable} ${jetBrainsMono.variable} ${staatliches.variable} ${bangers.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#fcfaf2]">
+      <body className="min-h-full flex flex-col bg-transparent">
         <SmoothAnimations />
         {children}
       </body>
