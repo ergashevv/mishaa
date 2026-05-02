@@ -90,6 +90,7 @@ interface NHentaiGallery {
 }
 
 const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";
+const getSuperheroApiBase = () => `https://superheroapi.com/api/${process.env.SUPERHERO_API_TOKEN}`;
 const LIMIT = 36;
 
 const NHENTAI_HEADERS = {
@@ -133,6 +134,27 @@ async function fetchNHentaiGallery(id: string) {
 
 export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
+    if (source === 'superhero') {
+      const res = await fetch(`${getSuperheroApiBase()}/${id}`, { next: { revalidate: 3600 } });
+      if (!res.ok) throw new Error('Superhero fetch failed');
+      const data = await res.json();
+      if (data.response === 'error') throw new Error(data.error);
+
+      return {
+        id: data.id,
+        title: data.name,
+        description: data.biography?.['full-name'] || data.name,
+        coverUrl: data.image?.url || '/logo.png',
+        rating: 'Safe',
+        genres: [data.biography?.publisher || 'Superhero'],
+        status: 'Completed',
+        year: data.biography?.['first-appearance'],
+        author: data.biography?.publisher || 'Unknown',
+        source: 'superhero' as const,
+        superheroData: data
+      };
+    }
+
     if (source === 'marvel') {
       const res = await fetch(`${MARVEL_API_BASE}/issues/${id}`, { next: { revalidate: 3600 } });
       if (!res.ok) throw new Error('Marvel fetch failed');
@@ -269,6 +291,10 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
 export async function getChapters(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
+    if (source === 'superhero') {
+      return [{ id: '1', title: 'Character Profile', chapterNum: '1' }];
+    }
+
     if (source === 'mangadex') {
       const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
       const params = new URLSearchParams({
@@ -291,11 +317,22 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
         data = await fallbackRes.json();
       }
 
-      return data.data?.map((ch: { id: string; attributes: { title?: string; chapter: string; volume?: string } }) => ({
+      // Aggressive fallback to ANY language if still empty
+      if ((!data.data || data.data.length === 0)) {
+        const aggrParams = new URLSearchParams({
+          limit: '500',
+          'order[chapter]': 'asc',
+        });
+        const aggrRes = await fetch(`https://api.mangadex.org/manga/${id}/feed?${aggrParams.toString()}`, { next: { revalidate: 3600 } });
+        data = await aggrRes.json();
+      }
+
+      return data.data?.map((ch: { id: string; attributes: { title?: string; chapter: string; volume?: string; externalUrl?: string } }) => ({
         id: ch.id,
         title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,
         chapterNum: ch.attributes.chapter,
-        volume: ch.attributes.volume
+        volume: ch.attributes.volume,
+        externalUrl: ch.attributes.externalUrl
       })) || [];
     }
 
@@ -329,6 +366,12 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
 
 export async function getChapterPages(source: string, id: string, chapterId: string) {
   try {
+    if (source === 'superhero') {
+       const res = await fetch(`${getSuperheroApiBase()}/${id}`, { next: { revalidate: 3600 } });
+       const data = await res.json();
+       return data.image?.url ? [data.image.url] : [];
+    }
+
     if (source === 'mangadex') {
       const res = await fetch(`https://api.mangadex.org/at-home/server/${chapterId}`, { next: { revalidate: 3600 } });
       if (!res.ok) {
@@ -338,14 +381,21 @@ export async function getChapterPages(source: string, id: string, chapterId: str
       const data = await res.json();
       const baseUrl = data.baseUrl;
       const hash = data.chapter?.hash;
-      const fileNames = data.chapter?.data;
+      let fileNames = data.chapter?.data;
+      let quality = 'data';
 
-      if (!baseUrl || !hash || !fileNames) {
+      // Fallback to dataSaver if original data is missing
+      if (!fileNames || fileNames.length === 0) {
+        fileNames = data.chapter?.dataSaver;
+        quality = 'data-saver';
+      }
+
+      if (!baseUrl || !hash || !fileNames || fileNames.length === 0) {
         console.error("MangaDex at-home response missing data:", data);
         return [];
       }
 
-      return fileNames.map((n: string) => `/api/proxy/image?url=${encodeURIComponent(`${baseUrl}/data/${hash}/${n}`)}`);
+      return fileNames.map((n: string) => `/api/proxy/image?url=${encodeURIComponent(`${baseUrl}/${quality}/${hash}/${n}`)}`);
     }
 
     if (source === 'nhentai') {
@@ -398,6 +448,25 @@ export async function searchComics(params: {
   const { source, query = '', page = 0, mangaLanguage = DEFAULT_MANGA_LANGUAGE, ratings, originalLanguages, includedTagIds, excludedTagIds } = params;
   
   try {
+    if (source === 'superhero') {
+      // The API requires a search query. If empty, default to 'batman'.
+      const searchQuery = query && query.length >= 2 ? query : 'batman';
+      const res = await fetch(`${getSuperheroApiBase()}/search/${encodeURIComponent(searchQuery)}`, { next: { revalidate: 3600 } });
+      const data = await res.json();
+      const items = data.results || [];
+      return {
+        items: items.map((item: any) => ({
+          id: item.id,
+          title: item.name,
+          description: item.biography?.['full-name'] || item.name,
+          coverUrl: item.image?.url || '/logo.png',
+          source: 'superhero',
+          rating: item.biography?.publisher || 'Superhero'
+        })),
+        hasMore: false
+      };
+    }
+
     if (source === 'marvel') {
       const searchParams = new URLSearchParams();
       if (query.length >= 2) searchParams.set('q', query);

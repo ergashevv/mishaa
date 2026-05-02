@@ -55,8 +55,14 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
   const [marvelSearch, setMarvelSearch] = useState('');
   const [marvelResults, setMarvelResults] = useState<MarvelCharacterResult[]>([]);
   const [isSearchingMarvel, setIsSearchingMarvel] = useState(false);
-  const [activeTab, setActiveTab] = useState<'custom' | 'marvel'>('custom');
+  const [activeTab, setActiveTab] = useState<'custom' | 'marvel' | 'superhero'>('custom');
   const [marvelError, setMarvelError] = useState<string | null>(null);
+
+  // -- SUPERHERO INTEGRATION STATE --
+  const [superheroSearch, setSuperheroSearch] = useState('');
+  const [superheroResults, setSuperheroResults] = useState<any[]>([]);
+  const [isSearchingSuperhero, setIsSearchingSuperhero] = useState(false);
+  const [superheroError, setSuperheroError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -141,6 +147,34 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
     setActiveTab('custom');
   };
 
+  const searchSuperhero = async (query = superheroSearch.trim()) => {
+    setIsSearchingSuperhero(true);
+    setSuperheroError(null);
+    try {
+      const res = await fetch('/api/superhero/characters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nameStartsWith: query }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Superhero API is currently unreachable.');
+      setSuperheroResults(data.results || []);
+    } catch (err: unknown) {
+      console.error('Superhero search failed:', err);
+      setSuperheroError(err instanceof Error ? err.message : 'Service Interruption Detected.');
+    } finally {
+      setIsSearchingSuperhero(false);
+    }
+  };
+
+  const importSuperheroCharacter = (sChar: any) => {
+    setName(sChar.name);
+    setDescription(sChar.biography?.['full-name'] || `The superhero ${sChar.name}.`);
+    setPreview(sChar.image?.url || '');
+    setPromptBase(`${sChar.name}, high-contrast comic style, detailed suit`);
+    setActiveTab('custom');
+  };
+
   const handleSave = () => {
     if (!name) return;
     onSave({
@@ -199,6 +233,15 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
                         className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'marvel' ? 'bg-rose-600 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
                       >
                         Marvel_Registry
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setActiveTab('superhero');
+                          if (superheroSearch) void searchSuperhero(superheroSearch);
+                        }}
+                        className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'superhero' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+                      >
+                        Superhero_DB
                       </button>
                    </div>
                 </div>
@@ -294,7 +337,7 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
                        </div>
                     </div>
                  </div>
-               ) : (
+               ) : activeTab === 'marvel' ? (
                  <div className="flex flex-col h-full space-y-8">
                     <div className="flex gap-4">
                        <div className="flex-1 relative">
@@ -359,6 +402,82 @@ export function CharacterForgeModal({ isOpen, initialData, onClose, onSave, t }:
                               <div className="flex flex-col">
                                  <h4 className="text-[12px] font-black text-white group-hover:text-rose-500 transition-colors uppercase truncate">{mChar.name}</h4>
                                  <p className="text-[8px] text-white/30 uppercase tracking-widest mt-1 line-clamp-2">{mChar.description || 'No database bio available.'}</p>
+                              </div>
+                           </motion.div>
+                         ))
+                       ) : (
+                         <div className="col-span-3 flex flex-col items-center justify-center py-24 opacity-20 gap-6">
+                            <BookOpen size={64} />
+                            <p className="text-[10px] font-black uppercase tracking-[0.5em]">Waiting_For_Input...</p>
+                         </div>
+                       )}
+                    </div>
+                 </div>
+               ) : (
+                 <div className="flex flex-col h-full space-y-8">
+                    <div className="flex gap-4">
+                       <div className="flex-1 relative">
+                          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20" size={20} />
+                          <input 
+                            value={superheroSearch}
+                            onChange={(e) => setSuperheroSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && searchSuperhero()}
+                            placeholder="SEARCH SUPERHERO DATABASE (e.g. Batman, Superman)..."
+                            className="w-full bg-black border-2 border-white/5 p-6 pl-16 text-sm font-black text-white uppercase outline-none focus:border-[#ff4d00] transition-all placeholder:opacity-10"
+                          />
+                       </div>
+                       <button 
+                         onClick={() => searchSuperhero()}
+                         disabled={isSearchingSuperhero}
+                         className="px-10 bg-[#ff4d00] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#ff4d00]/80 transition-all flex items-center gap-3"
+                       >
+                          {isSearchingSuperhero ? <RefreshCw className="animate-spin" size={16} /> : <Search size={16} />}
+                          Initialize_Search
+                       </button>
+                    </div>
+
+                    <div className="flex-1 grid grid-cols-3 gap-6 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-[#ff4d00]/20">
+                       {superheroError ? (
+                         <div className="col-span-3 flex flex-col items-center justify-center py-24 bg-[#ff4d00]/5 border border-[#ff4d00]/20 rounded-3xl gap-6 text-center px-12">
+                            <div className="w-16 h-16 bg-[#ff4d00]/10 rounded-full flex items-center justify-center text-[#ff4d00] animate-pulse">
+                               <X size={32} />
+                            </div>
+                            <div className="space-y-2">
+                               <h4 className="text-[14px] font-black uppercase text-[#ff4d00] tracking-widest">External_Service_Failure</h4>
+                               <p className="text-[10px] font-bold text-white/40 uppercase leading-relaxed max-w-md">
+                                  {superheroError}
+                               </p>
+                            </div>
+                            <button 
+                              onClick={() => setActiveTab('custom')}
+                              className="px-8 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                            >
+                               Use_Custom_Build_Instead
+                            </button>
+                         </div>
+                       ) : superheroResults.length > 0 ? (
+                         superheroResults.map((sChar) => (
+                           <motion.div 
+                             key={sChar.id}
+                             whileHover={{ y: -5 }}
+                             onClick={() => importSuperheroCharacter(sChar)}
+                             className="group bg-white/5 border border-white/5 p-4 rounded-2xl cursor-pointer hover:border-[#ff4d00]/50 transition-all flex flex-col gap-4"
+                           >
+                              <div className="aspect-square bg-black rounded-xl overflow-hidden relative">
+                                 <img 
+                                   src={sChar.image?.url || '/logo.png'} 
+                                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                   alt={sChar.name}
+                                 />
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                 <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                                    <ShieldCheck size={12} className="text-[#ff4d00]" />
+                                    <span className="text-[8px] font-black uppercase text-white/60">{sChar.biography?.publisher || 'Superhero'}</span>
+                                 </div>
+                              </div>
+                              <div className="flex flex-col">
+                                 <h4 className="text-[12px] font-black text-white group-hover:text-[#ff4d00] transition-colors uppercase truncate">{sChar.name}</h4>
+                                 <p className="text-[8px] text-white/30 uppercase tracking-widest mt-1 line-clamp-2">{sChar.biography?.['full-name'] || 'Unknown Identity'}</p>
                               </div>
                            </motion.div>
                          ))

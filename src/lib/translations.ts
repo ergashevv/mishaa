@@ -197,6 +197,7 @@ export const translations = {
     layers: 'Layers',
     neural: 'Neural',
     library: {
+      read: 'READ',
       restricted: 'RESTRICTED',
       ageDesc: 'This archive contains explicit material intended for adult audiences only. You must be 18+ to access.',
       verifyBtn: 'I AM 18 OR OLDER',
@@ -398,6 +399,7 @@ export const translations = {
     layers: 'Слои',
     neural: 'Нейрон',
     library: {
+      read: 'ЧИТАТЬ',
       restricted: 'ОГРАНИЧЕНО',
       ageDesc: 'Этот архив содержит материалы только для взрослых. Вам должно быть 18+, чтобы получить доступ.',
       verifyBtn: 'МНЕ ЕСТЬ 18 ЛЕТ',
@@ -599,6 +601,7 @@ export const translations = {
     layers: 'Qatlamlar',
     neural: 'Neyron',
     library: {
+      read: 'O‘QISH',
       restricted: 'CHЕKLANGAN',
       ageDesc: 'Ushbu arxiv faqat kattalar uchun mo‘ljallangan materiallarni o‘z ichiga oladi. Kirish uchun 18+ bo‘lishingiz kerak.',
       verifyBtn: 'MЕN 18 YOSHDAN KATTAMAN',

@@ -6,12 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Play, Star, Clock, 
   Globe, BookOpen, Share2, 
-  Bookmark, X,
+  Bookmark, X, Settings,
   ZoomIn, ZoomOut, Maximize2,
   ChevronRight, Loader2, Sparkles,
   Smartphone, Monitor,
   ChevronDown, ChevronUp,
-  Columns, List
+  Columns, List, ExternalLink
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -20,7 +20,8 @@ import {
   BooruSource,
 } from '@/lib/booru';
 import { translations, Lang } from '@/lib/translations';
-import { readStorageItem } from '@/lib/browser-storage';
+import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
+import { getChapterFromCache, saveChapterToCache } from '@/lib/comic-cache';
 import {
   readStoredMangaLanguage,
   MangaLanguage,
@@ -33,6 +34,7 @@ interface Chapter {
   title: string;
   chapterNum: string;
   volume?: string;
+  externalUrl?: string;
 }
 
 interface ComicDetails {
@@ -173,7 +175,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState<'classic' | 'flow' | 'journal'>('classic');
   const [readerLoading, setReaderLoading] = useState(false);
-  const [uiVisible, setUiVisible] = useState(true);
+  const [uiVisible, setUiVisible] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -286,15 +288,28 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
   const ensureChapterPages = useCallback(async (chapter: Chapter) => {
     const cacheKey = getChapterCacheKey(chapter.id);
-    const cachedPages = chapterPageCacheRef.current.get(cacheKey);
-    if (cachedPages) return cachedPages;
+    
+    // 1. Try In-Memory Cache
+    const inMem = chapterPageCacheRef.current.get(cacheKey);
+    if (inMem) return inMem;
 
+    // 2. Try IndexedDB Persistent Cache
+    const persistent = await getChapterFromCache(cacheKey);
+    if (persistent) {
+      chapterPageCacheRef.current.set(cacheKey, persistent);
+      return persistent;
+    }
+
+    // 3. Dedup pending requests
     const pending = chapterPageRequestRef.current.get(cacheKey);
     if (pending) return pending;
 
     const request = buildChapterPages(chapter)
       .then((pages) => {
         chapterPageCacheRef.current.set(cacheKey, pages);
+        if (pages && pages.length > 0) {
+          void saveChapterToCache(cacheKey, pages);
+        }
         return pages;
       })
       .finally(() => {
@@ -321,19 +336,18 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     setScrolled(false);
     setScrollProgress(0);
 
-    const cacheKey = getChapterCacheKey(chapter.id);
-    const cachedPages = chapterPageCacheRef.current.get(cacheKey);
-    if (cachedPages) {
-      setReaderLoading(false);
-      setPages(cachedPages);
-      canvasRef.current?.scrollTo(0, 0);
-      preloadNeighborChapters(idx);
-      return;
-    }
-
     setReaderLoading(true);
+    
+    // Artificial minimum delay to give visual feedback of transition
+    const minDelay = new Promise(resolve => setTimeout(resolve, 600));
+
     try {
+      const cacheKey = getChapterCacheKey(chapter.id);
+      
+      // We still try the cache here for the minimum delay logic
       const chapterPages = await ensureChapterPages(chapter);
+      
+      await minDelay; // Ensure the user sees the loader
       setPages(chapterPages);
       preloadNeighborChapters(idx);
     } catch (e) {
@@ -346,7 +360,16 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   }, [chapters, ensureChapterPages, getChapterCacheKey, preloadNeighborChapters]);
 
   const fetchComicDetails = useCallback(async () => {
-    setLoading(true);
+    const chaptersCacheKey = `chapters_${source}_${id}_${mangaLanguage}`;
+    const comicCacheKey = `comic_${source}_${id}_${mangaLanguage}`;
+
+    // 1. Try local cache first for instant UI
+    const cachedChapters = readStorageItem(chaptersCacheKey);
+    const cachedComic = readStorageItem(comicCacheKey);
+    if (cachedChapters) setChapters(JSON.parse(cachedChapters));
+    if (cachedComic) setComic(JSON.parse(cachedComic));
+
+    setLoading(!cachedComic);
     try {
       const [comicData, chapterData] = await Promise.all([
         getComicDetails(source as string, id as string, mangaLanguage),
@@ -355,6 +378,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       
       if (comicData) {
         setComic(comicData);
+        writeStorageItem(comicCacheKey, JSON.stringify(comicData));
         if (comicData.marvelIssue) setMarvelIssue(comicData.marvelIssue);
         if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries as MarvelSeries);
         if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues as MarvelSeriesIssue[]);
@@ -362,6 +386,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       }
       if (chapterData) {
         setChapters(chapterData as Chapter[]);
+        writeStorageItem(chaptersCacheKey, JSON.stringify(chapterData));
         // Reset reader if language changed while reading
         if (reading) {
           setCurrentChapterIdx(0);
@@ -897,10 +922,30 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             </div>
             
             <div className="grid grid-cols-1 gap-4">
-               <button onClick={startReading} className="group relative py-6 bg-white text-black flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[11px] overflow-hidden transition-all hover:bg-[#ff4d00] hover:text-white">
-                 <div className="absolute left-0 top-0 bottom-0 w-0 bg-black group-hover:w-full transition-all duration-500 z-0 opacity-10" />
-                 <span className="relative z-10 flex items-center gap-3"><Play fill="currentColor" size={16} /> Initial_Reading_Sequence</span>
-               </button>
+               {comic.source !== 'superhero' && (
+                 <motion.button 
+                   onClick={startReading} 
+                   whileHover={{ scale: 1.02 }}
+                   whileTap={{ scale: 0.98 }}
+                   className="group relative py-6 bg-white text-black flex items-center justify-center gap-3 font-black uppercase tracking-[0.5em] text-[12px] overflow-hidden transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
+                 >
+                   <motion.div 
+                     animate={{ 
+                       opacity: [0, 0.2, 0],
+                       scale: [1, 1.5, 1]
+                     }}
+                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                     className="absolute inset-0 bg-[#ff4d00] blur-3xl z-0"
+                   />
+                   <span className="relative z-10 flex items-center gap-3"><Play fill="currentColor" size={16} /> {t.read}</span>
+                 </motion.button>
+               )}
+               {comic.source === 'superhero' && (
+                 <button onClick={() => router.push('/studio')} className="group relative py-6 bg-[#ff4d00] text-white flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[11px] overflow-hidden transition-all hover:bg-white hover:text-black">
+                   <div className="absolute left-0 top-0 bottom-0 w-0 bg-black group-hover:w-full transition-all duration-500 z-0 opacity-10" />
+                   <span className="relative z-10 flex items-center gap-3"><Sparkles fill="currentColor" size={16} /> Forge_Character</span>
+                 </button>
+               )}
                <div className="grid grid-cols-2 gap-4">
                   <button className="py-4 border border-white/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"><Bookmark size={14} /> Bookmark</button>
                   <button className="py-4 border border-white/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"><Share2 size={14} /> Share</button>
@@ -951,43 +996,88 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                </div>
             </div>
 
-            {/* Chapters */}
-            <div className="space-y-8">
-               <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white/40">Synchronized_Chapters</h3>
-                  <span className="text-[10px] font-black text-[#ff4d00] uppercase tracking-widest">{chapters.length} FOUND</span>
+            {/* Conditional Content based on source */}
+            {comic.source === 'superhero' && (comic as any).superheroData ? (
+               <div className="space-y-10">
+                  <div className="space-y-6">
+                     <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-[#ff4d00]">Power_Metrics</h3>
+                     </div>
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {Object.entries((comic as any).superheroData.powerstats || {}).map(([stat, val]) => (
+                           <div key={stat} className="bg-white/5 border border-white/10 p-5 flex flex-col items-center justify-center gap-2">
+                              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">{stat}</span>
+                              <span className="text-2xl font-black italic text-white">{val === 'null' ? '?' : String(val)}</span>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-4">
+                        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50 border-b border-white/10 pb-2">Appearance</div>
+                        <div className="space-y-2 text-xs font-bold text-white/70 uppercase tracking-widest leading-relaxed">
+                           <p><span className="text-[#ff4d00]">Gender:</span> {(comic as any).superheroData.appearance?.gender}</p>
+                           <p><span className="text-[#ff4d00]">Race:</span> {(comic as any).superheroData.appearance?.race}</p>
+                           <p><span className="text-[#ff4d00]">Height:</span> {(comic as any).superheroData.appearance?.height?.join(' / ')}</p>
+                           <p><span className="text-[#ff4d00]">Weight:</span> {(comic as any).superheroData.appearance?.weight?.join(' / ')}</p>
+                        </div>
+                     </div>
+                     <div className="space-y-4">
+                        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50 border-b border-white/10 pb-2">Work_&_Base</div>
+                        <div className="space-y-2 text-xs font-bold text-white/70 uppercase tracking-widest leading-relaxed">
+                           <p><span className="text-[#ff4d00]">Occupation:</span> {(comic as any).superheroData.work?.occupation}</p>
+                           <p><span className="text-[#ff4d00]">Base:</span> {(comic as any).superheroData.work?.base}</p>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                     <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50 border-b border-white/10 pb-2">Connections</div>
+                     <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 text-xs font-bold text-white/70 leading-loose">
+                        <p><span className="text-[#ff4d00] uppercase tracking-widest mr-2">Affiliation:</span> {(comic as any).superheroData.connections?.['group-affiliation']}</p>
+                        <p><span className="text-[#ff4d00] uppercase tracking-widest mr-2">Relatives:</span> {(comic as any).superheroData.connections?.relatives}</p>
+                     </div>
+                  </div>
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-4">
-                  {chapters.map((ch, i) => (
-                    <button
-                      key={ch.id}
-                      onClick={() => {
-                        setCurrentChapterIdx(i);
-                        setReading(true);
-                        void loadChapterPages(i);
-                      }}
-                      className={`group flex items-center justify-between p-5 transition-all text-left border ${
-                        i === currentChapterIdx
-                          ? 'bg-[#ff4d00]/10 border-[#ff4d00]/50 shadow-[0_0_0_1px_rgba(255,77,0,0.18)]'
-                          : 'bg-white/5 border-white/5 hover:border-[#ff4d00]/50'
-                      }`}
-                    >
-                       <div className="space-y-1">
-                          <div className="text-[10px] font-black uppercase tracking-widest text-[#ff4d00]">Vol.{ch.volume || '0'} Ch.{ch.chapterNum}</div>
-                          <div className="text-[13px] font-black uppercase tracking-tight group-hover:text-[#ff4d00] transition-colors break-words line-clamp-2">
-                            {ch.title}
-                          </div>
-                          {i === currentChapterIdx && (
-                            <div className="text-[8px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">
-                              Active_Chapter
+            ) : (
+              <div className="space-y-8">
+                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white/40">Synchronized_Chapters</h3>
+                    <span className="text-[10px] font-black text-[#ff4d00] uppercase tracking-widest">{chapters.length} FOUND</span>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-4">
+                    {chapters.map((ch, i) => (
+                      <button
+                        key={ch.id}
+                        onClick={() => {
+                          setCurrentChapterIdx(i);
+                          setReading(true);
+                          void loadChapterPages(i);
+                        }}
+                        className={`group flex items-center justify-between p-5 transition-all text-left border ${
+                          i === currentChapterIdx
+                            ? 'bg-[#ff4d00]/10 border-[#ff4d00]/50 shadow-[0_0_0_1px_rgba(255,77,0,0.18)]'
+                            : 'bg-white/5 border-white/5 hover:border-[#ff4d00]/50'
+                        }`}
+                      >
+                         <div className="space-y-1">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-[#ff4d00]">Vol.{ch.volume || '0'} Ch.{ch.chapterNum}</div>
+                            <div className="text-[13px] font-black uppercase tracking-tight group-hover:text-[#ff4d00] transition-colors break-words line-clamp-2">
+                              {ch.title}
                             </div>
-                          )}
-                       </div>
-                       <ChevronRight size={20} className="text-white/20 group-hover:text-[#ff4d00] group-hover:translate-x-1 transition-all" />
-                    </button>
-                  ))}
-               </div>
-            </div>
+                            {i === currentChapterIdx && (
+                              <div className="text-[8px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">
+                                Active_Chapter
+                              </div>
+                            )}
+                         </div>
+                         <ChevronRight size={20} className="text-white/20 group-hover:text-[#ff4d00] group-hover:translate-x-1 transition-all" />
+                      </button>
+                    ))}
+                 </div>
+              </div>
+            )}
           </motion.div>
         </div>
         </div>
@@ -1001,103 +1091,278 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            onTouchStart={(e) => {
-              isDraggingRef.current = false;
-              clickStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            }}
-            onTouchMove={(e) => {
-              const diffX = Math.abs(e.touches[0].clientX - clickStartRef.current.x);
-              const diffY = Math.abs(e.touches[0].clientY - clickStartRef.current.y);
-              if (diffX > 15 || diffY > 15) {
-                isDraggingRef.current = true;
-              }
-            }}
-            onMouseDown={(e) => {
-              isDraggingRef.current = false;
-              clickStartRef.current = { x: e.clientX, y: e.clientY };
-            }}
-            onMouseMove={(e) => {
-              if (e.buttons > 0) {
-                const diffX = Math.abs(e.clientX - clickStartRef.current.x);
-                const diffY = Math.abs(e.clientY - clickStartRef.current.y);
-                if (diffX > 15 || diffY > 15) {
-                  isDraggingRef.current = true;
-                }
-              }
-            }}
-            onClick={(e) => {
-              if (isDraggingRef.current) return;
-              const target = e.target as HTMLElement;
-              // Prevent toggling if clicking on the UI elements or buttons
-              if (target.closest('.ui-element') || target.closest('button') || target.closest('input')) {
-                return;
-              }
-              setUiVisible(prev => !prev);
-            }}
-            className="fixed inset-0 z-[10000] bg-black flex flex-col overflow-hidden select-none [-webkit-tap-highlight-color:transparent]"
+            className="fixed inset-0 z-[10000] bg-[#050505] flex flex-col overflow-hidden select-none [-webkit-tap-highlight-color:transparent]"
           >
             
-            {/* Minimal Top Header */}
-            <motion.div 
-              animate={{ y: uiVisible ? 0 : "-100%" }} 
-              transition={{ type: 'spring', damping: 30, stiffness: 120 }} 
-              className="ui-element fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto max-md:h-24 max-md:px-4 max-md:pt-[env(safe-area-inset-top)]"
-            >
-               <div className="flex items-center gap-6 max-md:gap-3">
-                  <button 
-                    onClick={() => setReading(false)} 
-                    className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl hover:bg-red-600 transition-all max-md:w-11 max-md:h-11 active:scale-95"
+                         {/* Unique Cyberpunk Loading Overlay */}
+             <AnimatePresence mode="wait">
+               {readerLoading && (
+                 <motion.div 
+                   key="loader"
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   exit={{ opacity: 0 }}
+                   className="fixed inset-0 z-[10050] bg-[#020202] flex flex-col items-center justify-center overflow-hidden"
+                 >
+                    {/* Background Digital Rain Effect */}
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none overflow-hidden">
+                       <div className="flex justify-between w-full h-full px-4 text-[8px] font-mono leading-none break-all animate-scroll-v">
+                          {Array.from({ length: 20 }).map((_, i) => (
+                            <div key={i} className="w-[1px] h-full overflow-hidden opacity-50">
+                               {Array.from({ length: 100 }).map((_, j) => (
+                                 <div key={j} className="mb-2">{(Math.random() > 0.5 ? 1 : 0)}</div>
+                               ))}
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Scanning Line Effect */}
+                    <motion.div 
+                      initial={{ top: "-10%" }}
+                      animate={{ top: "110%" }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#ff4d00] to-transparent shadow-[0_0_20px_#ff4d00] z-20"
+                    />
+
+                    {/* Central Geometric Core */}
+                    <div className="relative w-40 h-40 flex items-center justify-center mb-12">
+                       <motion.div 
+                         animate={{ rotate: 360 }}
+                         transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                         className="absolute inset-0 border-[1px] border-[#ff4d00]/20 rounded-xl"
+                       />
+                       <motion.div 
+                         animate={{ rotate: -360 }}
+                         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                         className="absolute inset-4 border-[1px] border-[#ff4d00]/10 rounded-full"
+                       />
+                       <motion.div 
+                         animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
+                         transition={{ duration: 2, repeat: Infinity }}
+                         className="w-16 h-16 bg-gradient-to-br from-[#ff4d00] to-[#ff9000] rounded-sm rotate-45 shadow-[0_0_40px_rgba(255,77,0,0.4)]"
+                       />
+                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-[2px] bg-white/5 overflow-hidden">
+                          <motion.div 
+                            animate={{ left: ["-100%", "100%"] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute inset-0 bg-[#ff4d00] w-1/2"
+                          />
+                       </div>
+                    </div>
+
+                    <div className="text-center relative z-10 space-y-2">
+                      <motion.div 
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 0.1, repeat: Infinity, repeatDelay: Math.random() * 2 }}
+                        className="text-[12px] font-black uppercase tracking-[1.2em] text-white pl-[1.2em]"
+                      >
+                         Syncing_Matrix
+                      </motion.div>
+                      <div className="text-[9px] font-bold uppercase tracking-[0.6em] text-[#ff4d00]/50">
+                         Unit_{chapters[currentChapterIdx]?.chapterNum || '00'}
+                      </div>
+                    </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
+
+             {/* Chapter Loaded Toast */}
+             <AnimatePresence>
+               {!readerLoading && pages.length > 0 && scrolled && (
+                 <motion.div 
+                   key="toast"
+                   initial={{ y: -100, opacity: 0 }}
+                   animate={{ y: 0, opacity: 1 }}
+                   exit={{ y: -100, opacity: 0 }}
+                   className="fixed top-8 left-1/2 -translate-x-1/2 z-[10045] bg-white/5 backdrop-blur-xl border border-white/10 px-8 py-3 rounded-2xl flex items-center justify-center shadow-2xl pointer-events-none"
+                 >
+                    <div className="text-[11px] font-black uppercase tracking-widest text-white/80">
+                       Chapter {chapters[currentChapterIdx]?.chapterNum}
+                    </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
+
+             {/* Action Modal (Bottom Sheet) */}
+            <AnimatePresence>
+              {uiVisible && (
+                <>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setUiVisible(false)}
+                    className="fixed inset-0 z-[10020] bg-black/70 backdrop-blur-sm ui-element"
+                  />
+                  <motion.div 
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="ui-element fixed bottom-0 left-0 right-0 z-[10030] bg-[#0a0a0a] border-t border-white/10 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.8)] pb-[max(env(safe-area-inset-bottom),2rem)] pt-6 px-6 md:px-12 flex flex-col gap-8 max-h-[85vh] overflow-y-auto custom-scrollbar"
                   >
-                    <X size={24}/>
-                  </button>
-                  <div className="hidden sm:block space-y-0.5">
-                     <div className="text-[8px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Active_Matrix</div>
-                     <div className="text-[11px] font-black uppercase tracking-tight max-w-[300px] truncate">{comic.title}</div>
-                  </div>
-                  <div className="md:hidden flex flex-col justify-center">
-                     <div className="text-[7px] font-black uppercase tracking-[0.3em] text-[#ff4d00] opacity-60">Reader_Core</div>
-                     <div className="text-[10px] font-black uppercase tracking-tight max-w-[120px] truncate">{comic.title}</div>
-                  </div>
-               </div>
+                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2" />
+                    
+                    {/* Header: Title & Close Reader */}
+                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Active_Matrix</div>
+                        <div className="text-[14px] md:text-[18px] font-black uppercase tracking-tight truncate text-white">{comic.title}</div>
+                      </div>
+                      <button 
+                        onClick={() => setReading(false)} 
+                        className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                      >
+                        <X size={24}/>
+                      </button>
+                    </div>
 
-               {/* View Mode Controls (Responsive) */}
-               <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl p-1 shadow-2xl backdrop-blur-2xl max-md:bg-white/10">
-                    <button onClick={() => setViewMode('classic')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                      <Monitor size={12} className="hidden sm:block"/>
-                      <Smartphone size={12} className="sm:hidden"/>
-                      <span className="max-md:hidden">Classic</span>
-                    </button>
-                    <button onClick={() => setViewMode('journal')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                      <Columns size={12} className="hidden sm:block"/>
-                      <Smartphone size={12} className="sm:hidden rotate-90"/>
-                      <span className="max-md:hidden">Journal</span>
-                    </button>
-                  <button onClick={() => setViewMode('flow')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                    <Smartphone size={12}/> <span className="max-md:hidden">Flow</span>
-                  </button>
-                </div>
+                    {/* Controls Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* Left Col: Navigation & View Mode */}
+                      <div className="space-y-8">
+                         {/* View Mode */}
+                         <div className="space-y-4">
+                           <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Reading Mode</div>
+                           <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl">
+                              <button onClick={() => { setViewMode('classic'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[11px] font-black uppercase transition-all ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
+                                <Monitor size={16} className="max-md:hidden"/>
+                                <Smartphone size={16} className="md:hidden"/>
+                                Classic
+                              </button>
+                              <button onClick={() => { setViewMode('journal'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[11px] font-black uppercase transition-all ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
+                                <Columns size={16} className="max-md:hidden"/>
+                                <Smartphone size={16} className="md:hidden rotate-90"/>
+                                Journal
+                              </button>
+                              <button onClick={() => { setViewMode('flow'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-[11px] font-black uppercase transition-all ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
+                                <Smartphone size={16}/> Flow
+                              </button>
+                           </div>
+                         </div>
 
-                <div className="flex items-center gap-3 max-md:gap-2">
-                   <button onClick={() => setShowGrid(true)} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-xl max-md:w-11 max-md:h-11" title="Page Overview">
-                      <List size={20}/>
-                   </button>
-                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-xl max-md:w-11 max-md:h-11 hidden sm:flex">
-                      <Maximize2 size={18}/>
-                   </button>
-                </div>
-            </motion.div>
+                         {/* Chapter Navigation */}
+                         <div className="space-y-4">
+                           <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40 flex items-center justify-between">
+                              <span>Chapter {chapters[currentChapterIdx]?.chapterNum || '0'}</span>
+                              <span className="text-[#ff4d00]">{chapters.length} Total</span>
+                           </div>
+                           <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => { prevChapter(); setUiVisible(false); }} 
+                                disabled={currentChapterIdx === 0}
+                                className="flex-1 h-14 bg-white/5 border border-white/10 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                              >
+                                <ChevronLeft size={18} /> Prev
+                              </button>
+                              <button 
+                                onClick={() => { nextChapter(); setUiVisible(false); }} 
+                                disabled={currentChapterIdx === chapters.length - 1}
+                                className="flex-1 h-14 bg-[#ff4d00] text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:brightness-110 disabled:opacity-20 transition-all shadow-[0_4px_20px_rgba(255,77,0,0.3)] active:scale-95 flex items-center justify-center gap-2"
+                              >
+                                Next <ChevronRight size={18} />
+                              </button>
+                           </div>
+                         </div>
+                      </div>
+
+                      {/* Right Col: Progress & Tools */}
+                      <div className="space-y-8">
+                         {/* Progress Scrubber */}
+                         <div className="space-y-4">
+                           <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em]">
+                             <span className="text-white/40">Progress</span>
+                             <span className="text-[#ff4d00]">
+                               {viewMode === 'flow' ? `${Math.round(scrollProgress)}%` : `Page ${currentPage + 1} of ${pages.length}`}
+                             </span>
+                           </div>
+                           <div className="py-2">
+                             <input 
+                               type="range" 
+                               min="0" 
+                               max={pages.length - 1} 
+                               value={viewMode === 'flow' ? Math.floor((scrollProgress / 100) * (pages.length - 1)) : currentPage} 
+                               onChange={(e) => {
+                                 const val = parseInt(e.target.value);
+                                 setCurrentPage(val);
+                                 if (viewMode === 'flow') {
+                                   document.getElementById(`page-${val}`)?.scrollIntoView({ behavior: 'smooth' });
+                                 } else {
+                                   canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+                                 }
+                               }}
+                               className="w-full h-2 bg-white/10 appearance-none cursor-pointer accent-[#ff4d00] rounded-full transition-all"
+                             />
+                           </div>
+                         </div>
+
+                         {/* Extra Tools */}
+                         <div className="space-y-4">
+                           <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Tools</div>
+                           <div className="flex items-center gap-3">
+                              <button onClick={() => setShowGrid(true)} className="flex-1 h-14 flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-xl text-[11px] font-black uppercase tracking-widest">
+                                 <List size={18}/> Overview
+                              </button>
+                              {viewMode === 'journal' && (
+                                <button 
+                                  onClick={() => setIsSpreadCover(!isSpreadCover)} 
+                                  className={`flex-1 h-14 flex items-center justify-center gap-2 border border-white/10 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${isSpreadCover ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:text-white'}`}
+                                >
+                                  <Columns size={18}/> Offset
+                                </button>
+                              )}
+                              {viewMode === 'flow' && (
+                                <button 
+                                  onClick={() => {
+                                    setUiVisible(false);
+                                    canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }} 
+                                  className="flex-1 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all active:scale-90"
+                                >
+                                  <ChevronUp size={18}/> Jump_To_Top
+                                </button>
+                              )}
+                           </div>
+                         </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
+            {/* UI Toggle FAB */}
+            <div className={`fixed bottom-8 right-8 z-[10040] transition-all duration-300 ${uiVisible ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'}`}>
+               <button 
+                 onClick={() => setUiVisible(true)}
+                 className="w-16 h-16 bg-[#ff4d00] text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(255,77,0,0.5)] border border-[#ff4d00]/50 active:scale-90 hover:scale-105 transition-all"
+               >
+                 <Settings size={28} />
+               </button>
+            </div>
+            
+            {/* Minimal Exit Button (Always visible but subtle) */}
+            <div className={`fixed top-8 left-8 z-[10040] transition-all duration-300 ${uiVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+               <button 
+                 onClick={() => setReading(false)}
+                 className="w-12 h-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#ff4d00] hover:border-[#ff4d00] transition-all active:scale-90"
+               >
+                 <X size={20} />
+               </button>
+            </div>
 
             {/* Reader Canvas */}
             <div 
-              ref={canvasRef} 
-              className="flex-1 w-full bg-[#020202] overflow-y-auto custom-scrollbar relative scroll-smooth touch-pan-y" 
-              id="reader-canvas"
-              onClick={() => {}}
-              onTouchStart={(e) => {
-                if (viewMode === 'flow') return;
-                touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-              }}
-              onTouchEnd={(e) => {
+               ref={canvasRef} 
+               className="flex-1 w-full bg-[#050505] overflow-y-auto custom-scrollbar relative scroll-smooth touch-pan-y" 
+               id="reader-canvas"
+               onClick={() => {}}
+               onTouchStart={(e) => {
+                 if (viewMode === 'flow') return;
+                 touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+               }}
+               onTouchEnd={(e) => {
                 if (viewMode === 'flow') return;
                 const endX = e.changedTouches[0].clientX;
                 const endY = e.changedTouches[0].clientY;
@@ -1109,27 +1374,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                 }
               }}
             >
-               {/* Scroll Hint */}
-               <AnimatePresence>
-                 {!scrolled && !readerLoading && pages.length > 0 && viewMode === 'flow' && (
-                   <motion.div 
-                     initial={{ opacity: 0, y: 20 }} 
-                     animate={{ opacity: 1, y: 0 }} 
-                     exit={{ opacity: 0, y: 20 }} 
-                     className="fixed bottom-32 max-md:bottom-40 left-1/2 -translate-x-1/2 z-[10015] flex flex-col items-center gap-3 pointer-events-none drop-shadow-[0_0_20px_rgba(255,77,0,0.4)] bg-black/60 px-8 py-5 rounded-full border border-white/10 backdrop-blur-xl"
-                   >
-                      <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white flex items-center gap-2">
-                        Scroll Down
-                      </div>
-                      <motion.div 
-                        animate={{ y: [0, 8, 0], opacity: [0.5, 1, 0.5] }} 
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                      >
-                        <ChevronDown className="text-[#ff4d00]" size={24}/>
-                      </motion.div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
+               {/* Scroll Hint Removed */}
 
                {/* Carousel-Style Nav Buttons (Interactive Areas) */}
                {viewMode !== 'flow' && (
@@ -1159,6 +1404,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                       </div>
                       <div className="absolute inset-y-0 right-0 w-full bg-gradient-to-l from-black/40 to-transparent opacity-0 group-hover/nav:opacity-100 transition-opacity pointer-events-none" />
                    </div>
+
+                    {/* Center Tap Area (UI Toggle) */}
+                    <div 
+                      className="fixed inset-y-0 left-[25%] right-[25%] md:left-[20%] md:right-[20%] z-[10015] cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); setUiVisible(prev => !prev); }}
+                    />
                  </>
                )}
 
@@ -1168,15 +1419,33 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                     <div className="text-[12px] font-black uppercase tracking-[0.8em] text-white/20 animate-pulse">Syncing_Assets...</div>
                  </div>
                ) : pages.length === 0 ? (
-                 <div className="h-full flex flex-col items-center justify-center gap-6">
-                    <Sparkles className="w-12 h-12 text-white/10" />
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Empty_Chapter_Buffer</div>
+                 <div className="h-full flex flex-col items-center justify-center gap-8 p-10 text-center">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#ff4d00]/20 blur-[60px] rounded-full" />
+                      <Sparkles className="w-20 h-20 text-white/20 relative z-10" />
+                    </div>
+                    <div className="space-y-4 max-w-md relative z-10">
+                      <div className="text-[14px] font-black uppercase tracking-[0.4em] text-white/40">Empty_Chapter_Buffer</div>
+                      <p className="text-white/30 text-[13px] leading-relaxed font-bold uppercase tracking-tight">
+                        This chapter contains no direct image assets. It may be an external link or currently unavailable in the local matrix.
+                      </p>
+                      {chapters[currentChapterIdx]?.externalUrl && (
+                        <a 
+                          href={chapters[currentChapterIdx].externalUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-3 px-8 py-4 bg-[#ff4d00] text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all shadow-[0_10px_40px_rgba(255,77,0,0.3)] active:scale-95 mt-6"
+                        >
+                          <ExternalLink size={18} /> Open_External_Source
+                        </a>
+                      )}
+                    </div>
                  </div>
                ) : (
                   <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${
                     viewMode === 'flow' 
-                      ? 'w-full pt-32 pb-20 max-md:pt-[calc(6rem+env(safe-area-inset-top))] max-md:pb-[calc(7rem+env(safe-area-inset-bottom))]' 
-                      : 'min-h-full justify-center pt-20 pb-20 max-md:pt-[calc(6rem+env(safe-area-inset-top))] max-md:pb-[calc(7rem+env(safe-area-inset-bottom))]'
+                      ? 'w-full pt-0 pb-20' 
+                      : 'min-h-[calc(100vh-40px)] justify-center py-10 md:py-20'
                   }`}>
                     
                     {viewMode === 'classic' ? (
@@ -1223,10 +1492,19 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                   animate={{ opacity: 1, x: 0 }}
                                   className="relative flex-1 aspect-[2/3] max-h-[90vh]"
                                 >
+                                  <div className="absolute inset-0 bg-[#050505] overflow-hidden z-0 flex items-center justify-center">
+                                    <motion.div 
+                                      animate={{ opacity: [0.03, 0.08, 0.03] }}
+                                      transition={{ duration: 2, repeat: Infinity }}
+                                      className="absolute inset-0 bg-[#ff4d00]"
+                                    />
+                                    <Loader2 className="w-6 h-6 text-[#ff4d00]/20 animate-spin" />
+                                  </div>
                                   <Image
                                     src={pages[currentPage]}
                                     fill
-                                    className={`object-contain shadow-2xl ${pages[currentPage + 1] ? 'border-r border-white/5 rounded-l-sm' : 'border border-white/10 rounded-sm'}`}
+                                    className={`object-contain shadow-2xl relative z-10 transition-opacity duration-700 ease-in-out opacity-0 ${pages[currentPage + 1] ? 'border-r border-white/5 rounded-l-sm' : 'border border-white/10 rounded-sm'}`}
+                                    onLoadingComplete={(img) => img.classList.remove('opacity-0')}
                                     alt={`Page ${currentPage + 1}`}
                                     unoptimized
                                     onClick={() => {}}
@@ -1239,10 +1517,19 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                     animate={{ opacity: 1, x: 0 }}
                                     className="relative flex-1 aspect-[2/3] max-h-[90vh]"
                                   >
+                                    <div className="absolute inset-0 bg-[#050505] overflow-hidden z-0 flex items-center justify-center">
+                                      <motion.div 
+                                        animate={{ opacity: [0.03, 0.08, 0.03] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        className="absolute inset-0 bg-[#ff4d00]"
+                                      />
+                                      <Loader2 className="w-6 h-6 text-[#ff4d00]/20 animate-spin" />
+                                    </div>
                                     <Image
                                       src={pages[currentPage + 1]}
                                       fill
-                                      className="object-contain shadow-2xl border-l border-white/5 rounded-r-sm"
+                                      className="object-contain shadow-2xl border-l border-white/5 rounded-r-sm relative z-10 transition-opacity duration-700 ease-in-out opacity-0"
+                                      onLoadingComplete={(img) => img.classList.remove('opacity-0')}
                                       alt={`Page ${currentPage + 2}`}
                                       unoptimized
                                       onClick={() => {}}
@@ -1262,13 +1549,27 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                          }}
                        >
                           {pages.map((p, i) => (
-                            <div key={i} className="relative w-full aspect-[2/3]">
+                            <div key={i} className="relative w-full aspect-[2/3] bg-[#050505] overflow-hidden border-b border-white/5">
+                              {/* Deep Orange Pulse Skeleton */}
+                              <div className="absolute inset-0 z-0 flex items-center justify-center">
+                                 <motion.div 
+                                   animate={{ opacity: [0.03, 0.08, 0.03] }}
+                                   transition={{ duration: 2, repeat: Infinity }}
+                                   className="absolute inset-0 bg-[#ff4d00]"
+                                 />
+                                 <div className="absolute flex flex-col items-center gap-4">
+                                    <Loader2 className="w-8 h-8 text-[#ff4d00]/20 animate-spin" />
+                                    <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#ff4d00]/20">Syncing_Page_{i+1}</div>
+                                 </div>
+                              </div>
+                              
                               <Image 
                                 id={`page-${i}`}
                                 src={p + (source === 'archive' ? '?scale=2' : '')} 
                                 alt={`Page ${i + 1}`}
                                 fill
-                                className="w-full h-auto object-contain" 
+                                className="w-full h-auto object-contain relative z-10 transition-opacity duration-700 ease-in-out opacity-0" 
+                                onLoadingComplete={(img) => img.classList.remove('opacity-0')}
                                 loading="lazy" 
                                 unoptimized
                                 onClick={() => {}}
@@ -1287,84 +1588,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                )}
             </div>
 
-            {/* Bottom Status Bar */}
-            <motion.div 
-              animate={{ y: uiVisible ? 0 : "100%" }} 
-              transition={{ type: 'spring', damping: 30, stiffness: 120 }} 
-              className="ui-element fixed bottom-0 left-0 right-0 z-[10020] bg-[#0a0a0a]/95 border-t border-white/10 px-10 flex flex-col items-center backdrop-blur-2xl max-md:px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6 gap-6 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
-            >
-                {/* Progress Info & Scrubber */}
-                <div className="w-full max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center gap-3">
-                       <div className="text-[10px] font-black text-[#ff4d00] uppercase tracking-[0.2em] bg-[#ff4d00]/10 px-3 py-1 rounded-md">
-                          Chapter_{chapters[currentChapterIdx]?.chapterNum || '0'}
-                       </div>
-                       <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
-                          {viewMode === 'flow' ? 'Streaming' : `Page_${currentPage + 1}_of_${pages.length}`}
-                       </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-90"><ZoomOut size={16}/></button>
-                      <div className="text-[9px] font-black text-white/60 w-10 text-center">{Math.round(zoom * 100)}%</div>
-                      <button onClick={() => setZoom(z => Math.min(3, z + 0.1))} className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-90"><ZoomIn size={16}/></button>
-                    </div>
-                  </div>
-
-                  <div className="relative group px-1">
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max={pages.length - 1} 
-                      value={viewMode === 'flow' ? Math.floor((scrollProgress / 100) * (pages.length - 1)) : currentPage} 
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        setCurrentPage(val);
-                        if (viewMode === 'flow') {
-                          document.getElementById(`page-${val}`)?.scrollIntoView({ behavior: 'smooth' });
-                        } else {
-                          canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-                        }
-                      }}
-                      className="w-full h-1.5 bg-white/10 appearance-none cursor-pointer accent-[#ff4d00] rounded-full transition-all group-hover:h-2"
-                    />
-                  </div>
-                </div>
-
-                {/* Main Navigation Row */}
-                <div className="w-full max-w-4xl flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    {viewMode === 'journal' && (
-                       <button 
-                         onClick={() => setIsSpreadCover(!isSpreadCover)} 
-                         className={`h-11 px-4 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${isSpreadCover ? 'bg-white text-black shadow-lg' : 'bg-white/5 text-white/40 active:scale-95'}`}
-                       >
-                         Offset: {isSpreadCover ? 'ON' : 'OFF'}
-                       </button>
-                    )}
-                    {viewMode === 'flow' && (
-                       <button onClick={() => canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} className="w-11 h-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><ChevronUp size={20}/></button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={prevChapter} 
-                      disabled={currentChapterIdx === 0}
-                      className="h-12 px-6 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95 flex items-center gap-2"
-                    >
-                      <ChevronLeft size={14} /> Prev_Chapter
-                    </button>
-                    <button 
-                      onClick={nextChapter} 
-                      disabled={currentChapterIdx === chapters.length - 1}
-                      className="h-12 px-6 bg-[#ff4d00] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 disabled:opacity-20 transition-all shadow-[0_4px_20px_rgba(255,77,0,0.3)] active:scale-95 flex items-center gap-2"
-                    >
-                      Next_Chapter <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
-            </motion.div>
+            {/* Bottom Status Bar Removed (Replaced by Action Modal) */}
  
              {/* Page Grid Overview Overlay */}
              <AnimatePresence>

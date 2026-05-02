@@ -36,7 +36,7 @@ interface Comic {
   description: string;
   coverUrl?: string;
   rating: string;
-  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | BooruSource;
+  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | 'superhero' | BooruSource;
   issueNumber?: string;
   seriesName?: string;
   onSaleDate?: string;
@@ -65,6 +65,7 @@ type LoadResult = {
 
 const CATEGORIES: Category[] = [
   { label: 'Marvel Universe', source: 'marvel' },
+  { label: 'Superheroes', source: 'superhero' },
   { label: 'Manga Hub', source: 'mangadex', originalLanguages: ['ja'] },
   { label: 'Webtoons', source: 'mangadex', includedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
   { label: 'Manhwa', source: 'mangadex', originalLanguages: ['ko'], excludedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
@@ -365,6 +366,10 @@ function ComicLibrary() {
     return searchComics({ source: 'marvel', query, page: currentOffset }) as Promise<LoadResult>;
   }, []);
 
+  const fetchSuperheroes = useCallback(async (query: string, currentOffset: number): Promise<LoadResult> => {
+    return searchComics({ source: 'superhero', query, page: currentOffset }) as Promise<LoadResult>;
+  }, []);
+
 
   const loadData = useCallback(async (pageIndex: number = 0, append: boolean = false) => {
     const requestId = ++requestIdRef.current;
@@ -383,6 +388,8 @@ function ComicLibrary() {
       if (query) {
         if (cat?.source === 'marvel') {
           result = await fetchMarvelIssues(safeMarvelQuery, pageIndex);
+        } else if (cat?.source === 'superhero') {
+          result = await fetchSuperheroes(query, pageIndex);
         } else if (cat?.source === 'mangadex') {
           result = await fetchMangaDex(query, pageIndex, cat.ratings || defaultRatings, cat.originalLanguages, cat.includedTagIds, cat.excludedTagIds, mangaLanguage);
         } else if (cat?.source === 'nhentai') {
@@ -470,6 +477,8 @@ function ComicLibrary() {
           result = await fetchBooru(source, catQuery, pageIndex);
         } else if (source === 'marvel') {
           result = await fetchMarvelIssues(safeMarvelQuery, pageIndex);
+        } else if (source === 'superhero') {
+          result = await fetchSuperheroes(catQuery, pageIndex);
         } else {
           result = await fetchArchive(catQuery, pageIndex);
         }
@@ -494,7 +503,7 @@ function ComicLibrary() {
         setLoadingMore(false);
       }
     }
-  }, [activeCategory, fetchArchive, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchNHentai, isAgeVerified, mangaLanguage, searchQuery]);
+  }, [activeCategory, fetchArchive, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchSuperheroes, fetchNHentai, isAgeVerified, mangaLanguage, searchQuery]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -612,7 +621,7 @@ function ComicLibrary() {
                   className={`shrink-0 whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase tracking-widest border transition-all md:px-6 md:py-3 ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-white/10 text-white/30 hover:border-white/80'}`}
                 >
                   {cat.source === 'archive' && <Flag size={10} className="inline mr-2" />}
-                  {cat.source === 'marvel' && <BookOpen size={10} className="inline mr-2" />}
+                  {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={10} className="inline mr-2" />}
                   {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru') && <Sparkles size={10} className="inline mr-2" />}
                   {cat.label}
                 </button>
@@ -673,6 +682,16 @@ function ComicLibrary() {
                           </div>
                         </div>
                       )
+                    ) : comic.source === 'superhero' ? (
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={comic.coverUrl || '/logo.png'}
+                          fill
+                          unoptimized
+                          className="object-cover opacity-100 transition-all duration-700"
+                          alt={comic.title}
+                        />
+                      </div>
                     ) : (
                       <div className="relative w-full h-full">
                         <Image src={comic.coverUrl || '/logo.png'} fill unoptimized className="object-cover opacity-100 transition-all duration-700" alt={comic.title} />
