@@ -34,6 +34,13 @@ const bangers = Bangers({
   weight: "400",
 });
 
+export const viewport = {
+  themeColor: "#020202",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "iComics Studio | AI-Powered Comic Creation",

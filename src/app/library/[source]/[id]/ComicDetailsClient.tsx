@@ -199,6 +199,10 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const [marvelCharacters, setMarvelCharacters] = useState<MarvelCharacter[]>(initialComic?.marvelCharacters || []);
   const [loading, setLoading] = useState(!initialComic);
 
+  const [lang, setLang] = useState<Lang>('en');
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
+  const t = (translations[lang] as any).library;
+
   const [reading, setReading] = useState(false);
   
   // Reader State
@@ -220,9 +224,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const [showGrid, setShowGrid] = useState(false);
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(false);
-  const [lang, setLang] = useState<Lang>('en');
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
-  const t = (translations[lang] as any).library;
   
   const readerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -361,6 +362,17 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     setShowAgeGate(false);
   };
 
+  useEffect(() => {
+    if (reading) {
+      document.body.style.backgroundColor = '#000000';
+    } else {
+      document.body.style.backgroundColor = '';
+    }
+    return () => {
+      document.body.style.backgroundColor = '';
+    };
+  }, [reading]);
+
   const getChapterCacheKey = useCallback((chapterId: string) => {
     return `${String(source)}:${String(id)}:${chapterId}`;
   }, [id, source]);
@@ -431,9 +443,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     }
   }, [chapters, ensureChapterPages, getChapterCacheKey, preloadNeighborChapters]);
 
-  useEffect(() => {
-    fetchComicDetails();
-  }, [id, source, isAgeVerified]);
 
   useEffect(() => {
     if (!comic || chapters.length === 0) return;
@@ -1026,8 +1035,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
           >
             
             {/* Minimal Top Header */}
-            <motion.div animate={{ y: uiVisible ? 0 : -100 }} transition={{ type: 'spring', damping: 25 }} className="fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
-               <div className="flex items-center gap-6 max-md:w-full max-md:justify-between max-md:gap-3">
+            <motion.div 
+              animate={{ y: uiVisible ? 0 : -100 }} 
+              transition={{ type: 'spring', damping: 25 }} 
+              className="fixed top-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-b from-black via-black/80 to-transparent px-8 flex items-center justify-between pointer-events-auto max-md:h-auto max-md:px-3 max-md:py-3 max-md:pt-[calc(0.75rem+env(safe-area-inset-top))]"
+            >
+               <div className="flex items-center gap-6 max-md:gap-2">
                   <button onClick={() => setReading(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-red-600 transition-colors max-md:w-9 max-md:h-9"><X size={20}/></button>
                   <div className="hidden sm:block space-y-0.5">
                      <div className="text-[8px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Active_Matrix</div>
@@ -1036,30 +1049,32 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                </div>
 
                {/* View Mode Controls (Responsive) */}
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center bg-white/5 border border-white/10 rounded-full p-1 shadow-2xl backdrop-blur-xl max-md:static max-md:w-full max-md:translate-x-0 max-md:justify-between max-md:rounded-2xl max-md:p-1.5">
+                 <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 shadow-2xl backdrop-blur-xl max-md:scale-90">
                   {!isLongStrip && (
-                    <button onClick={() => setViewMode('classic')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                      <Monitor size={14} className="hidden sm:block"/>
-                      <Smartphone size={14} className="sm:hidden"/>
+                    <button onClick={() => setViewMode('classic')} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase transition-all ${viewMode === 'classic' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                      <Monitor size={12} className="hidden sm:block"/>
+                      <Smartphone size={12} className="sm:hidden"/>
                       Classic
                     </button>
                   )}
-                  {!isLongStrip && !isMobile && (
-                    <button onClick={() => setViewMode('journal')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                      <Columns size={14}/> Journal
+                  {!isLongStrip && (
+                    <button onClick={() => setViewMode('journal')} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase transition-all ${viewMode === 'journal' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                      <Columns size={12} className="hidden sm:block"/>
+                      <Smartphone size={12} className="sm:hidden rotate-90"/>
+                      Journal
                     </button>
                   )}
-                  <button onClick={() => setViewMode('flow')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all max-md:px-3 max-md:py-2 ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
-                    <Smartphone size={14}/> Flow
+                  <button onClick={() => setViewMode('flow')} className={`flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-black uppercase transition-all ${viewMode === 'flow' ? 'bg-[#ff4d00] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>
+                    <Smartphone size={12}/> Flow
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3 max-md:w-full max-md:justify-between">
-                   <button onClick={() => setShowGrid(true)} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md" title="Page Overview"><List size={16}/></button>
-                   <div className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-4 h-10 flex items-center hidden md:flex">
-                      CH_{chapters[currentChapterIdx]?.chapterNum} <span className="text-white/20 ml-3">P_{currentPage + 1}/{pages.length}</span>
+                <div className="flex items-center gap-3">
+                   <button onClick={() => setShowGrid(true)} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md max-md:w-10 max-md:h-10" title="Page Overview"><List size={16}/></button>
+                   <div className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-4 h-10 flex items-center max-md:px-2 max-md:text-[9px]">
+                      CH_{chapters[currentChapterIdx]?.chapterNum} <span className="text-white/20 ml-2">P_{currentPage + 1}/{pages.length}</span>
                    </div>
-                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md max-md:w-9 max-md:h-9"><Maximize2 size={16}/></button>
+                   <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md max-md:w-10 max-md:h-10"><Maximize2 size={16}/></button>
                 </div>
              </motion.div>
 
@@ -1081,8 +1096,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  <>
                    {/* Left Hover Area */}
                    <div 
-                   className="fixed inset-y-0 left-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer max-md:hidden"
-                     onClick={handlePrevPage}
+                   className="fixed inset-y-0 left-0 w-[25%] md:w-[20%] z-[10015] group/nav cursor-pointer"
+                     onClick={(e) => { e.stopPropagation(); handlePrevPage(); }}
                    >
                       <div className="absolute top-1/2 left-8 -translate-y-1/2 opacity-0 group-hover/nav:opacity-100 transition-all duration-300 transform -translate-x-4 group-hover/nav:translate-x-0 hidden md:block">
                         <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-[#ff4d00] hover:scale-110 transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -1094,8 +1109,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
                    {/* Right Hover Area */}
                    <div 
-                   className="fixed inset-y-0 right-0 w-[15%] md:w-[20%] z-[10015] group/nav cursor-pointer max-md:hidden"
-                     onClick={handleNextPage}
+                   className="fixed inset-y-0 right-0 w-[25%] md:w-[20%] z-[10015] group/nav cursor-pointer"
+                     onClick={(e) => { e.stopPropagation(); handleNextPage(); }}
                    >
                       <div className="absolute top-1/2 right-8 -translate-y-1/2 opacity-0 group-hover/nav:opacity-100 transition-all duration-300 transform translate-x-4 group-hover/nav:translate-x-0 text-right hidden md:block">
                         <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-[#ff4d00] hover:scale-110 transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -1118,7 +1133,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                     <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Empty_Chapter_Buffer</div>
                  </div>
                ) : (
-                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${viewMode === 'flow' ? 'w-full pt-32 pb-20 max-md:pt-24 max-md:pb-28' : 'min-h-full justify-center pt-20 pb-20 max-md:pt-24 max-md:pb-28'}`}>
+                  <div className={`mx-auto flex flex-col items-center transition-all duration-500 ${
+                    viewMode === 'flow' 
+                      ? 'w-full pt-32 pb-20 max-md:pt-[calc(6rem+env(safe-area-inset-top))] max-md:pb-[calc(7rem+env(safe-area-inset-bottom))]' 
+                      : 'min-h-full justify-center pt-20 pb-20 max-md:pt-[calc(6rem+env(safe-area-inset-top))] max-md:pb-[calc(7rem+env(safe-area-inset-bottom))]'
+                  }`}>
                     
                     {viewMode === 'classic' ? (
                        <div className="relative flex items-center justify-center w-full min-h-[80vh]">
@@ -1196,24 +1215,28 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             </div>
 
             {/* Bottom Status Bar */}
-            <motion.div animate={{ y: uiVisible ? 0 : 100 }} transition={{ type: 'spring', damping: 25 }} className="fixed bottom-0 left-0 right-0 z-[10020] h-20 bg-gradient-to-t from-black via-black/90 to-transparent px-10 flex items-center justify-between backdrop-blur-sm max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
-                <div className="flex items-center gap-8 max-md:flex-wrap max-md:justify-between max-md:gap-3">
-                   <div className="flex items-center gap-4">
-                      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"><ZoomOut size={16}/></button>
-                      <div className="text-[9px] font-black text-white/40 w-12 text-center uppercase tracking-tighter">{Math.round(zoom * 100)}%</div>
-                      <button onClick={() => setZoom(z => Math.min(3, z + 0.1))} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"><ZoomIn size={16}/></button>
+            <motion.div 
+              animate={{ y: uiVisible ? 0 : 100 }} 
+              transition={{ type: 'spring', damping: 25 }} 
+              className="fixed bottom-0 left-0 right-0 z-[10020] bg-black/95 border-t border-white/5 px-10 flex items-center justify-between backdrop-blur-xl max-md:flex-col max-md:px-3 max-md:py-4 max-md:gap-4 pb-[env(safe-area-inset-bottom)] min-h-[80px] max-md:min-h-0"
+            >
+                <div className="flex items-center gap-4 max-md:gap-2">
+                   <div className="flex items-center gap-2">
+                      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors max-md:w-8 max-md:h-8"><ZoomOut size={14}/></button>
+                      <div className="text-[9px] font-black text-white/40 w-10 text-center uppercase tracking-tighter">{Math.round(zoom * 100)}%</div>
+                      <button onClick={() => setZoom(z => Math.min(3, z + 0.1))} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors max-md:w-8 max-md:h-8"><ZoomIn size={14}/></button>
                    </div>
                    <div className="h-4 w-px bg-white/10 hidden sm:block" />
                    {viewMode === 'journal' && (
                       <button 
                         onClick={() => setIsSpreadCover(!isSpreadCover)} 
-                        className={`px-4 py-2 border border-white/10 text-[8px] font-black uppercase tracking-widest transition-all ${isSpreadCover ? 'bg-white text-black' : 'text-white/40'}`}
+                        className={`px-3 py-2 border border-white/10 text-[8px] font-black uppercase tracking-widest transition-all ${isSpreadCover ? 'bg-white text-black' : 'text-white/40'}`}
                       >
-                        Cover_Offset: {isSpreadCover ? 'ON' : 'OFF'}
+                        Offset: {isSpreadCover ? 'ON' : 'OFF'}
                       </button>
                    )}
                    {viewMode === 'flow' && (
-                      <button onClick={() => canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"><ChevronUp size={16}/></button>
+                      <button onClick={() => canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' })} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors max-md:w-8 max-md:h-8"><ChevronUp size={16}/></button>
                    )}
                 </div>
 
@@ -1240,9 +1263,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                     />
                  </div>
 
-                <div className="flex items-center gap-6 max-md:w-full max-md:justify-between max-md:gap-3">
-                   <button onClick={prevChapter} className="hidden sm:block px-6 py-2 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 disabled:opacity-10 transition-all" disabled={currentChapterIdx === 0}>Prev_Chapter</button>
-                   <button onClick={nextChapter} className="px-6 py-2 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black disabled:opacity-10 transition-all" disabled={currentChapterIdx === chapters.length - 1}>Next_Chapter</button>
+                <div className="flex items-center gap-3">
+                   <button onClick={prevChapter} className="px-4 py-2 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 disabled:opacity-10 transition-all max-md:px-2 max-md:text-[8px]" disabled={currentChapterIdx === 0}>Prev</button>
+                   <button onClick={nextChapter} className="px-4 py-2 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black disabled:opacity-10 transition-all max-md:px-2 max-md:text-[8px]" disabled={currentChapterIdx === chapters.length - 1}>Next</button>
                 </div>
             </motion.div>
  

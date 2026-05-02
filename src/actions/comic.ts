@@ -7,6 +7,13 @@ import { resolveMangaDexLocalizedText, MangaLanguage, getMangaDexTranslatedLangu
 const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";
 const LIMIT = 36;
 
+const NHENTAI_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'application/json',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Referer': 'https://nhentai.net/',
+};
+
 
 export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = 'en' as MangaLanguage) {
   try {
@@ -84,7 +91,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
     }
 
     if (source === 'nhentai') {
-      const res = await fetch(`https://nhentai.net/api/gallery/${id}`);
+      const res = await fetch(`https://nhentai.net/api/gallery/${id}`, { headers: NHENTAI_HEADERS });
       if (!res.ok) throw new Error('nHentai fetch failed');
       const data = await res.json();
       
@@ -227,7 +234,7 @@ export async function getChapterPages(source: string, id: string, chapterId: str
     }
 
     if (source === 'nhentai') {
-       const res = await fetch(`https://nhentai.net/api/gallery/${id}`);
+       const res = await fetch(`https://nhentai.net/api/gallery/${id}`, { headers: NHENTAI_HEADERS });
        const data = await res.json();
        return data.images.pages.map((p: any, i: number) => {
           const ext = p.t === 'p' ? 'png' : 'jpg';
