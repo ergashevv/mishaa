@@ -48,8 +48,9 @@ interface ComicDetails {
   status: string;
   year?: string;
   author?: string;
-  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | BooruSource;
+  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | 'superhero' | BooruSource;
   aniListId?: string;
+  superheroData?: any;
 }
 
 interface MarvelCreator {
