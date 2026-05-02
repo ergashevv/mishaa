@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Play, Star, Clock, 
   Globe, BookOpen, Share2, 
-  Bookmark, ChevronRight, Loader2, Sparkles
+  Bookmark, ChevronRight, Loader2, Sparkles, X
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -164,6 +164,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   // UI State
   const [isAgeVerified, setIsAgeVerified] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     const verified = readAgeVerification();
@@ -241,6 +244,51 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     return () => clearTimeout(timer);
   }, [fetchComicDetails]);
 
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+      const bookmarked = bookmarks.some((b: any) => b.id === id && b.source === source);
+      setIsBookmarked(bookmarked);
+    }
+  }, [id, source]);
+
+  const toggleBookmark = () => {
+    if (typeof window === 'undefined') return;
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    let newBookmarks;
+    if (isBookmarked) {
+      newBookmarks = bookmarks.filter((b: any) => !(b.id === id && b.source === source));
+    } else {
+      newBookmarks = [...bookmarks, { id, source, title: comic?.title, coverUrl: comic?.coverUrl }];
+    }
+    localStorage.setItem('bookmarks', JSON.stringify(newBookmarks));
+    setIsBookmarked(!isBookmarked);
+    
+    // Dispatch custom event for real-time updates in other components
+    window.dispatchEvent(new Event('bookmarksUpdated'));
+  };
+
+  const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+    }
+  };
+
+  const socialShares = [
+    { name: 'Telegram', icon: 'https://cdn-icons-png.flaticon.com/512/2111/2111646.png', url: `https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(comic?.title || '')}` },
+    { name: 'Twitter', icon: 'https://cdn-icons-png.flaticon.com/512/733/733579.png', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(comic?.title || '')}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}` },
+    { name: 'WhatsApp', icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png', url: `https://api.whatsapp.com/send?text=${encodeURIComponent((comic?.title || '') + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}` },
+    { name: 'Facebook', icon: 'https://cdn-icons-png.flaticon.com/512/733/733547.png', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}` },
+  ];
 
   useEffect(() => {
     if (comic && isAdultComic(comic) && !isAgeVerified && !showAgeGate) {
@@ -695,8 +743,23 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  </button>
                )}
                <div className="grid grid-cols-2 gap-4">
-                  <button className="py-4 border border-white/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"><Bookmark size={14} /> Bookmark</button>
-                  <button className="py-4 border border-white/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"><Share2 size={14} /> Share</button>
+                  <button 
+                    onClick={toggleBookmark}
+                    className={`py-4 border flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                      isBookmarked 
+                        ? 'bg-[#ff4d00] border-[#ff4d00] text-white' 
+                        : 'border-white/10 text-white/60 hover:bg-white/5'
+                    }`}
+                  >
+                    <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} /> 
+                    {isBookmarked ? 'Bookmarked' : 'Bookmark'}
+                  </button>
+                  <button 
+                    onClick={handleShare}
+                    className="py-4 border border-white/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                  >
+                    <Share2 size={14} /> Share
+                  </button>
                </div>
             </div>
           </motion.div>
@@ -819,6 +882,103 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
         </div>
         </div>
       </main>
+
+      {/* Custom Creative Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowShareModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 rounded-[2rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden"
+            >
+              {/* Pulse Glow Effect */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#ff4d00]/20 blur-[60px] rounded-full pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-8">
+                <div className="space-y-1">
+                  <div className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Neural_Broadcast</div>
+                  <div className="text-xl font-black uppercase tracking-tight">Share_Log</div>
+                </div>
+                <button 
+                  onClick={() => setShowShareModal(false)}
+                  className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl hover:bg-red-600 transition-all active:scale-95"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Comic Preview Card */}
+              <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl mb-8">
+                 <div className="relative w-16 aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg">
+                    <Image src={comic.coverUrl} fill className="object-cover" alt="" unoptimized />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                    <div className="text-xs font-black uppercase tracking-tight text-white/40 mb-1">{comic.source}</div>
+                    <div className="text-sm font-black uppercase tracking-tight truncate">{comic.title}</div>
+                 </div>
+              </div>
+
+              {/* Social Grid */}
+              <div className="grid grid-cols-4 gap-4 mb-8">
+                {socialShares.map((social) => (
+                  <a 
+                    key={social.name}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center gap-3 group"
+                  >
+                    <div className="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center group-hover:bg-[#ff4d00] group-hover:border-[#ff4d00] group-hover:-translate-y-1 transition-all shadow-lg">
+                       <img src={social.icon} className="w-6 h-6 invert group-hover:invert-0 transition-all" alt={social.name} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30 group-hover:text-white transition-colors">{social.name}</span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Copy Field */}
+              <div className="space-y-3">
+                 <div className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30 ml-1">Direct_Access_Key</div>
+                 <div className="relative group">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={typeof window !== 'undefined' ? window.location.href : ''} 
+                      className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-[11px] font-mono text-white/60 focus:outline-none focus:border-[#ff4d00]/50 transition-all"
+                    />
+                    <button 
+                      onClick={copyToClipboard}
+                      className={`absolute right-2 top-2 bottom-2 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                        linkCopied ? 'bg-green-500 text-white' : 'bg-[#ff4d00] text-white hover:brightness-110 active:scale-95'
+                      }`}
+                    >
+                      {linkCopied ? 'Copied' : 'Copy'}
+                    </button>
+                 </div>
+              </div>
+
+              {/* Footer Decoration */}
+              <div className="mt-10 flex items-center gap-4">
+                 <div className="h-px flex-1 bg-white/5" />
+                 <div className="flex gap-1">
+                    {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-[#ff4d00]/30 rounded-full" />)}
+                 </div>
+                 <div className="h-px flex-1 bg-white/5" />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
