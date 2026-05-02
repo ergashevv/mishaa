@@ -42,7 +42,7 @@ function AuthPageContent() {
     const handleLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
     window.addEventListener('langChange', handleLang);
     return () => window.removeEventListener('langChange', handleLang);
-  }, []);
+  }, [lang]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');

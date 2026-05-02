@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, Search, X, ChevronLeft, ChevronRight, 
   Eye, EyeOff,
-  ZoomIn, ZoomOut, Sparkles, Shuffle, Globe, Flag
+  ZoomIn, ZoomOut, Sparkles, Shuffle, Globe, Flag,
+  Maximize2
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -23,9 +24,12 @@ import {
   MangaLanguage,
   persistStoredMangaLanguage,
   readStoredMangaLanguage,
+  resolveMangaDexLocalizedText
 } from '@/lib/manga-language';
 import {
   MANGADEX_LONG_STRIP_TAG_ID,
+  buildMangaDexCoverUrl,
+  pickMangaDexCoverFileName,
 } from '@/lib/mangadex';
 import { searchComics } from '@/actions/comic';
 import Image from 'next/image';
@@ -102,6 +106,11 @@ const fetchMangaDexProxy = (path: string) =>
   });
 
 
+async function resolveMangaDexCoverUrl(mangaId: string, coverFileName?: string | null) {
+  if (coverFileName) {
+    return buildMangaDexCoverUrl(mangaId, coverFileName);
+  }
+
   const res = await fetchMangaDexProxy(`manga/${mangaId}?includes[]=cover_art`);
   if (!res.ok) return '/logo.png';
 
@@ -110,7 +119,7 @@ const fetchMangaDexProxy = (path: string) =>
   return cover
     ? buildMangaDexCoverUrl(mangaId, cover)
     : '/logo.png';
-};
+}
 
 const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: Record<string, string>) => {
   const searchParams = new URLSearchParams({ source, kind, ...params });
@@ -148,9 +157,18 @@ function ComicLibrary() {
   const [lang, setLang] = useState<Lang>('en');
   const [zoom, setZoom] = useState(1);
   
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const t_lib = translations[lang].library;
   const requestIdRef = useRef(0);
+  const skipNextOffsetFetchRef = useRef(false);
+  const readerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
+  const searchQuery = categoryQueries[activeCategory] ?? '';
 
   useEffect(() => {
     const verified = readAgeVerification();
@@ -161,6 +179,10 @@ function ComicLibrary() {
     if (verified) persistAgeVerification();
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    persistStoredMangaLanguage(mangaLanguage);
+  }, [mangaLanguage]);
 
   useEffect(() => {
     const savedLang = readStorageItem('lang') as Lang;

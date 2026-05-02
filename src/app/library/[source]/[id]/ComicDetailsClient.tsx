@@ -7,10 +7,11 @@ import {
   ChevronLeft, Play, Star, Clock, 
   Globe, BookOpen, Share2, 
   Bookmark, X,
-  ZoomIn, ZoomOut,
+  ZoomIn, ZoomOut, Maximize2,
   ChevronRight, Loader2, Sparkles,
   Smartphone, Monitor,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp,
+  Columns, List
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -404,9 +405,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       if (comicData) {
         setComic(comicData);
         if (comicData.marvelIssue) setMarvelIssue(comicData.marvelIssue);
-        if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries);
-        if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues);
-        if (comicData.marvelCharacters) setMarvelCharacters(comicData.marvelCharacters);
+        if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries as MarvelSeries);
+        if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues as MarvelSeriesIssue[]);
+        if (comicData.marvelCharacters) setMarvelCharacters(comicData.marvelCharacters as MarvelCharacter[]);
       }
       if (chapterData) {
         setChapters(chapterData as Chapter[]);
@@ -615,7 +616,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   className="object-cover"
                   alt={comic.title}
                 />
-              </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-[0.35em]">
                   Marvel
@@ -824,11 +824,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
-                    <div className="aspect-[2/3] bg-black border border-white/10 overflow-hidden">
-                      <img
+                    <div className="aspect-[2/3] bg-black border border-white/10 overflow-hidden relative">
+                      <Image
                         src={normalizeMarvelImage(marvelSeries.thumbnail) || comic.coverUrl}
                         alt={marvelSeries.title || marvelIssue.seriesName}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                     <div className="space-y-4">
@@ -927,7 +928,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 lg:sticky lg:top-32">
             <div className="group relative aspect-[2/3] w-full bg-[#0a0a0a] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.9)] overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
-               <img src={comic.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={comic.title} />
+               <Image 
+                 src={comic.coverUrl} 
+                 fill
+                 className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                 alt={comic.title} 
+               />
                <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase italic shadow-lg">HQ_Asset</div>
             </div>
             
@@ -1087,8 +1093,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                    </div>
                    <button onClick={() => { if (!document.fullscreenElement) readerRef.current?.requestFullscreen(); else document.exitFullscreen(); }} className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-all rounded-md max-md:w-10 max-md:h-10"><Maximize2 size={16}/></button>
                 </div>
-             </motion.div>
-
+            </motion.div>
 
             {/* Reader Canvas */}
             <div ref={canvasRef} className="flex-1 w-full bg-[#020202] overflow-y-auto custom-scrollbar relative scroll-smooth" id="reader-canvas">
@@ -1174,31 +1179,44 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                 animate={{ opacity: 1, scale: 1 }} 
                                 className="flex justify-center w-full"
                               >
-                                <img 
-                                  src={pages[0]} 
-                                  className="max-h-[90vh] w-auto shadow-2xl border border-white/10 rounded-sm" 
-                                  alt="cover" 
-                                />
+                                <div className="relative max-h-[90vh] w-full aspect-[2/3] flex justify-center">
+                                  <Image 
+                                    src={pages[0]} 
+                                    fill
+                                    className="object-contain shadow-2xl border border-white/10 rounded-sm" 
+                                    alt="cover" 
+                                  />
+                                </div>
                               </motion.div>
                             ) : (
                               <div className="flex items-center justify-center w-full gap-0">
-                                <motion.img 
-                                  key={currentPage} 
-                                  initial={{ opacity: 0, x: 20 }} 
-                                  animate={{ opacity: 1, x: 0 }} 
-                                  src={pages[currentPage]} 
-                                  style={{ width: pages[currentPage+1] ? '50%' : 'auto', maxWidth: pages[currentPage+1] ? '45vw' : '80vw', height: 'auto', maxHeight: '90vh' }} 
-                                  className={`object-contain ${pages[currentPage+1] ? 'border-r border-white/5 shadow-2xl rounded-l-sm' : 'shadow-2xl border border-white/10 rounded-sm'}`} 
-                                />
-                                {pages[currentPage + 1] && (
-                                  <motion.img 
-                                    key={currentPage+1} 
-                                    initial={{ opacity: 0, x: -20 }} 
-                                    animate={{ opacity: 1, x: 0 }} 
-                                    src={pages[currentPage+1]} 
-                                    style={{ width: '50%', maxWidth: '45vw', height: 'auto', maxHeight: '90vh' }} 
-                                    className="object-contain shadow-2xl rounded-r-sm" 
+                                <motion.div
+                                  key={currentPage}
+                                  initial={{ opacity: 0, x: 20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  className="relative flex-1 aspect-[2/3] max-h-[90vh]"
+                                >
+                                  <Image
+                                    src={pages[currentPage]}
+                                    fill
+                                    className={`object-contain shadow-2xl ${pages[currentPage + 1] ? 'border-r border-white/5 rounded-l-sm' : 'border border-white/10 rounded-sm'}`}
+                                    alt={`Page ${currentPage + 1}`}
                                   />
+                                </motion.div>
+                                {pages[currentPage + 1] && (
+                                  <motion.div
+                                    key={currentPage + 1}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="relative flex-1 aspect-[2/3] max-h-[90vh]"
+                                  >
+                                    <Image
+                                      src={pages[currentPage + 1]}
+                                      fill
+                                      className="object-contain shadow-2xl border-l border-white/5 rounded-r-sm"
+                                      alt={`Page ${currentPage + 2}`}
+                                    />
+                                  </motion.div>
                                 )}
                               </div>
                             )}
@@ -1212,7 +1230,18 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                            width: '100%'
                          }}
                        >
-                          {pages.map((p, i) => <img key={i} id={`page-${i}`} src={p + (source === 'archive' ? '?scale=2' : '')} className="w-full h-auto" loading="lazy" />)}
+                          {pages.map((p, i) => (
+                            <div key={i} className="relative w-full aspect-[2/3]">
+                              <Image 
+                                id={`page-${i}`}
+                                src={p + (source === 'archive' ? '?scale=2' : '')} 
+                                alt={`Page ${i + 1}`}
+                                fill
+                                className="w-full h-auto object-contain" 
+                                loading="lazy" 
+                              />
+                            </div>
+                          ))}
                           {currentChapterIdx < chapters.length - 1 && (
                             <button onClick={nextChapter} className="w-full py-40 mt-20 border-2 border-dashed border-white/5 hover:border-[#ff4d00]/50 hover:bg-[#ff4d00]/5 transition-all group flex flex-col items-center gap-4">
                                <div className="text-[12px] font-black uppercase tracking-[0.5em] text-white/20 group-hover:text-white">Next_Chapter_Ready</div>

@@ -110,7 +110,7 @@ const loadMangaDexShelf = async (options: {
     if (!res.ok) return [];
     const data = await res.json();
     const items = Array.isArray(data?.data) ? data.data : [];
-    return items.map((item: { id: string; attributes?: { title: Record<string, string>; description: Record<string, string>; status?: string }; relationships: { type: string; attributes?: { name?: string } }[] }) => {
+    return items.map((item: { id: string; attributes?: { title: Record<string, string>; description: Record<string, string>; status?: string }; relationships: { type: string; attributes?: { fileName?: string; volume?: string | null; createdAt?: string } }[] }) => {
       const coverFileName = pickMangaDexCoverFileName(item.relationships);
       return {
         id: item.id,
@@ -183,7 +183,7 @@ export default function Home() {
   useEffect(() => {
     const saved = readStoredMangaLanguage();
     if (saved !== mangaLanguage) setMangaLanguage(saved);
-  }, []);
+  }, [mangaLanguage]);
 
   const fetchShelves = async (lang: MangaLanguage) => {
     setShelfState(prev => {

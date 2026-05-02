@@ -88,6 +88,7 @@ export async function DELETE(req: Request) {
     await prisma.story.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
+    console.error("Story Delete Error:", error);
     return NextResponse.json({ error: "Failed to delete story" }, { status: 500 });
   }
 }

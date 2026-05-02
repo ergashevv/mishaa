@@ -4,12 +4,33 @@ import { BooruSource, mapBooruDetail } from "@/lib/booru";
 import { buildMangaDexCoverUrl, pickMangaDexCoverFileName, appendMangaDexFilters } from "@/lib/mangadex";
 import { resolveMangaDexLocalizedText, MangaLanguage, getMangaDexTranslatedLanguages, DEFAULT_MANGA_LANGUAGE } from "@/lib/manga-language";
 
-interface MarvelCreator {
+export interface MarvelCreator {
   role: string;
   name: string;
 }
 
-interface MarvelIssue {
+export interface MarvelCharacter {
+  id: number;
+  name: string;
+  thumbnail?: { path: string; extension: string };
+}
+
+export interface MarvelSeries {
+  id: number;
+  title: string;
+  description?: string;
+  cover?: { path: string; extension: string };
+  thumbnail?: { path: string; extension: string };
+}
+
+export interface MarvelSeriesIssue {
+  id: number;
+  title: string;
+  issueNumber: number;
+  cover?: { path: string; extension: string };
+}
+
+export interface MarvelIssue {
   id: number;
   title: string;
   description?: string;
@@ -414,7 +435,7 @@ export async function searchComics(params: {
       const items = data.data || [];
 
       return {
-        items: items.map((item: { id: string; attributes: { title: Record<string, string>; description: Record<string, string>; contentRating: string }; relationships: MangaDexRelationship[] }) => {
+        items: items.map((item: { id: string; attributes: { title: Record<string, string>; description: Record<string, string>; contentRating: string }; relationships: { type: string; attributes?: { fileName?: string; volume?: string | null; createdAt?: string } }[] }) => {
           const coverFileName = pickMangaDexCoverFileName(item.relationships);
           return {
             id: item.id,

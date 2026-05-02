@@ -10,7 +10,8 @@ const adapter = new PrismaNeon(neonPool);
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
-    adapter: adapter as any,
+    // @ts-ignore
+    adapter,
     log: ['query'],
   });
 
