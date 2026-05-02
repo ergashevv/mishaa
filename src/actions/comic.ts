@@ -127,9 +127,9 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
       // Background metadata for Marvel
       const seriesId = issue.seriesId;
-      let series: unknown = null;
-      const characters: unknown[] = [];
-      let seriesIssues: unknown[] = [];
+      let series: any = null;
+      const characters: any[] = [];
+      let seriesIssues: any[] = [];
 
       if (seriesId) {
         try {

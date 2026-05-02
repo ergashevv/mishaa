@@ -139,12 +139,12 @@ const trimText = (value?: string, max = 140) => {
 
 
 interface ComicDetailsClientProps {
-  initialComic: ComicDetails & { 
+  initialComic: (ComicDetails & { 
     marvelIssue?: MarvelIssue; 
     marvelSeries?: MarvelSeries; 
     marvelSeriesIssues?: MarvelSeriesIssue[]; 
     marvelCharacters?: MarvelCharacter[];
-  };
+  }) | null;
   initialChapters?: Chapter[];
   source: string;
   id: string;
