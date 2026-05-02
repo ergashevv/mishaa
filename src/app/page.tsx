@@ -182,7 +182,7 @@ export default function Home() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ShelfKey>('manga-hub');
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(DEFAULT_MANGA_LANGUAGE);
   const [now] = useState(() => new Date());
 
   useEffect(() => {

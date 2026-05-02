@@ -46,7 +46,7 @@ async function fetchNHentaiGallery(id: string) {
 }
 
 
-export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = 'en' as MangaLanguage) {
+export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
     if (source === 'marvel') {
       const res = await fetch(`${MARVEL_API_BASE}/issues/${id}`);
@@ -182,7 +182,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
   }
 }
 
-export async function getChapters(source: string, id: string, mangaLanguage: MangaLanguage = 'en' as MangaLanguage) {
+export async function getChapters(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
     if (source === 'mangadex') {
       const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
@@ -310,7 +310,7 @@ export async function searchComics(params: {
   includedTagIds?: string[];
   excludedTagIds?: string[];
 }) {
-  const { source, query = '', page = 0, mangaLanguage = 'en' as MangaLanguage, ratings, originalLanguages, includedTagIds, excludedTagIds } = params;
+  const { source, query = '', page = 0, mangaLanguage = DEFAULT_MANGA_LANGUAGE, ratings, originalLanguages, includedTagIds, excludedTagIds } = params;
   
   try {
     if (source === 'marvel') {

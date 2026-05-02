@@ -3,7 +3,7 @@ import { readStorageItem, writeStorageItem } from './browser-storage';
 export type MangaLanguage = 'en' | 'ja' | 'ko' | 'ru' | 'es' | 'fr' | 'de' | 'pt-br' | 'zh' | 'zh-hk' | 'th' | 'it' | 'all';
 
 export const MANGA_LANGUAGE_STORAGE_KEY = 'mangaLanguage';
-export const DEFAULT_MANGA_LANGUAGE: MangaLanguage = 'en';
+export const DEFAULT_MANGA_LANGUAGE: MangaLanguage = 'ru';
 
 export const MANGA_LANGUAGE_OPTIONS: Array<{ value: MangaLanguage; label: string }> = [
   { value: 'en', label: 'English' },
