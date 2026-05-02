@@ -8,10 +8,11 @@ import {
   GOOGLE_STATE_COOKIE,
 } from '@/lib/google-oauth';
 
-const redirectToAuthError = (error: string) =>
-  NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error)}`, process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'));
+const redirectToAuthError = (error: string, baseUrl?: string) =>
+  NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error)}`, baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'));
 
 export async function GET(request: NextRequest) {
+  const { origin } = new URL(request.url);
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
@@ -22,16 +23,16 @@ export async function GET(request: NextRequest) {
     cookieStore.delete(GOOGLE_STATE_COOKIE);
 
     if (!code || !state || !savedState || state !== savedState) {
-      return redirectToAuthError('google_state_mismatch');
+      return redirectToAuthError('google_state_mismatch', origin);
     }
 
-    const tokens = await exchangeCodeForTokens(code);
+    const tokens = await exchangeCodeForTokens(code, origin);
     const profile = await fetchGoogleProfile(tokens.access_token);
     await createGoogleSession(profile);
 
-    return NextResponse.redirect(new URL('/', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'));
+    return NextResponse.redirect(new URL('/', origin));
   } catch (error) {
     console.error('Google OAuth callback failed:', error);
-    return redirectToAuthError('google_login_failed');
+    return redirectToAuthError('google_login_failed', origin);
   }
 }

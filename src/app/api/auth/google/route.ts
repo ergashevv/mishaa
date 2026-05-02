@@ -3,7 +3,9 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { buildGoogleAuthUrl, GOOGLE_STATE_COOKIE } from '@/lib/google-oauth';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { origin } = new URL(request.url);
+
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return NextResponse.json(
       { error: 'Google OAuth is not configured' },
@@ -21,5 +23,5 @@ export async function GET() {
     path: '/',
   });
 
-  return NextResponse.redirect(buildGoogleAuthUrl(state));
+  return NextResponse.redirect(buildGoogleAuthUrl(state, origin));
 }

@@ -29,7 +29,7 @@ export default function Navbar() {
   useEffect(() => {
     // Load persisted language after mount to avoid hydration mismatch
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) {
+    if (savedLang && translations[savedLang] && savedLang !== lang) {
       setLang(savedLang);
     }
 
@@ -46,13 +46,13 @@ export default function Navbar() {
 
     const handleLang = (e: Event) => {
       const nextLang = (e as CustomEvent<Lang>).detail;
-      if (translations[nextLang]) {
+      if (translations[nextLang] && nextLang !== lang) {
         setLang(nextLang);
       }
     };
     window.addEventListener('langChange', handleLang);
     return () => window.removeEventListener('langChange', handleLang);
-  }, []);
+  }, [lang]);
 
   const handleLogout = async () => {
     try {

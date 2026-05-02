@@ -4,6 +4,53 @@ import { BooruSource, mapBooruDetail } from "@/lib/booru";
 import { buildMangaDexCoverUrl, pickMangaDexCoverFileName, appendMangaDexFilters } from "@/lib/mangadex";
 import { resolveMangaDexLocalizedText, MangaLanguage, getMangaDexTranslatedLanguages, DEFAULT_MANGA_LANGUAGE } from "@/lib/manga-language";
 
+interface MarvelCreator {
+  role: string;
+  name: string;
+}
+
+interface MarvelIssue {
+  id: number;
+  title: string;
+  description?: string;
+  cover?: { path: string; extension: string };
+  thumbnail?: { path: string; extension: string };
+  creators?: MarvelCreator[];
+  seriesId?: number;
+  seriesName?: string;
+  onSaleDate?: string;
+  pageCount?: number;
+}
+
+interface MangaDexRelationship {
+  type: string;
+  attributes?: {
+    name?: string;
+  };
+}
+
+interface MangaDexTag {
+  attributes: {
+    name: Record<string, string>;
+  };
+}
+
+interface NHentaiTag {
+  type: string;
+  name: string;
+}
+
+interface NHentaiGallery {
+  id: number | string;
+  media_id: string;
+  title: { english?: string; japanese?: string };
+  tags?: NHentaiTag[];
+  images: {
+    cover: { t: string };
+    pages: { t: string }[];
+  };
+}
+
 const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";
 const LIMIT = 36;
 
@@ -55,13 +102,13 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
       const issue = data?.data?.results?.[0] || data?.items?.[0] || data;
       
       const cover = issue.cover || issue.thumbnail;
-      const writer = (issue.creators || []).find((c: any) => c.role === 'writer')?.name || 'Marvel';
+      const writer = (issue.creators || []).find((c: MarvelCreator) => c.role === 'writer')?.name || 'Marvel';
 
       // Background metadata for Marvel
       const seriesId = issue.seriesId;
-      let series: any = null;
-      let characters: any[] = [];
-      let seriesIssues: any[] = [];
+      let series: unknown = null;
+      const characters: unknown[] = [];
+      let seriesIssues: unknown[] = [];
 
       if (seriesId) {
         try {
@@ -101,10 +148,10 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
       const manga = data.data;
 
       const coverFileName = pickMangaDexCoverFileName(manga.relationships);
-      const author = manga.relationships.find((r: any) => r.type === 'author')?.attributes?.name;
+      const author = (manga.relationships as MangaDexRelationship[]).find((r) => r.type === 'author')?.attributes?.name;
       const title = resolveMangaDexLocalizedText(manga.attributes.title, mangaLanguage);
       const description = resolveMangaDexLocalizedText(manga.attributes.description, mangaLanguage);
-      const genres = manga.attributes.tags.map((t: any) => resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage)).filter(Boolean);
+      const genres = manga.attributes.tags.map((t: MangaDexTag) => resolveMangaDexLocalizedText(t.attributes.name, mangaLanguage)).filter(Boolean);
 
       return {
         id: manga.id,
@@ -112,7 +159,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
         description: description || "No description available.",
         coverUrl: coverFileName ? buildMangaDexCoverUrl(manga.id, coverFileName) : '/logo.png',
         rating: manga.attributes.contentRating,
-        genres: genres.length > 0 ? genres : manga.attributes.tags.map((t: any) => t.attributes.name.en),
+        genres: genres.length > 0 ? genres : manga.attributes.tags.map((t: MangaDexTag) => t.attributes.name.en),
         status: manga.attributes.status,
         year: manga.attributes.year,
         author: author,
@@ -122,18 +169,18 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
     }
 
     if (source === 'nhentai') {
-      const data = await fetchNHentaiGallery(id);
+      const data = await fetchNHentaiGallery(id) as NHentaiGallery;
       if (!data) throw new Error('nHentai fetch failed');
       
       return {
         id: data.id.toString(),
         title: data.title?.english || data.title?.japanese || "Untitled",
-        description: data.tags?.map((t: any) => t.name).join(', ') || "",
+        description: data.tags?.map((t: NHentaiTag) => t.name).join(', ') || "",
         coverUrl: `https://t.nhentai.net/galleries/${data.media_id}/cover.${data.images.cover.t === 'p' ? 'png' : 'jpg'}`,
         rating: 'pornographic',
-        genres: data.tags?.filter((t: any) => t.type === 'tag').map((t: any) => t.name) || [],
+        genres: data.tags?.filter((t: NHentaiTag) => t.type === 'tag').map((t: NHentaiTag) => t.name) || [],
         status: 'Completed',
-        author: data.tags?.find((t: any) => t.type === 'artist')?.name || 'Unknown',
+        author: data.tags?.find((t: NHentaiTag) => t.type === 'artist')?.name || 'Unknown',
         source: 'nhentai' as const
       };
     }
@@ -206,7 +253,7 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
         data = await fallbackRes.json();
       }
 
-      return data.data?.map((ch: any) => ({
+      return data.data?.map((ch: { id: string; attributes: { title?: string; chapter: string; volume?: string } }) => ({
         id: ch.id,
         title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,
         chapterNum: ch.attributes.chapter,
@@ -221,12 +268,12 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
     if (source === 'archive') {
       const res = await fetch(`https://archive.org/metadata/${id}`);
       const data = await res.json();
-      const bookFiles = data.files?.filter((f: any) => 
+      const bookFiles = data.files?.filter((f: { format: string }) => 
         ["Image Container PDF", "PDF", "EPUB", "Comic Book Archive"].includes(f.format)
       ) || [];
 
       if (bookFiles.length > 1) {
-        return bookFiles.map((f: any, i: number) => ({
+        return bookFiles.map((f: { name: string; title?: string }, i: number) => ({
           id: f.name,
           title: f.title || f.name.replace(/\.[^/.]+$/, "").replace(/_/g, " "),
           chapterNum: (i + 1).toString()
@@ -264,9 +311,9 @@ export async function getChapterPages(source: string, id: string, chapterId: str
     }
 
     if (source === 'nhentai') {
-       const data = await fetchNHentaiGallery(id);
+       const data = await fetchNHentaiGallery(id) as NHentaiGallery;
        if (!data) return [];
-       return data.images.pages.map((p: any, i: number) => {
+       return data.images.pages.map((p: { t: string }, i: number) => {
           const ext = p.t === 'p' ? 'png' : 'jpg';
           return `/api/proxy/nhentai/image?path=${encodeURIComponent(`galleries/${data.media_id}/${i + 1}.${ext}`)}`;
        });
@@ -280,9 +327,9 @@ export async function getChapterPages(source: string, id: string, chapterId: str
       let jp2File;
       if (isSubFile) {
         const baseName = chapterId.replace(/\.[^/.]+$/, "");
-        jp2File = data.files?.find((f: any) => f.name.includes(baseName) && f.format === "Single Page Processed JP2 ZIP");
+        jp2File = data.files?.find((f: { name: string; format: string }) => f.name.includes(baseName) && f.format === "Single Page Processed JP2 ZIP");
       } else {
-        jp2File = data.files?.find((f: any) => f.format === "Single Page Processed JP2 ZIP");
+        jp2File = data.files?.find((f: { format: string }) => f.format === "Single Page Processed JP2 ZIP");
       }
 
       const count = parseInt(jp2File?.filecount || data.metadata?.page_count || "100");
@@ -326,7 +373,7 @@ export async function searchComics(params: {
       const items = data.items || [];
       
       return {
-        items: items.map((item: any) => ({
+        items: items.map((item: { id: number | string; title: string; seriesName: string; cover: { path: string; extension: string }; pageCount?: number }) => ({
           id: String(item.id),
           title: item.title,
           description: item.seriesName,
@@ -367,7 +414,7 @@ export async function searchComics(params: {
       const items = data.data || [];
 
       return {
-        items: items.map((item: any) => {
+        items: items.map((item: { id: string; attributes: { title: Record<string, string>; description: Record<string, string>; contentRating: string }; relationships: MangaDexRelationship[] }) => {
           const coverFileName = pickMangaDexCoverFileName(item.relationships);
           return {
             id: item.id,
@@ -389,7 +436,7 @@ export async function searchComics(params: {
        const data = await res.json();
        const docs = data.response.docs || [];
        return {
-         items: docs.map((item: any) => ({
+         items: docs.map((item: { identifier: string; title: string }) => ({
            id: item.identifier,
            title: item.title,
            coverUrl: `https://archive.org/services/img/${item.identifier}`,

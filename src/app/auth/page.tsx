@@ -1,9 +1,10 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, AtSign, ArrowRight, ShieldCheck, User, Lock, Globe } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, ShieldCheck, User, Lock, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
@@ -35,7 +36,7 @@ function AuthPageContent() {
   useEffect(() => {
     // Load persisted language after mount to avoid hydration mismatch
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) {
+    if (savedLang && translations[savedLang] && savedLang !== lang) {
       setLang(savedLang);
     }
     const handleLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
@@ -147,8 +148,8 @@ function AuthPageContent() {
                 >
                   {/* Avatar Section */}
                   <div className="flex items-center gap-5 p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <div className="w-14 h-14 rounded-xl bg-black border border-white/10 overflow-hidden shadow-inner flex-shrink-0">
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <div className="w-14 h-14 rounded-xl bg-black border border-white/10 overflow-hidden shadow-inner flex-shrink-0 relative">
+                      <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
                     </div>
                     <div className="flex-1">
                        <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Avatar Prototype</p>

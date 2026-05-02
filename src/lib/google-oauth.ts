@@ -18,9 +18,9 @@ type GoogleProfile = {
   picture?: string;
 };
 
-const getSiteUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  return baseUrl.replace(/\/$/, '');
+const getSiteUrl = (baseUrl?: string) => {
+  const url = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  return url.replace(/\/$/, '');
 };
 
 const splitDisplayName = (name?: string) => {
@@ -73,10 +73,10 @@ const generateUniqueUsername = async (profile: GoogleProfile) => {
 const buildAvatar = (profile: GoogleProfile) =>
   profile.picture || `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(profile.email || profile.sub)}`;
 
-export const buildGoogleAuthUrl = (state: string) => {
+export const buildGoogleAuthUrl = (state: string, baseUrl?: string) => {
   const url = new URL(GOOGLE_AUTH_ENDPOINT);
   url.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || '');
-  url.searchParams.set('redirect_uri', `${getSiteUrl()}${GOOGLE_AUTH_PATH}`);
+  url.searchParams.set('redirect_uri', `${getSiteUrl(baseUrl)}${GOOGLE_AUTH_PATH}`);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'openid email profile');
   url.searchParams.set('state', state);
@@ -84,7 +84,7 @@ export const buildGoogleAuthUrl = (state: string) => {
   return url.toString();
 };
 
-export const exchangeCodeForTokens = async (code: string) => {
+export const exchangeCodeForTokens = async (code: string, baseUrl?: string) => {
   const response = await fetch(GOOGLE_TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -94,7 +94,7 @@ export const exchangeCodeForTokens = async (code: string) => {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID || '',
       client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
-      redirect_uri: `${getSiteUrl()}${GOOGLE_AUTH_PATH}`,
+      redirect_uri: `${getSiteUrl(baseUrl)}${GOOGLE_AUTH_PATH}`,
       grant_type: 'authorization_code',
     }),
   });

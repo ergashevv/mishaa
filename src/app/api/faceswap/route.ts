@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     } else {
       throw new Error(`Face swap failed or timed out: ${prediction.status}`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Face Swap Error:", error);
-    return NextResponse.json({ error: error.message || "Face swap failed" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Face swap failed" }, { status: 500 });
   }
 }

@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     const imageDataWithPrefix = `data:image/png;base64,${base64Data}`;
 
     return NextResponse.json({ image: imageDataWithPrefix, success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("💥 Internal Route Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Generation failed" }, { status: 500 });
   }
 }

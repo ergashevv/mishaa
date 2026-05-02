@@ -2,18 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, 
-  ChevronRight, 
   Clock, 
-  Sparkles, 
   Search, 
-  Filter, 
   Flame, 
   TrendingUp, 
-  History, 
   LayoutGrid,
   Star,
   Play
@@ -26,7 +22,6 @@ import {
   pickMangaDexCoverFileName,
 } from '@/lib/mangadex';
 import {
-  DEFAULT_MANGA_LANGUAGE,
   getMangaDexTranslatedLanguages,
   resolveMangaDexLocalizedText,
   MANGA_LANGUAGE_OPTIONS,
@@ -115,7 +110,7 @@ const loadMangaDexShelf = async (options: {
     if (!res.ok) return [];
     const data = await res.json();
     const items = Array.isArray(data?.data) ? data.data : [];
-    return items.map((item: any) => {
+    return items.map((item: { id: string; attributes?: { title: Record<string, string>; description: Record<string, string>; status?: string }; relationships: { type: string; attributes?: { name?: string } }[] }) => {
       const coverFileName = pickMangaDexCoverFileName(item.relationships);
       return {
         id: item.id,
@@ -127,7 +122,7 @@ const loadMangaDexShelf = async (options: {
         meta: item.attributes?.status?.toUpperCase() || 'MANGA',
         rating: (Math.random() * 2 + 3).toFixed(1), // Mock rating
       };
-    }).filter((c: any) => c.id && c.title);
+    }).filter((c: { id: string; title: string }) => c.id && c.title);
   } catch { return []; }
 };
 
@@ -140,7 +135,7 @@ const loadMarvelShelf = async (): Promise<LibraryComic[]> => {
     
     // Fetch details for each item to get covers
     const detailedItems = await Promise.all(
-      items.map(async (item: any) => {
+      items.map(async (item: { id: string }) => {
         try {
           const detailRes = await fetch(`/api/marvel/issues/${item.id}`, { cache: 'force-cache' });
           if (!detailRes.ok) return null;
@@ -182,12 +177,12 @@ export default function Home() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ShelfKey>('manga-hub');
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(DEFAULT_MANGA_LANGUAGE);
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
   const [now] = useState(() => new Date());
 
   useEffect(() => {
     const saved = readStoredMangaLanguage();
-    setMangaLanguage(saved);
+    if (saved !== mangaLanguage) setMangaLanguage(saved);
   }, []);
 
   const fetchShelves = async (lang: MangaLanguage) => {
@@ -213,7 +208,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchShelves(mangaLanguage);
+    void fetchShelves(mangaLanguage);
   }, [mangaLanguage]);
 
   const handleLanguageChange = (newLang: MangaLanguage) => {
@@ -428,7 +423,7 @@ export default function Home() {
                     <Search size={40} />
                  </div>
                  <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-2">No results found</h3>
-                 <p className="text-white/40">We couldn't find any comics matching "{searchQuery}"</p>
+                 <p className="text-white/40">We couldn&apos;t find any comics matching &quot;{searchQuery}&quot;</p>
               </div>
             )}
 

@@ -5,8 +5,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, Search, X, ChevronLeft, ChevronRight, 
-  Loader2, Maximize2, Minimize2, List, Eye, EyeOff,
-  ZoomIn, ZoomOut, Columns, FileText, Sparkles, TrendingUp, Clock, Star, Shuffle, Globe, Flag
+  Eye, EyeOff,
+  ZoomIn, ZoomOut, Sparkles, Shuffle, Globe, Flag
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -19,21 +19,16 @@ import {
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
 import { 
-  DEFAULT_MANGA_LANGUAGE,
   MANGA_LANGUAGE_OPTIONS,
   MangaLanguage,
-  getMangaDexTranslatedLanguages,
   persistStoredMangaLanguage,
-  resolveMangaDexLocalizedText,
   readStoredMangaLanguage,
 } from '@/lib/manga-language';
 import {
-  appendMangaDexFilters,
-  buildMangaDexCoverUrl,
   MANGADEX_LONG_STRIP_TAG_ID,
-  pickMangaDexCoverFileName,
 } from '@/lib/mangadex';
-import { searchComics, getChapters, getChapterPages } from '@/actions/comic';
+import { searchComics } from '@/actions/comic';
+import Image from 'next/image';
 interface Comic {
   id: string;
   title: string;
@@ -50,20 +45,6 @@ interface Comic {
   creators?: { id: number; name: string; role: string }[];
 }
 
-interface MarvelIssueSummary {
-  id: number | string;
-  title?: string;
-  issueNumber?: string;
-  seriesName?: string;
-  onSaleDate?: string;
-  yearPage?: number;
-  detailUrl?: string;
-  pageCount?: number;
-  cover?: {
-    path?: string;
-    extension?: string;
-  };
-}
 
 type Category = {
   label: string;
@@ -96,8 +77,6 @@ const CATEGORIES: Category[] = [
 ];
 
 const LIMIT = 36;
-const MARVEL_COVER_PREFETCH_COUNT = 12;
-const MARVEL_COVER_FETCH_RETRIES = 2;
 
 const createCategoryQueryMap = () =>
   Object.fromEntries(CATEGORIES.map((category) => [category.label, category.query ?? ''])) as Record<string, string>;
@@ -115,29 +94,13 @@ const formatMarvelDate = (value?: string) => {
   });
 };
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const normalizeMarvelCover = (cover?: { path?: string; extension?: string }) => {
-  if (!cover?.path || !cover.extension) return '';
-  return `${String(cover.path).replace(/^http:\/\//, 'https://')}.${cover.extension}`;
-};
 
 const fetchMangaDexProxy = (path: string) =>
   fetch(`/api/proxy/mangadex?path=${encodeURIComponent(path)}`, {
     cache: 'no-store',
   });
 
-const fetchArchiveProxy = (action: 'search' | 'metadata' | 'cover' | 'page', params: Record<string, string>) => {
-  const searchParams = new URLSearchParams({ action, ...params });
-  return fetch(`/api/proxy/archive?${searchParams.toString()}`, {
-    cache: 'no-store',
-  });
-};
-
-const resolveMangaDexCoverUrl = async (mangaId: string, coverFileName?: string | null) => {
-  if (coverFileName) {
-    return buildMangaDexCoverUrl(mangaId, coverFileName);
-  }
 
   const res = await fetchMangaDexProxy(`manga/${mangaId}?includes[]=cover_art`);
   if (!res.ok) return '/logo.png';
@@ -182,24 +145,12 @@ function ComicLibrary() {
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [lang, setLang] = useState<Lang>('en');
   const [zoom, setZoom] = useState(1);
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof window === 'undefined') return 'en';
-    const savedLang = readStorageItem('lang') as Lang;
-    return savedLang && translations[savedLang] ? savedLang : 'en';
-  });
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
-  const isMounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-  const t_lib = (translations[lang] as any).library;
+  
+  const t_lib = translations[lang].library;
   const requestIdRef = useRef(0);
-  const skipNextOffsetFetchRef = useRef(false);
-  const readerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
-  const searchQuery = categoryQueries[activeCategory] ?? '';
 
   useEffect(() => {
     const verified = readAgeVerification();
@@ -213,7 +164,7 @@ function ComicLibrary() {
 
   useEffect(() => {
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) {
+    if (savedLang && translations[savedLang] && savedLang !== lang) {
       setLang(savedLang);
     }
 
@@ -348,13 +299,13 @@ function ComicLibrary() {
       const numPages = Number(data?.num_pages ?? 0);
 
       return {
-        items: results.map((item: any) => {
+        items: results.map((item: { id: number | string; english_title?: string; title?: { english?: string; japanese?: string }; num_pages?: number; thumbnail?: string | { path: string } }) => {
         return {
           id: item.id.toString(),
           title: item.english_title || item.title?.english || item.title?.japanese || "Untitled",
           description: `${item.num_pages} pages`,
-          coverUrl: item.thumbnail?.path || item.thumbnail
-            ? `/api/proxy/nhentai/image?path=${encodeURIComponent(item.thumbnail?.path || item.thumbnail)}`
+          coverUrl: (typeof item.thumbnail === 'object' ? item.thumbnail?.path : item.thumbnail)
+            ? `/api/proxy/nhentai/image?path=${encodeURIComponent(typeof item.thumbnail === 'object' ? item.thumbnail?.path : (item.thumbnail || ''))}`
             : '/logo.png',
           source: 'nhentai',
           rating: 'pornographic'
@@ -558,36 +509,11 @@ function ComicLibrary() {
       skipNextOffsetFetchRef.current = false;
       return;
     }
-    if (offset > 0) loadData(offset, true);
+    if (offset > 0) {
+      void loadData(offset, true);
+    }
   }, [offset, loadData]);
 
-  const fetchPages = async (comic: Comic) => {
-    if (isAdultComic(comic) && !isAgeVerified) {
-      setShowAgeGate(true);
-      return;
-    }
-
-    setReading(true);
-    setPages([]);
-    try {
-      // Use existing server action to get chapters first, then pages
-      const chapters = await getChapters(comic.source, comic.id, mangaLanguage);
-      if (!chapters || chapters.length === 0) throw new Error("No chapters found");
-      
-      const chapterPages = await getChapterPages(comic.source, comic.id, chapters[0].id);
-      if (!chapterPages || chapterPages.length === 0) throw new Error("No pages found");
-      
-      setPages(chapterPages);
-      setCurrentPage(0);
-      setSelectedComic(comic);
-    } catch (e) { 
-      console.error(e);
-      alert("Could not load pages. This source might be restricted or formatted differently."); 
-      setSelectedComic(null); 
-    } finally { 
-      setReading(false); 
-    }
-  };
 
 
   // Keyboard navigation
@@ -718,11 +644,14 @@ function ComicLibrary() {
                   <div className="aspect-[2/3] border border-white/5 bg-[#0a0a0a] overflow-hidden relative shadow-[0_40px_80px_rgba(0,0,0,0.8)]">
                     {comic.source === 'marvel' ? (
                       comic.coverUrl ? (
-                        <img
-                          src={comic.coverUrl}
-                          className="w-full h-full object-cover opacity-100 transition-all duration-700"
-                          alt={comic.title}
-                        />
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={comic.coverUrl}
+                            fill
+                            className="object-cover opacity-100 transition-all duration-700"
+                            alt={comic.title}
+                          />
+                        </div>
                       ) : (
                         <div className="w-full h-full relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,77,0,0.3),_transparent_45%),linear-gradient(180deg,#171717_0%,#060606_100%)]">
                           <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
@@ -740,7 +669,9 @@ function ComicLibrary() {
                         </div>
                       )
                     ) : (
-                      <img src={comic.coverUrl} className="w-full h-full object-cover opacity-100 transition-all duration-700" alt={comic.title} />
+                      <div className="relative w-full h-full">
+                        <Image src={comic.coverUrl || '/logo.png'} fill className="object-cover opacity-100 transition-all duration-700" alt={comic.title} />
+                      </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent flex items-center justify-between">
                        <span className="text-[7px] font-black uppercase tracking-widest text-[#ff4d00]">{comic.source}</span>

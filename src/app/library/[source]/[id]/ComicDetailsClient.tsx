@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, Play, Info, Star, Clock, 
-  Layers, Globe, BookOpen, Share2, 
-  Bookmark, Heart, Download, X,
-  ZoomIn, ZoomOut, Maximize2, Minimize2,
-  ChevronRight, Loader2, Sparkles, Flag, List,
-  Settings, Columns, Smartphone, Monitor,
-  ChevronDown, ChevronUp, Menu, MousePointer2
+  ChevronLeft, Play, Star, Clock, 
+  Globe, BookOpen, Share2, 
+  Bookmark, X,
+  ZoomIn, ZoomOut,
+  ChevronRight, Loader2, Sparkles,
+  Smartphone, Monitor,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -29,11 +29,8 @@ import {
   readStoredMangaLanguage,
   MangaLanguage,
 } from '@/lib/manga-language';
-import {
-  buildMangaDexCoverUrl,
-  pickMangaDexCoverFileName,
-} from '@/lib/mangadex';
 import { getChapterPages, getChapters, getComicDetails } from '@/actions/comic';
+import Image from 'next/image';
 
 interface Chapter {
   id: string;
@@ -183,8 +180,13 @@ const parseMarvelCharacters = (payload: unknown): MarvelCharacter[] => {
 };
 
 interface ComicDetailsClientProps {
-  initialComic: any;
-  initialChapters?: any[];
+  initialComic: ComicDetails & { 
+    marvelIssue?: MarvelIssue; 
+    marvelSeries?: MarvelSeries; 
+    marvelSeriesIssues?: MarvelSeriesIssue[]; 
+    marvelCharacters?: MarvelCharacter[];
+  };
+  initialChapters?: Chapter[];
   source: string;
   id: string;
 }
@@ -201,7 +203,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
   const [lang, setLang] = useState<Lang>('en');
   const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
-  const t = (translations[lang] as any).library;
+  const t = translations[lang].library;
 
   const [reading, setReading] = useState(false);
   
@@ -240,17 +242,17 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
     // Check age verification
     const verified = readAgeVerification();
-    setIsAgeVerified(verified);
+    if (verified !== isAgeVerified) setIsAgeVerified(verified);
     if (verified) persistAgeVerification();
 
     // Language handling
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) {
+    if (savedLang && translations[savedLang] && savedLang !== lang) {
       setLang(savedLang);
     }
 
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isAgeVerified, lang]);
 
   useEffect(() => {
     const handleFs = () => setIsFullscreen(!!document.fullscreenElement);
@@ -260,7 +262,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
   useEffect(() => {
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) {
+    if (savedLang && translations[savedLang] && savedLang !== lang) {
       setLang(savedLang);
     }
 
@@ -276,11 +278,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   }, []);
 
   useEffect(() => {
-    const handleMangaLang = (e: any) => {
-      setMangaLanguage(e.detail);
+    const handleMangaLang = (e: Event) => {
+      setMangaLanguage((e as CustomEvent<MangaLanguage>).detail);
     };
-    window.addEventListener('langChange', handleMangaLang); // Library page uses 'langChange' for both UI and Manga lang? Let me check
-    return () => window.removeEventListener('langChange', handleMangaLang);
+    window.addEventListener('langChange', handleMangaLang as EventListener);
+    return () => window.removeEventListener('langChange', handleMangaLang as EventListener);
   }, []);
 
   // UI Auto-hide logic
@@ -320,58 +322,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     if (canvas) canvas.addEventListener('scroll', handleScroll);
     return () => canvas?.removeEventListener('scroll', handleScroll);
   }, [reading, viewMode, uiVisible]);
-
-  async function fetchComicDetails() {
-    setLoading(true);
-    try {
-      const [comicData, chapterData] = await Promise.all([
-        getComicDetails(source as string, id as string, mangaLanguage),
-        getChapters(source as string, id as string, mangaLanguage)
-      ]);
-      
-      if (comicData) setComic(comicData as any);
-      if (chapterData) {
-        setChapters(chapterData as any);
-        // Reset reader if language changed while reading
-        if (reading) {
-          setCurrentChapterIdx(0);
-          void loadChapterPages(0);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchComicDetails();
-  }, [id, source, isAgeVerified, mangaLanguage]);
-
-
-  useEffect(() => {
-    if (comic && isAdultComic(comic) && !isAgeVerified) {
-      setShowAgeGate(true);
-    }
-  }, [comic, isAgeVerified]);
-
-  const handleAgeVerify = () => {
-    persistAgeVerification();
-    setIsAgeVerified(true);
-    setShowAgeGate(false);
-  };
-
-  useEffect(() => {
-    if (reading) {
-      document.body.style.backgroundColor = '#000000';
-    } else {
-      document.body.style.backgroundColor = '';
-    }
-    return () => {
-      document.body.style.backgroundColor = '';
-    };
-  }, [reading]);
 
   const getChapterCacheKey = useCallback((chapterId: string) => {
     return `${String(source)}:${String(id)}:${chapterId}`;
@@ -443,6 +393,63 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     }
   }, [chapters, ensureChapterPages, getChapterCacheKey, preloadNeighborChapters]);
 
+  const fetchComicDetails = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [comicData, chapterData] = await Promise.all([
+        getComicDetails(source as string, id as string, mangaLanguage),
+        getChapters(source as string, id as string, mangaLanguage)
+      ]);
+      
+      if (comicData) {
+        setComic(comicData);
+        if (comicData.marvelIssue) setMarvelIssue(comicData.marvelIssue);
+        if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries);
+        if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues);
+        if (comicData.marvelCharacters) setMarvelCharacters(comicData.marvelCharacters);
+      }
+      if (chapterData) {
+        setChapters(chapterData as Chapter[]);
+        // Reset reader if language changed while reading
+        if (reading) {
+          setCurrentChapterIdx(0);
+          void loadChapterPages(0);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, source, mangaLanguage, reading, loadChapterPages]);
+
+
+  useEffect(() => {
+    fetchComicDetails();
+  }, [fetchComicDetails]);
+
+  useEffect(() => {
+    if (comic && isAdultComic(comic) && !isAgeVerified && !showAgeGate) {
+      setShowAgeGate(true);
+    }
+  }, [comic, isAgeVerified, showAgeGate]);
+
+  const handleAgeVerify = () => {
+    persistAgeVerification();
+    setIsAgeVerified(true);
+    setShowAgeGate(false);
+  };
+
+  useEffect(() => {
+    if (reading) {
+      document.body.style.backgroundColor = '#000000';
+    } else {
+      document.body.style.backgroundColor = '';
+    }
+    return () => {
+      document.body.style.backgroundColor = '';
+    };
+  }, [reading]);
 
   useEffect(() => {
     if (!comic || chapters.length === 0) return;
@@ -526,7 +533,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [reading, currentPage, pages.length, viewMode, currentChapterIdx, isSpreadCover]);
+  }, [reading, currentPage, pages.length, viewMode, currentChapterIdx, isSpreadCover, handleNextPage, handlePrevPage]);
 
   if (loading) return (
     <div className="min-h-screen bg-[#020202] flex items-center justify-center">
@@ -575,10 +582,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
         <div className="fixed inset-0 z-0 h-[45vh] md:h-[65vh]">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/85 to-[#050505] z-10" />
-          <img
+          <Image
             src={comic.bannerUrl || comic.coverUrl}
-            className="w-full h-full object-cover opacity-20 grayscale blur-3xl scale-110"
+            fill
+            className="object-cover opacity-20 grayscale blur-3xl scale-110"
             alt=""
+            priority
           />
         </div>
 
@@ -599,12 +608,14 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 lg:sticky lg:top-28"
             >
-              <div className="relative aspect-[2/3] w-full overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-[0_40px_120px_rgba(0,0,0,0.85)]">
-                <img
+              <div className="relative aspect-[2/3] w-full overflow-hidden border border-white/10 bg-[#0a0a0a]">
+                <Image
                   src={comic.coverUrl}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                   alt={comic.title}
                 />
+              </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-[0.35em]">
                   Marvel
@@ -1307,7 +1318,14 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                            }}
                            className={`group relative aspect-[2/3] bg-[#0a0a0a] border ${currentPage === i ? 'border-[#ff4d00] ring-4 ring-[#ff4d00]/20 scale-105 z-10' : 'border-white/10 hover:border-white/30'} transition-all overflow-hidden`}
                          >
-                            <img src={p} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" loading="lazy" />
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={p}
+                                fill
+                                className="object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                                alt={`Page ${i + 1}`}
+                              />
+                            </div>
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                <div className="px-3 py-1.5 bg-black/80 backdrop-blur-md border border-white/10 text-[14px] font-black text-white group-hover:bg-[#ff4d00] group-hover:border-[#ff4d00] transition-all">
