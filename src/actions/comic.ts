@@ -7,40 +7,57 @@ import { resolveMangaDexLocalizedText, MangaLanguage, getMangaDexTranslatedLangu
 export interface MarvelCreator {
   role: string;
   name: string;
+  id?: number;
 }
 
 export interface MarvelCharacter {
   id: number;
-  name: string;
+  name?: string;
+  description?: string;
   thumbnail?: { path: string; extension: string };
 }
 
 export interface MarvelSeries {
   id: number;
-  title: string;
+  title?: string;
   description?: string;
-  cover?: { path: string; extension: string };
-  thumbnail?: { path: string; extension: string };
+  startYear?: number;
+  endYear?: number;
+  modified?: string;
+  cover?: { path?: string; extension?: string };
+  thumbnail?: { path?: string; extension?: string };
 }
 
 export interface MarvelSeriesIssue {
   id: number;
   title: string;
-  issueNumber: number;
-  cover?: { path: string; extension: string };
+  issueNumber: string;
+  detailUrl: string;
+  seriesId: number;
+  seriesName: string;
+  onSaleDate?: string;
+  unlimitedDate?: string;
+  yearPage?: number;
+  cover?: { path?: string; extension?: string };
 }
 
 export interface MarvelIssue {
   id: number;
+  digitalId?: number;
   title: string;
+  issueNumber?: string;
   description?: string;
-  cover?: { path: string; extension: string };
-  thumbnail?: { path: string; extension: string };
-  creators?: MarvelCreator[];
+  modified?: string;
+  pageCount?: number;
+  detailUrl?: string;
   seriesId?: number;
   seriesName?: string;
   onSaleDate?: string;
-  pageCount?: number;
+  unlimitedDate?: string;
+  yearPage?: number;
+  cover?: { path?: string; extension?: string };
+  thumbnail?: { path?: string; extension?: string };
+  creators?: MarvelCreator[];
 }
 
 interface MangaDexRelationship {
@@ -127,9 +144,9 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
       // Background metadata for Marvel
       const seriesId = issue.seriesId;
-      let series: any = null;
-      const characters: any[] = [];
-      let seriesIssues: any[] = [];
+      let series: MarvelSeries | null = null;
+      const characters: MarvelCharacter[] = [];
+      let seriesIssues: MarvelSeriesIssue[] = [];
 
       if (seriesId) {
         try {
@@ -155,7 +172,7 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
         author: writer,
         source: 'marvel' as const,
         marvelIssue: issue,
-        marvelSeries: series,
+        marvelSeries: series || undefined,
         marvelSeriesIssues: seriesIssues,
         marvelCharacters: characters // Could be added later or filtered by series name
       };
