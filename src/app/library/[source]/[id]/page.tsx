@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import type { Metadata } from 'next';
 import ComicDetailsClient from './ComicDetailsClient';
 import { getComicDetails, getChapters } from '@/actions/comic';

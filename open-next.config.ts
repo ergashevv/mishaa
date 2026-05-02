@@ -10,21 +10,6 @@ const config = {
       queue: "dummy",
     },
   },
-  functions: {
-    studio: {
-      minify: true,
-      routes: ["app/studio/page"],
-      patterns: ["/studio"],
-      override: {
-        wrapper: "cloudflare-node",
-        converter: "edge",
-        proxyExternalRequest: "fetch",
-        incrementalCache: "dummy",
-        tagCache: "dummy",
-        queue: "dummy",
-      },
-    }
-  },
   cloudflare: {
     useWorkerdCondition: true,
   },

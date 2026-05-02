@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
       "replicate",
     ],
   },
+  serverExternalPackages: ["@prisma/client", "bcryptjs"],
 };
 
 export default nextConfig;

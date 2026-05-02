@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { Metadata } from "next";
 import ComicCreator from '@/components/ComicCreator';
 import Navbar from '@/components/Navbar';
