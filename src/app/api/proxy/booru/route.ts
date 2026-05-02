@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { NextRequest, NextResponse } from 'next/server';
 import { AGE_VERIFICATION_COOKIE } from '@/lib/age-verification';
 import {

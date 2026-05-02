@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import { NextResponse } from "next/server";
 
 const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";

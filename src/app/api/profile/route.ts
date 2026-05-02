@@ -1,3 +1,4 @@
+export const runtime = "edge";
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { createSession, getSession } from '@/lib/auth';
