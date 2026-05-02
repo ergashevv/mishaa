@@ -14,7 +14,6 @@
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^6.2.1",
     "@prisma/client": "^6.2.1",
-    "animejs": "^4.3.6",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -28,7 +27,6 @@
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.19.5",
     "@tailwindcss/postcss": "^4",
-    "@types/animejs": "^3.1.13",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
