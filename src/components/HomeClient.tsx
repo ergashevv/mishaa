@@ -43,6 +43,7 @@ interface LibraryComic {
   title: string;
   description: string;
   coverUrl: string;
+  bannerUrl?: string;
   source: ComicSource;
   href: string;
   meta: string;
@@ -491,12 +492,12 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
               >
                 <div className="relative h-full w-full">
                   <Image
-                    src={featuredComic.coverUrl}
+                    src={featuredComic.bannerUrl || featuredComic.coverUrl}
                     alt={featuredComic.title}
                     fill
                     priority
                     unoptimized
-                    className="object-cover opacity-40 blur-[2px]"
+                    className="object-cover opacity-25 md:opacity-40 md:blur-[2px]"
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-[#05060a]/40 to-transparent" />
@@ -519,6 +520,25 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
                         <div className="flex items-center gap-1 text-[#ffca3a]">
                           <Star size={14} fill="currentColor" />
                           <span className="text-sm font-black">{featuredComic.rating}</span>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.15 }}
+                        className="lg:hidden relative mx-auto w-full max-w-[320px] overflow-hidden rounded-[1.75rem] border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+                      >
+                        <div className="relative aspect-[3/4] w-full bg-black">
+                          <Image
+                            src={featuredComic.bannerUrl || featuredComic.coverUrl}
+                            alt={featuredComic.title}
+                            fill
+                            priority
+                            unoptimized
+                            className="object-contain object-center p-2"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
                         </div>
                       </motion.div>
 
