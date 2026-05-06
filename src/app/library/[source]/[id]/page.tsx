@@ -1,9 +1,9 @@
 export const runtime = "edge";
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { cache } from 'react';
 import ComicDetailsClient from './ComicDetailsClient';
 import { getComicDetails as getComicDetailsAction, getChapters } from '@/actions/comic';
-import { MangaLanguage } from '@/lib/manga-language';
 
 const getComicDetails = cache(getComicDetailsAction);
 
@@ -16,25 +16,44 @@ type MetadataProps = {
   params: Promise<RouteParams>;
 };
 
-const SITE_NAME = 'iComics.wiki Studio';
+type ComicSeoData = {
+  title?: string;
+  description?: string;
+  coverUrl?: string;
+  author?: string;
+  genres?: string[];
+  aniListData?: {
+    averageScore?: number;
+    status?: string;
+    description?: string;
+    genres?: string[];
+    popularity?: number;
+  };
+  jikanData?: {
+    score?: number;
+    status?: string;
+    authors?: Array<{ name?: string }>;
+    genres?: Array<{ name?: string }>;
+    members?: number;
+  };
+};
+
 const DEFAULT_DESCRIPTION = 'The ultimate synthesis environment for independent comic creators.';
 
 export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
   const { source, id } = await params;
-  const comic = await getComicDetails(source, id);
+  const comic = (await getComicDetails(source, id)) as ComicSeoData | null;
   
   const type = source === 'mangadex' ? 'Manga' : source === 'marvel' ? 'Comic' : 'Webtoon';
   
   // Big Data Enrichment for SEO
-  const aniList = (comic as any)?.aniListData;
-  const jikan = (comic as any)?.jikanData;
+  const aniList = comic?.aniListData;
+  const jikan = comic?.jikanData;
   
   const ratingText = aniList?.averageScore ? `Rated ${aniList.averageScore}/100` : jikan?.score ? `Rated ${jikan.score}/10` : '';
-  const statusText = aniList?.status || jikan?.status || '';
-  
   const title = comic?.title 
-    ? `Read ${comic.title} ${type} Online ${ratingText ? `- ${ratingText}` : ''} | ${SITE_NAME}` 
-    : `${SITE_NAME} | Digital Comic Archive`;
+    ? `Read ${comic.title} ${type} Online ${ratingText ? `- ${ratingText}` : ''}` 
+    : 'Digital Comic Archive';
     
   // Combine descriptions for maximum SEO density
   const baseDescription = comic?.description || '';
@@ -70,36 +89,39 @@ import JsonLd from '@/components/JsonLd';
 
 export default async function Page({ params }: { params: Promise<RouteParams> }) {
   const { source, id } = await params;
+  const cookieStore = await cookies();
+  const initialAgeVerified = cookieStore.get('age_verified')?.value === 'true';
   
   const [initialComic, initialChapters] = await Promise.all([
     getComicDetails(source, id),
     getChapters(source, id)
   ]);
+  const comicData = initialComic as ComicSeoData | null;
 
-  const comicSchema = initialComic ? {
+  const comicSchema = comicData ? {
     "@context": "https://schema.org",
     "@type": "Book",
-    "name": initialComic.title,
-    "description": initialComic.description,
-    "image": initialComic.coverUrl,
+    "name": comicData.title,
+    "description": comicData.description,
+    "image": comicData.coverUrl,
     "author": {
       "@type": "Person",
-      "name": initialComic.author || (initialComic as any).jikanData?.authors?.[0]?.name || "iComics.wiki Creator"
+      "name": comicData.author || comicData.jikanData?.authors?.[0]?.name || "iComics.wiki Creator"
     },
     "genre": Array.from(new Set([
-      ...(initialComic.genres || []),
-      ...((initialComic as any).aniListData?.genres || []),
-      ...((initialComic as any).jikanData?.genres?.map((g: any) => g.name) || [])
+      ...(comicData.genres || []),
+      ...(comicData.aniListData?.genres || []),
+      ...(comicData.jikanData?.genres?.map((genre) => genre.name).filter((name): name is string => Boolean(name)) || [])
     ])).join(', '),
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": (initialComic as any).aniListData?.averageScore 
-        ? ((initialComic as any).aniListData.averageScore / 10).toFixed(1)
-        : (initialComic as any).jikanData?.score 
-          ? (initialComic as any).jikanData.score.toString()
+      "ratingValue": comicData.aniListData?.averageScore 
+        ? (comicData.aniListData.averageScore / 10).toFixed(1)
+        : comicData.jikanData?.score 
+          ? comicData.jikanData.score.toString()
           : "4.8",
       "bestRating": "10",
-      "ratingCount": (initialComic as any).aniListData?.popularity || (initialComic as any).jikanData?.members || "1000"
+      "ratingCount": comicData.aniListData?.popularity || comicData.jikanData?.members || "1000"
     }
   } : null;
 
@@ -122,7 +144,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
       {
         "@type": "ListItem",
         "position": 3,
-        "name": initialComic?.title || "Comic",
+        "name": comicData?.title || "Comic",
         "item": `https://icomics.wiki/library/${source}/${id}`
       }
     ]
@@ -133,13 +155,12 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
       {comicSchema && <JsonLd data={comicSchema} />}
       {breadcrumbSchema && <JsonLd data={breadcrumbSchema} />}
       <ComicDetailsClient 
-        initialComic={initialComic} 
-        initialChapters={initialChapters}
-        source={source} 
-        id={id} 
-      />
-    </article>
+      initialComic={initialComic} 
+      initialChapters={initialChapters}
+      source={source} 
+      id={id} 
+      initialAgeVerified={initialAgeVerified}
+    />
+  </article>
   );
 }
-
-

@@ -1,29 +1,30 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import HomeClient from '@/components/HomeClient';
 
 export const metadata: Metadata = {
-  title: 'iComics.wiki Wiki - Read Manga, Manhwa & Marvel Comics Online',
+  title: 'AI-Powered Comic Creation & Digital Library',
   description: 'Explore a massive library of Manga, Manhwa, and Marvel comics. Read online, discover new series, and use our AI-powered studio to create your own visual narratives.',
   keywords: 'read manga online, manhwa wiki, marvel comics archive, free comic reader, ai comic creator, digital comics library',
   openGraph: {
-    title: 'iComics.wiki Wiki - The Ultimate Digital Comic Archive',
+    title: 'AI-Powered Comic Creation & Digital Library',
     description: 'Read thousands of comics online and create your own stories with AI.',
     url: 'https://icomics.wiki',
-    siteName: 'iComics.wiki Wiki',
+    siteName: 'iComics.wiki',
     images: [
-      {
-        url: '/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'iComics.wiki Wiki & Studio',
-      },
-    ],
+        {
+          url: '/logo.png',
+          width: 1200,
+          height: 630,
+          alt: 'iComics.wiki',
+        },
+      ],
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'iComics.wiki Wiki - Read & Create Comics',
+    title: 'AI-Powered Comic Creation & Digital Library',
     description: 'The ultimate synthesis environment for comic readers and creators.',
     images: ['/logo.png'],
   },
@@ -35,15 +36,24 @@ export const metadata: Metadata = {
 import JsonLd from '@/components/JsonLd';
 
 import { getHomeData } from '@/lib/home-data';
+import type { MangaLanguage } from '@/lib/manga-language';
+
+const normalizeLanguage = (value: string | undefined): MangaLanguage => {
+  return value === 'en' || value === 'ru' || value === 'es' || value === 'fr'
+    ? value
+    : 'en';
+};
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
   const { lang } = await searchParams;
-  const initialData = await getHomeData((lang as any) || 'en');
+  const cookieStore = await cookies();
+  const includeAdultContent = cookieStore.get('age_verified')?.value === 'true';
+  const initialData = await getHomeData(normalizeLanguage(lang), { includeAdultContent });
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "iComics.wiki Wiki",
+    "name": "iComics.wiki",
     "url": "https://icomics.wiki",
     "logo": "https://icomics.wiki/logo.png",
     "sameAs": [
@@ -55,7 +65,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "iComics.wiki Wiki",
+    "name": "iComics.wiki",
     "url": "https://icomics.wiki",
     "potentialAction": {
       "@type": "SearchAction",
@@ -68,7 +78,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
     <>
       <JsonLd data={organizationSchema} />
       <JsonLd data={websiteSchema} />
-      <HomeClient initialData={initialData} />
+      <HomeClient initialData={initialData} initialAgeVerified={includeAdultContent} />
     </>
   );
 }

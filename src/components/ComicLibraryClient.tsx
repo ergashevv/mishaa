@@ -70,18 +70,10 @@ const CATEGORIES: Category[] = [
   { label: 'Manga Hub', source: 'mangadex', originalLanguages: ['ja'] },
   { label: 'Adult Manga', source: 'mangadex', nsfw: true, ratings: ['pornographic'] },
   { label: 'Erotica', source: 'mangadex', nsfw: true, ratings: ['erotica'] },
-  { label: 'MILF / Mature', query: 'milf', nsfw: true, source: 'nhentai' },
-  { label: 'NTR / Netorare', query: 'netorare', nsfw: true, source: 'nhentai' },
-  { label: 'Group / Orgy', query: 'group', nsfw: true, source: 'nhentai' },
-  { label: 'Incest / Family', query: 'incest', nsfw: true, source: 'nhentai' },
-  { label: 'Anal / Deep', query: 'anal', nsfw: true, source: 'nhentai' },
-  { label: 'Big Breasts', query: 'big breasts', nsfw: true, source: 'nhentai' },
-  { label: 'Teens / Students', query: 'sole female', nsfw: true, source: 'nhentai' },
-  { label: 'Cheating', query: 'cheating', nsfw: true, source: 'nhentai' },
+  { label: 'Mature Romance', query: 'mature', nsfw: true, source: 'nhentai' },
   { label: 'Yaoi / BL', query: 'yaoi', nsfw: true, source: 'nhentai' },
   { label: 'Yuri / GL', query: '', nsfw: true, source: 'mangadex', includedTagIds: ['a3c44042-4659-402c-9b1f-74a03197b5c7'] },
   { label: 'Parody Comics', query: 'parody', nsfw: true, source: 'nhentai' },
-  { label: 'Futanari', query: 'futanari', nsfw: true, source: 'nhentai' },
   { label: 'Cosplay', query: 'cosplay', nsfw: true, source: 'nhentai' },
   { label: 'Rule34', source: 'rule34', nsfw: true, query: getBooruDefaultQuery('rule34') },
   { label: 'e621', source: 'e621', nsfw: true, query: getBooruDefaultQuery('e621') },
@@ -119,11 +111,19 @@ const fetchBooruProxy = (source: BooruSource, kind: 'search' | 'post', params: R
 const fetchDanbooruDirect = (kind: 'search' | 'post', params: Record<string, string>) =>
   fetchBooruProxy('danbooru', kind, params);
 
-export default function ComicLibraryClient() {
+type ComicLibraryClientProps = {
+  initialAgeVerified?: boolean;
+};
+
+export default function ComicLibraryClient({ initialAgeVerified = false }: ComicLibraryClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialCategory = getCategoryByLabel(searchParams.get('tab'))?.label ?? 'Manga Hub';
+  const initialCategory = (() => {
+    const requestedCategory = getCategoryByLabel(searchParams.get('tab'));
+    if (requestedCategory?.nsfw && !initialAgeVerified) return 'Manga Hub';
+    return requestedCategory?.label ?? 'Manga Hub';
+  })();
   const initialCategoryQueries = createCategoryQueryMap();
   initialCategoryQueries[initialCategory] = searchParams.get('q') ?? initialCategoryQueries[initialCategory] ?? '';
 
@@ -136,8 +136,8 @@ export default function ComicLibraryClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [reading] = useState(false);
   const [viewMode, setViewMode] = useState<'single' | 'webtoon' | 'spread'>('single');
-  const [isAgeVerified, setIsAgeVerified] = useState(true);
-  const [nsfwEnabled, setNsfwEnabled] = useState(true);
+  const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
+  const [nsfwEnabled, setNsfwEnabled] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [offset, setOffset] = useState(0);
@@ -155,6 +155,9 @@ export default function ComicLibraryClient() {
     () => false,
   );
   const t_lib = translations[lang].library;
+  const visibleCategories = isAgeVerified
+    ? CATEGORIES
+    : CATEGORIES.filter((category) => !category.nsfw);
   const requestIdRef = useRef(0);
   const skipNextOffsetFetchRef = useRef(false);
   const readerRef = useRef<HTMLDivElement>(null);
@@ -162,14 +165,14 @@ export default function ComicLibraryClient() {
   const searchQuery = categoryQueries[activeCategory] ?? '';
 
   useEffect(() => {
-    const verified = readAgeVerification();
+    const verified = initialAgeVerified || readAgeVerification();
     const timer = window.setTimeout(() => {
       setIsAgeVerified(verified);
       setNsfwEnabled(verified);
     }, 0);
     if (verified) persistAgeVerification();
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [initialAgeVerified]);
 
   useEffect(() => {
     persistStoredMangaLanguage(mangaLanguage);
@@ -720,7 +723,7 @@ export default function ComicLibraryClient() {
             </div>
 
             <div className="flex gap-2 overflow-x-auto pb-2 pt-6 border-t border-white/5 md:flex-wrap md:overflow-visible md:gap-3 md:pb-0">
-              {CATEGORIES.map(cat => (
+              {visibleCategories.map(cat => (
                 <button 
                   key={cat.label} 
                   onClick={() => handleCategoryChange(cat)} 
@@ -998,6 +1001,20 @@ export default function ComicLibraryClient() {
                 )}
              </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAgeGate && (
+          <AgeGateOverlay
+            title={t_lib.restricted}
+            description={t_lib.ageDesc}
+            confirmLabel={t_lib.verifyBtn}
+            cancelLabel={t_lib.cancelBtn}
+            confirmAction={handleAgeVerify}
+            cancelAction={() => setShowAgeGate(false)}
+            zIndex={15000}
+          />
         )}
       </AnimatePresence>
 

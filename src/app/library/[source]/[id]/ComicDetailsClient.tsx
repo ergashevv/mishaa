@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Play, Star, Clock, Globe, BookOpen, Share2, 
-  Bookmark, ChevronRight, Loader2, Sparkles, X, MessageCircle, Send, Copy, Check, ExternalLink
+  Bookmark, ChevronRight, Loader2, Sparkles, X, Send, Copy, Check, ExternalLink
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -155,9 +155,13 @@ interface ComicDetailsClientProps {
   initialChapters?: Chapter[];
   source: string;
   id: string;
+  initialAgeVerified?: boolean;
 }
 
-export default function ComicDetailsClient({ initialComic, initialChapters, source, id }: ComicDetailsClientProps) {
+const RESTRICTED_SOURCES = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
+const isRestrictedSource = (value: string) => RESTRICTED_SOURCES.has(value.toLowerCase());
+
+export default function ComicDetailsClient({ initialComic, initialChapters, source, id, initialAgeVerified = false }: ComicDetailsClientProps) {
   const router = useRouter();
   
   const [comic, setComic] = useState<ComicDetails | null>(initialComic);
@@ -173,7 +177,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const t = translations[lang].library;
 
   // UI State
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -181,13 +185,14 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const [lastReadChapter, setLastReadChapter] = useState<{ id: string, title: string } | null>(null);
 
   const dominantColor = useDominantColor(comic?.coverUrl);
+  const restrictedSource = isRestrictedSource(source);
 
   useEffect(() => {
-    const verified = readAgeVerification();
+    const verified = initialAgeVerified || readAgeVerification();
     const t = setTimeout(() => setIsAgeVerified(prev => (verified !== prev ? verified : prev)), 0);
     if (verified) persistAgeVerification();
     return () => clearTimeout(t);
-  }, []);
+  }, [initialAgeVerified]);
 
   useEffect(() => {
     let t: NodeJS.Timeout;
@@ -217,6 +222,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   }, []);
 
   const fetchComicDetails = useCallback(async () => {
+    if (restrictedSource && !isAgeVerified) {
+      setShowAgeGate(true);
+      return;
+    }
+
     const chaptersCacheKey = `chapters_${source}_${id}_${mangaLanguage}`;
     const comicCacheKey = `comic_${source}_${id}_${mangaLanguage}`;
 
@@ -249,7 +259,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     } finally {
       setLoading(false);
     }
-  }, [id, source, mangaLanguage]);
+  }, [id, source, mangaLanguage, isAgeVerified, restrictedSource]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -316,11 +326,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   };
 
   useEffect(() => {
-    if (comic && isAdultComic(comic) && !isAgeVerified && !showAgeGate) {
+    if ((restrictedSource || (comic && isAdultComic(comic))) && !isAgeVerified && !showAgeGate) {
       const timer = setTimeout(() => setShowAgeGate(true), 0);
       return () => clearTimeout(timer);
     }
-  }, [comic, isAgeVerified, showAgeGate]);
+  }, [comic, isAgeVerified, showAgeGate, restrictedSource]);
 
   const handleAgeVerify = () => {
     persistAgeVerification();
@@ -342,6 +352,24 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     }
   };
 
+
+  if (restrictedSource && !isAgeVerified) {
+    return (
+      <div className="min-h-screen bg-[#020202] text-white overflow-x-hidden selection:bg-[#ff4d00] selection:text-white">
+        <AnimatePresence>
+          <AgeGateOverlay
+            title={t.restricted}
+            description={t.ageDesc}
+            confirmLabel={t.verifyBtn}
+            cancelLabel={t.cancelBtn}
+            confirmAction={handleAgeVerify}
+            cancelAction={() => router.push('/library')}
+            zIndex={10000}
+          />
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   if (loading) return (
     <div className="min-h-screen bg-[#020202] flex items-center justify-center">

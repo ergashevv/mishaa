@@ -19,14 +19,6 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import {
-  appendMangaDexFilters,
-  buildMangaDexCoverUrl,
-  MANGADEX_LONG_STRIP_TAG_ID,
-  pickMangaDexCoverFileName,
-} from '@/lib/mangadex';
-import {
-  getMangaDexTranslatedLanguages,
-  resolveMangaDexLocalizedText,
   MANGA_LANGUAGE_OPTIONS,
   MangaLanguage,
   readStoredMangaLanguage,
@@ -115,68 +107,21 @@ const SHELVES: ShelfDefinition[] = [
   },
 ];
 
-// --- Helpers ---
-const safeText = (value: unknown, fallback = '') => typeof value === 'string' && value.trim() ? value : fallback;
-
-// --- API Loaders ---
-const loadMangaDexShelf = async (options: {
-  includedTagIds?: string[];
-  excludedTagIds?: string[];
-  originalLanguages?: string[];
-  limit?: number;
-  language: MangaLanguage;
-  ratings?: string[];
-}): Promise<LibraryComic[]> => {
-  const params = new URLSearchParams();
-  params.set('limit', String(options.limit ?? 12));
-  params.set('offset', '0');
-  params.set('order[followedCount]', 'desc');
-  params.append('includes[]', 'cover_art');
-
-  appendMangaDexFilters(params, {
-    contentRatings: options.ratings || ['safe', 'suggestive'],
-    includedTagIds: options.includedTagIds,
-    excludedTagIds: options.excludedTagIds,
-    originalLanguages: options.originalLanguages,
-  });
-
-  try {
-    const res = await fetch(`/api/proxy/mangadex?path=${encodeURIComponent(`manga?${params.toString()}`)}`, { next: { revalidate: 3600 } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const items = Array.isArray(data?.data) ? data.data : [];
-    return items.map((item: { id: string; attributes?: { title: Record<string, string>; description: Record<string, string>; status?: string }; relationships: { type: string; attributes?: { fileName?: string; volume?: string | null; createdAt?: string } }[] }) => {
-      const coverFileName = pickMangaDexCoverFileName(item.relationships);
-      return {
-        id: item.id,
-        title: resolveMangaDexLocalizedText(item.attributes?.title, options.language) || safeText(Object.values(item.attributes?.title || {})[0], 'Untitled'),
-        description: resolveMangaDexLocalizedText(item.attributes?.description, options.language) || 'Catalog entry',
-        coverUrl: coverFileName ? buildMangaDexCoverUrl(item.id, coverFileName) : '/logo.png',
-        source: 'mangadex',
-        href: `/library/mangadex/${item.id}`,
-        meta: item.attributes?.status?.toUpperCase() || 'MANGA',
-        rating: (Math.random() * 2 + 3).toFixed(1), // Mock rating
-      };
-    }).filter((c: { id: string; title: string }) => c.id && c.title);
-  } catch { return []; }
-};
-
-const loadNHentaiShelf = async (query: string = ''): Promise<LibraryComic[]> => {
-  try {
-    const params = new URLSearchParams({ source: 'nhentai', query, page: '0' });
-    const res = await fetch(`/api/library/search?${params.toString()}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.items || [];
-  } catch { return []; }
-};
-
 import JsonLd from '@/components/JsonLd';
 import AgeGateOverlay from './AgeGateOverlay';
 
-import { fetchNHentaiRaw } from '@/actions/comic';
+type HomeClientProps = {
+  initialData?: Record<string, LibraryComic[]>;
+  initialAgeVerified?: boolean;
+};
 
-export default function HomeClient({ initialData }: { initialData?: Record<string, LibraryComic[]> }) {
+export default function HomeClient({ initialData, initialAgeVerified = false }: HomeClientProps) {
+  const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
+  const [showAgeGate, setShowAgeGate] = useState(false);
+  const visibleShelves = isAgeVerified
+    ? SHELVES
+    : SHELVES.filter((shelf) => !['doujinshi', 'milf', 'ntr'].includes(shelf.key));
+
   const [shelfState, setShelfState] = useState<Record<string, { items: LibraryComic[]; loading: boolean }>>(() => {
     const base: any = {};
     SHELVES.forEach(s => {
@@ -187,9 +132,6 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ShelfKey>(initialData ? 'trending' : 'for-you');
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
-  const [nsfwEnabled, setNsfwEnabled] = useState(false);
-  const [showAgeGate, setShowAgeGate] = useState(false);
 
   // Infinite Scroll State
   const [infiniteItems, setInfiniteItems] = useState<LibraryComic[]>([]);
@@ -300,7 +242,6 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
 
   const handleVerify = () => {
     setIsAgeVerified(true);
-    setNsfwEnabled(true);
     setShowAgeGate(false);
   };
   const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
@@ -315,15 +256,14 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
   }, []);
 
   useEffect(() => {
-    const verified = readAgeVerification();
+    const verified = readAgeVerification() || initialAgeVerified;
     const timer = window.setTimeout(() => {
       setIsAgeVerified(verified);
-      setNsfwEnabled(verified);
       if (verified) persistAgeVerification();
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [initialAgeVerified]);
 
   const fetchShelves = async (lang: MangaLanguage) => {
     setShelfState(prev => {
@@ -371,7 +311,7 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
       void fetchShelves(mangaLanguage);
     }, 0);
     return () => clearTimeout(t);
-  }, [mangaLanguage]);
+  }, [isAgeVerified, initialData, mangaLanguage]);
 
   useEffect(() => {
     const loadPersonalRecs = async () => {
@@ -618,7 +558,7 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
               </div>
 
               <div className="flex items-center gap-2 p-1.5 bg-white/[0.03] border border-white/5 rounded-[2.5rem] backdrop-blur-3xl overflow-x-auto no-scrollbar">
-                {SHELVES.map((shelf) => (
+                {visibleShelves.map((shelf) => (
                   <button
                     key={shelf.key}
                     onClick={() => setActiveTab(shelf.key)}
@@ -686,8 +626,7 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
 
           {/* Shelves Layout */}
           <div className="space-y-20">
-            {Object.values(shelfState).every(s => s.items.length > 0) &&
-              SHELVES.every(s => shelfState[s.key]?.items.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0) &&
+            {visibleShelves.every(s => shelfState[s.key]?.items.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0) &&
               searchQuery && (
                 <div className="py-20 text-center">
                   <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-white/5 mb-6 text-white/20">
@@ -699,7 +638,7 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
               )}
 
             <AnimatePresence>
-              {SHELVES.map((shelf) => {
+              {visibleShelves.map((shelf) => {
                 const state = shelf.key === 'for-you' ? { items: personalRecs, loading: isRecsLoading } : shelfState[shelf.key];
                 if (!state) return null;
 
@@ -745,10 +684,9 @@ export default function HomeClient({ initialData }: { initialData?: Record<strin
                         filteredItems.map((comic, i) => (
                           <motion.article
                             key={comic.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.05 }}
+                            initial={false}
+                            whileHover={{ y: -8 }}
+                            transition={{ duration: 0.25, delay: i * 0.02 }}
                             className="group relative cursor-pointer"
                           >
                             <Link href={comic.href}>

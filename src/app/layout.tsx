@@ -43,14 +43,14 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "iComics.wiki Studio | AI-Powered Comic Creation",
-    template: "%s | iComics.wiki Studio",
+    default: "iComics.wiki",
+    template: "%s | iComics.wiki",
   },
-  description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics.wiki technology.",
+  description: "AI-powered comic creation and a digital comic library for manga, manhwa, Marvel, and webtoon readers.",
   keywords: ["comics", "AI comics", "comic creation", "manga", "webtoon", "digital art", "iComics.wiki", "storytelling", "visual narrative", "AI art"],
   authors: [{ name: "iComics.wiki Team", url: "https://icomics.wiki" }],
-  creator: "iComics.wiki Studio",
-  publisher: "iComics.wiki Studio",
+  creator: "iComics.wiki",
+  publisher: "iComics.wiki",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://icomics.wiki"),
   alternates: {
     canonical: "https://icomics.wiki",
@@ -62,17 +62,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "iComics.wiki Studio | Professional Sequential Production",
-    description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics.wiki technology.",
+    title: "iComics.wiki",
+    description: "AI-powered comic creation and a digital comic library for manga, manhwa, Marvel, and webtoon readers.",
     url: "https://icomics.wiki",
-    siteName: "iComics.wiki Studio",
+    siteName: "iComics.wiki",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "iComics.wiki Studio | AI-Powered Comic Creation",
-    description: "The ultimate synthesis environment for independent comic creators. Powering the next generation of visual narrative with AI-driven iComics.wiki technology.",
+    title: "iComics.wiki",
+    description: "AI-powered comic creation and a digital comic library for manga, manhwa, Marvel, and webtoon readers.",
     creator: "@icomics_studio",
   },
   robots: {

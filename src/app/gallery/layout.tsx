@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Gallery | Generated Masterpieces",
+  title: "AI Gallery",
   description: "Explore the latest creations from our AI comic generator. A showcase of visual narratives and digital art.",
 };
 

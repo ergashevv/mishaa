@@ -2,11 +2,14 @@ import { MetadataRoute } from 'next';
 import { searchComics } from '@/actions/comic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://icomics.wiki';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://icomics.wiki').replace(/\/$/, '');
   
   // Base static routes
   const staticRoutes = [
     '',
+    '/about',
+    '/gallery',
+    '/comic',
     '/library',
     '/studio',
     '/contact',
@@ -14,8 +17,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
-    priority: route === '' ? 1 : 0.8,
+    changeFrequency: route === '' || route === '/library' ? 'daily' as const : 'weekly' as const,
+    priority: route === '' ? 1 : route === '/library' || route === '/studio' ? 0.9 : 0.6,
   }));
 
   try {

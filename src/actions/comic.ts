@@ -1,11 +1,13 @@
 "use server";
 
+import { cookies } from 'next/headers';
 import { BooruSource, mapBooruDetail } from "@/lib/booru";
 import { buildMangaDexCoverUrl, pickMangaDexCoverFileName, appendMangaDexFilters } from "@/lib/mangadex";
 import { resolveMangaDexLocalizedText, MangaLanguage, getMangaDexTranslatedLanguages, DEFAULT_MANGA_LANGUAGE } from "@/lib/manga-language";
 import { fetchAniListManga } from "@/lib/anilist";
 import { fetchJikanManga } from "@/lib/jikan";
 import { getSiteUrl } from "@/lib/site-url";
+import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";
 
 export interface MarvelCreator {
   role: string;
@@ -100,6 +102,7 @@ const LIMIT = 36;
 
 const nhentaiCache = new Map<string, { data: any, timestamp: number }>();
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour server-side cache
+const RESTRICTED_SOURCES = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
 
 const NHENTAI_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -115,6 +118,16 @@ const NHENTAI_GALLERY_HEADERS = {
 };
 
 const cleanTrailingCommas = (value: string) => value.replace(/,\s*([}\]])/g, '$1');
+const isRestrictedSource = (source: string) => RESTRICTED_SOURCES.has(source.toLowerCase());
+
+async function hasAgeVerification() {
+  try {
+    return (await cookies()).get(AGE_VERIFICATION_COOKIE)?.value === 'true';
+  } catch {
+    return false;
+  }
+}
+
 const resolveNHentaiImageExt = (type?: string) => {
   switch (type) {
     case 'p':
@@ -176,6 +189,10 @@ async function fetchJsonThroughProxy(path: string, fallbackUrl?: string) {
 }
 
 export async function fetchNHentaiRaw(path: string) {
+  if (!(await hasAgeVerification())) {
+    return null;
+  }
+
   // Check server-side cache first
   const cacheKey = `nhentai_${path}`;
   const cached = nhentaiCache.get(cacheKey);
@@ -278,6 +295,10 @@ export async function fetchNHentaiRaw(path: string) {
 }
 
 async function searchNHentai(query: string, page: number) {
+  if (!(await hasAgeVerification())) {
+    return null;
+  }
+
   let path = '';
   const cleanQuery = query.trim() || '';
   
@@ -295,6 +316,10 @@ async function searchNHentai(query: string, page: number) {
 
 export async function getComicDetails(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
+    if (isRestrictedSource(source) && !(await hasAgeVerification())) {
+      return null;
+    }
+
     if (source === 'superhero') {
       const res = await fetch(`${getSuperheroApiBase()}/${id}`, { next: { revalidate: 3600 } });
       if (!res.ok) throw new Error('Superhero fetch failed');
@@ -494,6 +519,10 @@ export async function getComicDetails(source: string, id: string, mangaLanguage:
 
 export async function getChapters(source: string, id: string, mangaLanguage: MangaLanguage = DEFAULT_MANGA_LANGUAGE) {
   try {
+    if (isRestrictedSource(source) && !(await hasAgeVerification())) {
+      return [];
+    }
+
     if (source === 'superhero') {
       return [{ id: '1', title: 'Character Profile', chapterNum: '1' }];
     }
@@ -580,6 +609,10 @@ export async function getChapters(source: string, id: string, mangaLanguage: Man
 
 export async function getChapterPages(source: string, id: string, chapterId: string) {
   try {
+    if (isRestrictedSource(source) && !(await hasAgeVerification())) {
+      return [];
+    }
+
     if (source === 'superhero') {
        const res = await fetch(`${getSuperheroApiBase()}/${id}`, { next: { revalidate: 3600 } });
        const data = await res.json();
@@ -661,6 +694,10 @@ export async function searchComics(params: {
   const { source, query = '', page = 0, mangaLanguage = DEFAULT_MANGA_LANGUAGE, ratings, originalLanguages, includedTagIds, excludedTagIds } = params;
   
   try {
+    if (isRestrictedSource(source) && !(await hasAgeVerification())) {
+      return { items: [], hasMore: false };
+    }
+
     if (source === 'superhero') {
       // The API requires a search query. If empty, default to 'batman'.
       const searchQuery = query && query.length >= 2 ? query : 'batman';

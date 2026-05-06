@@ -24,7 +24,7 @@ import {
   readStoredMangaLanguage,
   MangaLanguage,
 } from '@/lib/manga-language';
-import { getChapterPages } from '@/actions/comic';
+import { getChapterPages, getComicDetails, getChapters } from '@/actions/comic';
 import Image from 'next/image';
 
 interface Chapter {
@@ -60,7 +60,11 @@ interface ComicReaderClientProps {
   source: string;
   id: string;
   chapterId: string;
+  initialAgeVerified?: boolean;
 }
+
+const RESTRICTED_SOURCES = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
+const isRestrictedSource = (value: string) => RESTRICTED_SOURCES.has(value.toLowerCase());
 
 type ReaderTheme = 'dark' | 'light' | 'sepia';
 
@@ -110,11 +114,12 @@ const READER_THEMES: Record<ReaderTheme, {
   },
 };
 
-export default function ComicReaderClient({ initialComic, initialChapters, source, id, chapterId }: ComicReaderClientProps) {
+export default function ComicReaderClient({ initialComic, initialChapters, source, id, chapterId, initialAgeVerified = false }: ComicReaderClientProps) {
   const router = useRouter();
   
-  const [comic] = useState<ComicDetails | null>(initialComic);
-  const [chapters] = useState<Chapter[]>(initialChapters || []);
+  const [comic, setComic] = useState<ComicDetails | null>(initialComic);
+  const [chapters, setChapters] = useState<Chapter[]>(initialChapters || []);
+  const [metadataLoading, setMetadataLoading] = useState(() => !initialComic || (initialChapters?.length || 0) === 0);
   
   const initialChapterIdx = chapters.findIndex(c => c.id === chapterId);
   const [currentChapterIdx, setCurrentChapterIdx] = useState(initialChapterIdx >= 0 ? initialChapterIdx : 0);
@@ -136,7 +141,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const [isMobile, setIsMobile] = useState(false);
   const [isSpreadCover, setIsSpreadCover] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
   
   const [readerTheme, setReaderTheme] = useState<ReaderTheme>('dark');
@@ -151,6 +156,8 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const chapterPageRequestRef = useRef<Map<string, Promise<string[]>>>(new Map());
   const touchStartRef = useRef({ x: 0, y: 0 });
 
+  const restrictedSource = isRestrictedSource(source);
+
   useEffect(() => {
     const initialMobile = window.innerWidth < 768;
     setIsMobile(initialMobile);
@@ -160,7 +167,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', checkMobile);
 
-    const verified = readAgeVerification();
+    const verified = initialAgeVerified || readAgeVerification();
     const t = setTimeout(() => setIsAgeVerified(prev => (verified !== prev ? verified : prev)), 0);
     if (verified) persistAgeVerification();
 
@@ -175,7 +182,49 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       window.removeEventListener('resize', checkMobile);
       clearTimeout(t);
     };
-  }, []);
+  }, [initialAgeVerified]);
+
+  useEffect(() => {
+    if (restrictedSource && !isAgeVerified) return;
+
+    let cancelled = false;
+
+    const loadMetadata = async () => {
+      if (comic && chapters.length > 0) {
+        setMetadataLoading(false);
+        return;
+      }
+
+      setMetadataLoading(true);
+      try {
+        const [comicData, chapterData] = await Promise.all([
+          getComicDetails(source, id, mangaLanguage),
+          getChapters(source, id, mangaLanguage),
+        ]);
+
+        if (cancelled) return;
+        if (comicData) {
+          setComic(comicData as ComicDetails);
+        }
+        if (chapterData) {
+          const nextChapters = chapterData as Chapter[];
+          setChapters(nextChapters);
+          const matchedIdx = nextChapters.findIndex((chapter) => chapter.id === chapterId);
+          setCurrentChapterIdx(matchedIdx >= 0 ? matchedIdx : 0);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!cancelled) setMetadataLoading(false);
+      }
+    };
+
+    void loadMetadata();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chapters.length, comic, id, mangaLanguage, restrictedSource, source, isAgeVerified]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -384,10 +433,10 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   }, [currentChapterIdx, chapters, loadChapterPages, id, source]);
 
   useEffect(() => {
-    if (comic && isAdultComic(comic) && !isAgeVerified && !showAgeGate) {
+    if ((restrictedSource || (comic && isAdultComic(comic))) && !isAgeVerified && !showAgeGate) {
       setShowAgeGate(true);
     }
-  }, [comic, isAgeVerified, showAgeGate]);
+  }, [comic, isAgeVerified, showAgeGate, restrictedSource]);
 
   const handleAgeVerify = () => {
     persistAgeVerification();
@@ -469,6 +518,35 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, pages.length, viewMode, currentChapterIdx, isSpreadCover, handleNextPage, handlePrevPage, router, source, id]);
+
+  if (restrictedSource && !isAgeVerified) {
+    return (
+      <div className="min-h-screen overflow-hidden selection:text-white" style={{ backgroundColor: READER_THEMES[readerTheme].shellBg, color: READER_THEMES[readerTheme].text }}>
+        <AnimatePresence>
+          <AgeGateOverlay
+            title={t.restricted}
+            description={t.ageDesc}
+            confirmLabel={t.verifyBtn}
+            cancelLabel={t.cancelBtn}
+            confirmAction={handleAgeVerify}
+            cancelAction={() => router.push('/library')}
+            zIndex={10000}
+          />
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  if (metadataLoading) {
+    return (
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-12 h-12 text-[#ff4d00] animate-spin" />
+          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing_Neural_Matrix...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!comic) return null;
 

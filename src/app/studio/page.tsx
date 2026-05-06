@@ -4,7 +4,7 @@ import ComicCreator from '@/components/ComicCreator';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: "Creative Studio | AI Comic Generator",
+  title: "Creative Studio",
   description: "Create your own comics with our AI-powered generation tools. Professional sequential production environment for creators.",
 };
 

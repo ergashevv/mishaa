@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Comic Library | Explore the Archives",
+  title: "Comic Library",
   description: "Browse our extensive collection of comics, manga, manhwa, and webtoons. From Marvel classics to independent Japanese narratives.",
 };
 

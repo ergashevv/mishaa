@@ -58,7 +58,12 @@ async function loadNHentaiShelf(query: string, limit = 30) {
   } catch { return []; }
 }
 
-export async function getHomeData(lang: MangaLanguage = 'en') {
+type HomeDataOptions = {
+  includeAdultContent?: boolean;
+};
+
+export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataOptions = {}) {
+  const includeAdultContent = options.includeAdultContent ?? false;
   const filters = {
     contentRatings: ['safe', 'suggestive'],
     translatedLanguages: getMangaDexTranslatedLanguages(lang),
@@ -80,13 +85,19 @@ export async function getHomeData(lang: MangaLanguage = 'en') {
   latestParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(latestParams, filters);
 
+  const adultShelves = includeAdultContent
+    ? [
+        loadNHentaiShelf('', 30),
+        loadNHentaiShelf('milf', 30),
+        loadNHentaiShelf('netorare', 30),
+      ]
+    : [Promise.resolve([]), Promise.resolve([]), Promise.resolve([])];
+
   const [manga, webtoons, manhwa, doujinshi, milf, ntr, trending, latest] = await Promise.all([
     loadMangaDex(mangaParams, lang),
     loadMangaDex(webtoonsParams, lang),
     loadMangaDex(manhwaParams, lang),
-    loadNHentaiShelf('', 30),
-    loadNHentaiShelf('milf', 30),
-    loadNHentaiShelf('netorare', 30),
+    ...adultShelves,
     fetchTrendingAniListManga(30).then(items => items.map(item => ({
         id: item.id.toString(),
         title: item.title.userPreferred || item.title.english || item.title.romaji,
