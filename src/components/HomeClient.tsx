@@ -779,9 +779,9 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
           <section className="relative z-20 container mx-auto px-6 pb-32">
             <div className="max-w-4xl mx-auto text-center space-y-12">
               <div className="space-y-4">
-                <h2 className="text-5xl sm:text-7xl font-display text-white">Your Studio</h2>
+                <h2 className="text-5xl sm:text-7xl font-display text-white">Your Collection</h2>
                 <p className="text-xl text-white/30 max-w-2xl mx-auto">
-                  A dedicated space for your reading journey. Start exploring to build your personal archive.
+                  A dedicated space for your reading journey. Start exploring to build your personal library.
                 </p>
               </div>
               
@@ -977,7 +977,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                                         <Star size={8} fill="currentColor" />
                                         {comic.rating}
                                       </div>
-                                      <div className="text-[8px] font-bold text-white/40 uppercase tracking-widest">{comic.meta}</div>
+                                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Access</span>
                                     </div>
                                     <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white leading-tight">{comic.title}</h4>
                                   </div>

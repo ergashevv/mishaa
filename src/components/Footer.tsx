@@ -37,7 +37,7 @@ export default function Footer() {
             </div>
               <div className="flex flex-col">
                 <h2 className="text-3xl font-display uppercase leading-none sm:text-4xl">iComics.wiki</h2>
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Studio Edition</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Official Library</span>
               </div>
             </div>
             <div className="max-w-xs space-y-4">

@@ -7,7 +7,7 @@ export const translations = {
       gallery: 'Gallery',
       about: 'About',
       support: 'Support',
-      terminal: 'Studio',
+      terminal: 'Gallery',
       registry: 'Join',
       library: 'Library'
     },
@@ -15,8 +15,8 @@ export const translations = {
       title: 'THE COMIC FOUNDRY.',
       subtitle: 'FOUNDRY_ACTIVE',
       desc: 'Constructing high-fidelity sequential narratives with intentional clarity. Create your legacy in the modern age.',
-      cta: 'Open_Studio',
-      launch: 'Launch_Gallery',
+      cta: 'Explore_Library',
+      launch: 'Browse_All',
       issue: 'ISSUE',
       protocol: 'Foundry_Protocol',
       standard: 'Standard_Edition'
@@ -25,7 +25,7 @@ export const translations = {
       protocol: 'Editorial_v0.4',
       title: 'Cinematic Narrative.',
       quote: '"iComics.wiki focuses on the essence of your vision, beyond the noise."',
-      forge: 'Character Studio',
+      forge: 'Character Archive',
       forgeDesc: 'Consistency across every chapter.',
       inking: 'Ink Standard',
       inkingDesc: 'Cinematic noir lighting and aesthetic depth.',
@@ -116,7 +116,7 @@ export const translations = {
       q2: 'HOW DOES IDENTITY FORGE WORK?',
       a2: 'Our Identity Forge is a specialized AI protocol that locks in character likeness across every panel you generate.',
       q3: 'CAN I EXPORT FOR PHYSICAL PRINTING?',
-      a3: 'Absolutely. iComics.wiki Studio supports high-fidelity PDF exports with CMYK-compliant color profiles.',
+      a3: 'Absolutely. iComics.wiki Collection supports high-fidelity PDF exports with CMYK-compliant color profiles.',
       q4: 'DO I NEED DRAWING SKILLS?',
       a4: 'None at all. iComics.wiki is designed to translate your written narrative and descriptions into professional high-contrast ink.',
       q5: 'WHO OWNS THE ART CREATED ON ICOMICS.WIKI?',
@@ -148,7 +148,7 @@ export const translations = {
     },
     auth: {
       abortMission: 'Abort_Mission',
-      studioAccess: 'Studio Access.',
+      studioAccess: 'Library Access.',
       uplink: 'Foundry_Uplink_Secure_v4.0',
       establish: 'Establish',
       registry: 'Registry',
@@ -166,8 +166,8 @@ export const translations = {
       usernamePlaceholder: 'USERNAME'
     },
     footer: {
-      studio: 'Studio',
-      launch: 'Launch_Studio',
+      studio: 'Library',
+      launch: 'Enter_Gallery',
       archives: 'Archives',
       about: 'About_Us',
       support: 'Support',
@@ -350,7 +350,7 @@ export const translations = {
     },
     auth: {
       abortMission: 'Прервать_Миссию',
-      studioAccess: 'Доступ в Студию.',
+      studioAccess: 'Доступ в Библиотеку.',
       uplink: 'Foundry_Связь_Безопасна_v4.0',
       establish: 'Войти',
       registry: 'Регистрация',
@@ -368,7 +368,7 @@ export const translations = {
       usernamePlaceholder: 'ЛОГИН'
     },
     footer: {
-      studio: 'Студия',
+      studio: 'Библиотека',
       launch: 'Запустить_Студию',
       archives: 'Архивы',
       about: 'О_Нас',
@@ -552,7 +552,7 @@ export const translations = {
     },
     auth: {
       abortMission: 'Missiyani_Bekor_Qilish',
-      studioAccess: 'Studiyaga Kirish.',
+      studioAccess: 'Kutubxonaga Kirish.',
       uplink: 'Ustaxona_Aloqasi_Xavfsiz_v4.0',
       establish: 'Kirish',
       registry: 'Ro‘yxatdan o‘tish',
@@ -570,7 +570,7 @@ export const translations = {
       usernamePlaceholder: 'TAXALLUS'
     },
     footer: {
-      studio: 'Studiya',
+      studio: 'Kutubxona',
       launch: 'Studiyani_Ochish',
       archives: 'Arxivlar',
       about: 'Biz_Haqimizda',

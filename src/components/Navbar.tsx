@@ -174,7 +174,7 @@ export default function Navbar() {
                   <div className="w-56 bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-2xl p-2 backdrop-blur-xl">
                     <div className="px-4 py-3 border-b border-white/5 mb-2">
                       <p className="text-[10px] font-black uppercase tracking-tight text-white">{user.firstName} {user.lastName}</p>
-                      <p className="text-[8px] font-black uppercase tracking-widest text-white/30">@{user.username}</p>
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Library Edition</span>
                     </div>
                     <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/50 hover:bg-white/5 hover:text-white transition-all">
                       <UserCircle2 size={14} /> Profile
@@ -183,7 +183,7 @@ export default function Navbar() {
                       <Settings2 size={14} /> Settings
                     </Link>
                     <Link href="/studio" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/50 hover:bg-white/5 hover:text-white transition-all">
-                      <Menu size={14} /> Studio
+                      <Menu size={14} /> Library
                     </Link>
                     <div className="h-px bg-white/5 my-2" />
                     <button
