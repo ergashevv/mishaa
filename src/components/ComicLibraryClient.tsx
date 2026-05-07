@@ -140,6 +140,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [nsfwEnabled, setNsfwEnabled] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [previewComicKey, setPreviewComicKey] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -199,6 +201,17 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     if (verified) persistAgeVerification();
     return () => window.clearTimeout(timer);
   }, [initialAgeVerified]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const media = window.matchMedia('(hover: none), (pointer: coarse)');
+    const update = () => setIsTouchDevice(media.matches);
+
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     persistStoredMangaLanguage(mangaLanguage);
@@ -817,94 +830,126 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
              </div>
           ) : (
             <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-10 md:gap-y-20">
-              {visibleComics.map((comic, index) => (
-                <motion.div 
-                  ref={visibleComics.length === index + 1 ? lastComicRef : null}
-                  key={`${comic.source}:${comic.id}`} 
-                  whileHover={{ 
-                    y: -15, 
-                    scale: 1.04,
-                    rotateX: -5,
-                    rotateY: 5,
-                    transition: { type: "spring", stiffness: 400, damping: 25 }
-                  }}
-                  onMouseEnter={() => {
-                    if (comic.source === 'nhentai') {
-                      // Trigger prefetch on server
-                      fetchNHentaiRaw(`gallery/${comic.id}`).catch(() => {});
-                    }
-                  }}
-                  onClick={() => {
-                    if (isAdultComic(comic) && !isAgeVerified) {
-                      setShowAgeGate(true);
-                      return;
-                    }
-                    router.push(`/library/${comic.source}/${comic.id}`);
-                  }}
-                  className="relative group cursor-pointer perspective-container"
-                >
-                  <div className="aspect-[2/3] border border-white/5 bg-[#0a0a0a] overflow-hidden relative shadow-[0_40px_80px_rgba(0,0,0,0.8)] group-hover:shadow-[0_0_50px_rgba(255,90,31,0.2)] transition-shadow duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-[#ff4d00]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
-                    {comic.source === 'marvel' ? (
-                      comic.coverUrl ? (
+              {visibleComics.map((comic, index) => {
+                const cardKey = `${comic.source}:${comic.id}`;
+                const adultContent = isAdultComic(comic);
+                const isPreviewOpen = adultContent && previewComicKey === cardKey;
+
+                return (
+                  <motion.div 
+                    ref={visibleComics.length === index + 1 ? lastComicRef : null}
+                    key={`${comic.source}:${comic.id}`} 
+                    whileHover={{ 
+                      y: -15, 
+                      scale: 1.04,
+                      rotateX: -5,
+                      rotateY: 5,
+                      transition: { type: "spring", stiffness: 400, damping: 25 }
+                    }}
+                    onMouseEnter={() => {
+                      if (comic.source === 'nhentai') {
+                        fetchNHentaiRaw(`gallery/${comic.id}`).catch(() => {});
+                      }
+                    }}
+                    onClick={(event) => {
+                      if (adultContent && !isAgeVerified) {
+                        event.preventDefault();
+                        setShowAgeGate(true);
+                        return;
+                      }
+
+                      if (isTouchDevice && adultContent && !isPreviewOpen) {
+                        event.preventDefault();
+                        setPreviewComicKey(cardKey);
+                        return;
+                      }
+
+                      router.push(`/library/${comic.source}/${comic.id}`);
+                    }}
+                    className="relative group cursor-pointer perspective-container"
+                  >
+                    <div className="aspect-[2/3] border border-white/5 bg-[#0a0a0a] overflow-hidden relative shadow-[0_40px_80px_rgba(0,0,0,0.8)] group-hover:shadow-[0_0_50px_rgba(255,90,31,0.2)] transition-shadow duration-500">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-[#ff4d00]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
+                      {comic.source === 'marvel' ? (
+                        comic.coverUrl ? (
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={comic.coverUrl}
+                              fill
+                              unoptimized
+                              className={`object-cover opacity-100 transition-all duration-700 ${
+                                adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
+                              } group-hover:scale-110 group-hover:blur-0`}
+                              alt={comic.title}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-full relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,77,0,0.3),_transparent_45%),linear-gradient(180deg,#171717_0%,#060606_100%)]">
+                            <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                            <div className="absolute inset-0 flex flex-col justify-between p-4">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] bg-white text-white">MARVEL</span>
+                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/35">{comic.yearPage || '----'}</span>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="text-[11px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">Issue {comic.issueNumber || '?'}</div>
+                                <div className="text-xl font-black uppercase leading-[0.9] tracking-tighter text-white line-clamp-3">{comic.title}</div>
+                                <div className="text-[8px] uppercase tracking-[0.28em] text-white/35 line-clamp-2">{comic.seriesName || comic.description}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      ) : comic.source === 'superhero' ? (
                         <div className="relative w-full h-full">
                           <Image
-                            src={comic.coverUrl}
+                            src={comic.coverUrl || '/logo.png'}
                             fill
                             unoptimized
-                            className="object-cover opacity-100 transition-all duration-700"
+                            className={`object-cover opacity-100 transition-all duration-700 ${
+                              adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
+                            } group-hover:scale-110 group-hover:blur-0`}
                             alt={comic.title}
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-full relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,77,0,0.3),_transparent_45%),linear-gradient(180deg,#171717_0%,#060606_100%)]">
-                          <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                          <div className="absolute inset-0 flex flex-col justify-between p-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] bg-white text-white">MARVEL</span>
-                              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/35">{comic.yearPage || '----'}</span>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="text-[11px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">Issue {comic.issueNumber || '?'}</div>
-                              <div className="text-xl font-black uppercase leading-[0.9] tracking-tighter text-white line-clamp-3">{comic.title}</div>
-                              <div className="text-[8px] uppercase tracking-[0.28em] text-white/35 line-clamp-2">{comic.seriesName || comic.description}</div>
-                            </div>
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={comic.coverUrl || '/logo.png'}
+                            fill
+                            unoptimized
+                            className={`object-cover opacity-100 transition-all duration-700 ${
+                              adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
+                            } group-hover:scale-110 group-hover:blur-0`}
+                            alt={comic.title}
+                          />
+                        </div>
+                      )}
+                      {adultContent && !isPreviewOpen && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100 transition-opacity group-hover:opacity-0">
+                          <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
+                            Tap to reveal
                           </div>
                         </div>
-                      )
-                    ) : comic.source === 'superhero' ? (
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={comic.coverUrl || '/logo.png'}
-                          fill
-                          unoptimized
-                          className="object-cover opacity-100 transition-all duration-700"
-                          alt={comic.title}
-                        />
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent flex items-center justify-between">
+                         <span className="text-[7px] font-black uppercase tracking-widest text-[#ff4d00]">{comic.source}</span>
+                         {comic.source === 'marvel' ? (
+                           <span className="text-[6px] font-black uppercase tracking-[0.35em] text-white/40">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
+                         ) : (
+                           isAdultComic(comic) && <span className="px-1.5 py-0.5 bg-red-600 text-white text-[6px] font-black uppercase">18+</span>
+                         )}
                       </div>
-                    ) : (
-                      <div className="relative w-full h-full">
-                        <Image src={comic.coverUrl || '/logo.png'} fill unoptimized className="object-cover opacity-100 transition-all duration-700" alt={comic.title} />
+                    </div>
+                    <h3 className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-white leading-relaxed line-clamp-2">{comic.title}</h3>
+                    {comic.source === 'marvel' && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">#{comic.issueNumber || '?'}</span>
+                        <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
                       </div>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent flex items-center justify-between">
-                       <span className="text-[7px] font-black uppercase tracking-widest text-[#ff4d00]">{comic.source}</span>
-                       {comic.source === 'marvel' ? (
-                         <span className="text-[6px] font-black uppercase tracking-[0.35em] text-white/40">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
-                       ) : (
-                         isAdultComic(comic) && <span className="px-1.5 py-0.5 bg-red-600 text-white text-[6px] font-black uppercase">18+</span>
-                       )}
-                    </div>
-                  </div>
-                  <h3 className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-white leading-relaxed line-clamp-2">{comic.title}</h3>
-                  {comic.source === 'marvel' && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">#{comic.issueNumber || '?'}</span>
-                      <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
 

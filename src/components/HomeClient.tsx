@@ -122,6 +122,7 @@ const SHELVES: ShelfDefinition[] = [
 
 import JsonLd from '@/components/JsonLd';
 import AgeGateOverlay from './AgeGateOverlay';
+import { isAdultComic } from '@/lib/age-verification';
 
 type HomeClientProps = {
   initialData?: Record<string, LibraryComic[]>;
@@ -131,6 +132,8 @@ type HomeClientProps = {
 export default function HomeClient({ initialData, initialAgeVerified = false }: HomeClientProps) {
   const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [previewCardKey, setPreviewCardKey] = useState<string | null>(null);
   const hasCompleteInitialData = SHELVES.every((shelf) => (initialData?.[shelf.key]?.length ?? 0) > 0);
   const visibleShelves = isAgeVerified
     ? SHELVES
@@ -412,6 +415,17 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
     return () => window.clearTimeout(timer);
   }, [initialAgeVerified]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const media = window.matchMedia('(hover: none), (pointer: coarse)');
+    const update = () => setIsTouchDevice(media.matches);
+
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
   const fetchShelves = async (lang: MangaLanguage) => {
     setShelfState(prev => {
       const newState = { ...prev };
@@ -511,6 +525,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
   }, [activeTab, shelfState, personalRecs, now]);
 
   const hasPersonalLibrary = recentHistory.length > 0 || savedBookmarks.length > 0;
+  const activeShelfCount = shelfState[activeTab]?.items.length || 0;
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -542,10 +557,15 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
       <JsonLd data={orgSchema} />
       <Navbar />
 
-      <main className="relative pt-24 sm:pt-28 lg:pt-32">
+      <main className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute left-[-10%] top-[8rem] h-[30rem] w-[30rem] rounded-full bg-[#ff5a1f]/10 blur-[140px]" />
+          <div className="absolute right-[-12%] top-[18rem] h-[26rem] w-[26rem] rounded-full bg-[#ffd36b]/8 blur-[160px]" />
+          <div className="absolute inset-x-0 top-[20rem] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        </div>
 
         {/* --- DYNAMIC HERO BANNER --- */}
-        <section className="relative min-h-[70vh] md:min-h-[85vh] w-full">
+        <section className="relative w-full">
           <AnimatePresence mode="wait">
             {!featuredComic && (shelfState[activeTab]?.loading || isRecsLoading) ? (
               <motion.div
@@ -553,20 +573,25 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="relative min-h-[70vh] md:min-h-[85vh] w-full pt-32 pb-20 sm:pt-40 sm:pb-24 lg:pt-48 lg:pb-32"
+                className="relative w-full"
               >
-                <div className="container mx-auto flex h-full items-center px-4 sm:px-6 md:px-8">
-                  <div className="grid w-full gap-12 lg:grid-cols-[1fr_320px]">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16">
+                  <div className="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
                     <div className="space-y-6">
-                      <div className="h-6 w-32 bg-white/5 rounded-full animate-pulse" />
-                      <div className="h-20 w-3/4 bg-white/5 rounded-2xl animate-pulse" />
-                      <div className="h-24 w-2/3 bg-white/5 rounded-2xl animate-pulse" />
-                      <div className="flex gap-4">
-                        <div className="h-14 w-40 bg-white/5 rounded-2xl animate-pulse" />
-                        <div className="h-14 w-40 bg-white/5 rounded-2xl animate-pulse" />
+                      <div className="h-6 w-32 rounded-full bg-white/5 animate-pulse" />
+                      <div className="h-16 w-3/4 rounded-2xl bg-white/5 animate-pulse" />
+                      <div className="h-20 w-2/3 rounded-2xl bg-white/5 animate-pulse" />
+                      <div className="flex flex-wrap gap-3">
+                        <div className="h-12 w-36 rounded-2xl bg-white/5 animate-pulse" />
+                        <div className="h-12 w-36 rounded-2xl bg-white/5 animate-pulse" />
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
+                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
+                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
                       </div>
                     </div>
-                    <div className="hidden lg:block h-[450px] w-full bg-white/5 rounded-[2rem] animate-pulse" />
+                    <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/5 animate-pulse" />
                   </div>
                 </div>
               </motion.div>
@@ -577,31 +602,17 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8 }}
-                className="relative min-h-[70vh] md:min-h-[85vh] w-full"
+                className="relative w-full"
               >
-                <div className="relative h-full w-full">
-                  <Image
-                    src={featuredComic.bannerUrl || featuredComic.coverUrl}
-                    alt={featuredComic.title}
-                    fill
-                    priority
-                    unoptimized
-                    className="object-cover opacity-25 md:opacity-40 md:blur-[2px]"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-[#05060a]/40 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#05060a] via-transparent to-transparent" />
-
-                <div className="container relative z-10 mx-auto flex h-full items-center px-4 sm:px-6 md:px-8 py-16 sm:py-20 lg:py-24">
-                  <div className="grid w-full gap-12 lg:grid-cols-[1fr_320px]">
-
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16">
+                  <div className="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
                     {/* Text Info */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 lg:pr-4">
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="flex items-center gap-4"
+                        className="flex flex-wrap items-center gap-3"
                       >
                         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#ffca3a] backdrop-blur-md">
                           Trending Now
@@ -610,22 +621,25 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                           <Star size={14} fill="currentColor" />
                           <span className="text-sm font-black">{featuredComic.rating}</span>
                         </div>
+                        <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/35">
+                          {activeShelfCount} items
+                        </span>
                       </motion.div>
 
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.15 }}
-                        className="lg:hidden relative mx-auto w-full max-w-[320px] overflow-hidden rounded-[1.75rem] border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+                        className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden"
                       >
-                        <div className="relative aspect-[3/4] w-full bg-black">
+                        <div className="relative aspect-[4/5] w-full bg-black">
                           <Image
                             src={featuredComic.bannerUrl || featuredComic.coverUrl}
                             alt={featuredComic.title}
                             fill
                             priority
                             unoptimized
-                            className="object-contain object-center p-2"
+                            className="object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
                         </div>
@@ -635,7 +649,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="text-display text-3xl sm:text-5xl md:text-8xl leading-[0.9]"
+                        className="text-display text-4xl leading-[0.9] sm:text-5xl lg:text-7xl xl:text-8xl"
                       >
                         {featuredComic.title}
                       </motion.h1>
@@ -644,7 +658,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="max-w-xl text-base md:text-lg text-white/60 line-clamp-3"
+                        className="max-w-2xl text-sm leading-7 text-white/60 md:text-base line-clamp-3"
                       >
                         {featuredComic.description}
                       </motion.p>
@@ -653,16 +667,31 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="flex flex-wrap gap-3 pt-4"
+                        className="flex flex-wrap gap-3 pt-2"
                       >
-                        <Link href={featuredComic.href} className="group flex items-center gap-3 rounded-2xl bg-white px-6 md:px-8 py-3 md:py-4 text-[10px] md:text-[11px] font-black uppercase tracking-widest text-black transition-all hover:bg-[#ff5a1f] hover:text-white">
+                        <Link href={featuredComic.href} className="group flex items-center gap-3 rounded-2xl bg-white px-6 py-3 text-[10px] font-black uppercase tracking-widest text-black transition-all hover:bg-[#ff5a1f] hover:text-white md:px-8 md:py-4 md:text-[11px]">
                           Start Reading
                           <Play size={16} fill="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </Link>
-                        <button className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 md:px-8 py-3 md:py-4 text-[10px] md:text-[11px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10">
+                        <button className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10 md:px-8 md:py-4 md:text-[11px]">
                           Add to Library
                         </button>
                       </motion.div>
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
+                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Focus</p>
+                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{shelfState[activeTab]?.loading ? 'Refreshing feed' : 'Ready to read'}</p>
+                        </div>
+                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
+                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Library</p>
+                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{activeShelfCount} items</p>
+                        </div>
+                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
+                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Mode</p>
+                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{activeTab.replace('-', ' ')}</p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Featured Card Side */}
@@ -671,21 +700,28 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         initial={{ x: 50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="perspective-container relative h-[450px] w-full"
+                        className="perspective-container relative h-full min-h-[540px] w-full"
                       >
-                        <div className="perspective-card relative h-full w-full overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
+                        <div className="perspective-card relative h-full w-full overflow-hidden rounded-[2.25rem] border border-white/15 bg-black shadow-2xl">
                           <Image
-                            src={featuredComic.coverUrl}
+                            src={featuredComic.bannerUrl || featuredComic.coverUrl}
                             alt="Cover"
                             fill
                             priority
                             unoptimized
                             className="object-cover"
                           />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
+                          <div className="absolute inset-x-0 bottom-0 p-6">
+                            <div className="rounded-2xl border border-white/10 bg-black/55 p-4 backdrop-blur-xl">
+                              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ffca3a]">Featured pick</p>
+                              <p className="mt-2 text-lg font-black uppercase tracking-tight text-white line-clamp-2">{featuredComic.title}</p>
+                              <p className="mt-2 text-xs leading-6 text-white/55 line-clamp-2">{featuredComic.description}</p>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     </div>
-
                   </div>
                 </div>
               </motion.div>
@@ -936,40 +972,71 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                           <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-white/5" />
                         ))
                       ) : (
-                        filteredItems.map((comic, i) => (
-                          <motion.article
-                            key={comic.id}
-                            initial={false}
-                            whileHover={{ y: -8 }}
-                            transition={{ duration: 0.25, delay: i * 0.02 }}
-                            className="group relative cursor-pointer"
-                          >
-                            <Link href={comic.href}>
-                              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:border-white/30 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
-                                <Image
-                                  src={comic.coverUrl}
-                                  alt={comic.title}
-                                  fill
-                                  unoptimized
-                                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                        filteredItems.map((comic, i) => {
+                          const cardKey = `${shelf.key}:${comic.source}:${comic.id}`;
+                          const adultContent = isAdultComic(comic);
+                          const isPreviewOpen = adultContent && previewCardKey === cardKey;
 
-                                <div className="absolute bottom-4 left-4 right-4 translate-y-4 space-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                                  <div className="flex items-center gap-2 text-[8px] font-black text-[#ffca3a]">
-                                    <Star size={10} fill="currentColor" />
-                                    {comic.rating}
+                          return (
+                            <motion.article
+                              key={comic.id}
+                              initial={false}
+                              whileHover={{ y: -8 }}
+                              transition={{ duration: 0.25, delay: i * 0.02 }}
+                              className="group relative cursor-pointer"
+                            >
+                              <Link
+                                href={comic.href}
+                                onClickCapture={(event) => {
+                                  if (!isTouchDevice || !adultContent) return;
+                                  if (!isPreviewOpen) {
+                                    event.preventDefault();
+                                    setPreviewCardKey(cardKey);
+                                  }
+                                }}
+                              >
+                                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:border-white/30 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
+                                  <Image
+                                    src={comic.coverUrl}
+                                    alt={comic.title}
+                                    fill
+                                    unoptimized
+                                    className={`object-cover transition-all duration-700 ${
+                                      adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
+                                    } group-hover:scale-110 group-hover:blur-0`}
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+                                  {adultContent && !isPreviewOpen && (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100 transition-opacity group-hover:opacity-0">
+                                      <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
+                                        Tap to reveal
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  <div className={`absolute bottom-4 left-4 right-4 space-y-1 transition-all duration-300 ${
+                                    adultContent && !isPreviewOpen
+                                      ? 'translate-y-0 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                                      : 'translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                                  } ${isPreviewOpen ? '!translate-y-0 !opacity-100' : ''}`}>
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#ffca3a]">
+                                      <Star size={10} fill="currentColor" />
+                                      {comic.rating}
+                                    </div>
+                                    <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white">{comic.title}</h4>
                                   </div>
-                                  <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white">{comic.title}</h4>
-                                </div>
 
-                                <div className="absolute right-3 top-3 rounded-lg border border-white/20 bg-black/60 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100">
-                                  READ NOW
+                                  <div className={`absolute right-3 top-3 rounded-lg border border-white/20 bg-black/60 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all duration-300 ${
+                                    adultContent && !isPreviewOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                  } ${isPreviewOpen ? 'opacity-100' : ''}`}>
+                                    READ NOW
+                                  </div>
                                 </div>
-                              </div>
-                            </Link>
-                          </motion.article>
-                        ))
+                              </Link>
+                            </motion.article>
+                          );
+                        })
                       )}
                     </div>
                   </motion.div>
@@ -991,32 +1058,57 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
-              {infiniteItems.map((comic, idx) => (
-                <motion.div
-                  key={`${comic.id}-${idx}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: (idx % 6) * 0.1 }}
-                >
-                  <Link href={comic.href || `/library/${comic.source}/${comic.id}`} className="group block">
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/5 bg-white/5 transition-all duration-500 group-hover:border-[#ff4d00]/30 group-hover:shadow-[0_20px_50px_rgba(255,77,0,0.15)] group-hover:-translate-y-2">
-                      <Image
-                        src={comic.coverUrl || '/logo.png'}
-                        alt={comic.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        unoptimized
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                      <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                        <div className="text-[9px] font-black uppercase tracking-widest text-[#ff4d00] mb-1">{comic.meta}</div>
-                        <div className="text-xs font-bold text-white line-clamp-1">{comic.title}</div>
+              {infiniteItems.map((comic, idx) => {
+                const cardKey = `discover:${comic.source}:${comic.id}`;
+                const adultContent = isAdultComic(comic);
+                const isPreviewOpen = adultContent && previewCardKey === cardKey;
+
+                return (
+                  <motion.div
+                    key={`${comic.id}-${idx}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: (idx % 6) * 0.1 }}
+                  >
+                    <Link
+                      href={comic.href || `/library/${comic.source}/${comic.id}`}
+                      className="group block"
+                      onClickCapture={(event) => {
+                        if (!isTouchDevice || !adultContent) return;
+                        if (!isPreviewOpen) {
+                          event.preventDefault();
+                          setPreviewCardKey(cardKey);
+                        }
+                      }}
+                    >
+                      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/5 bg-white/5 transition-all duration-500 group-hover:border-[#ff4d00]/30 group-hover:shadow-[0_20px_50px_rgba(255,77,0,0.15)] group-hover:-translate-y-2">
+                        <Image
+                          src={comic.coverUrl || '/logo.png'}
+                          alt={comic.title}
+                          fill
+                          className={`object-cover transition-all duration-700 ${
+                            adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
+                          } group-hover:scale-110 group-hover:blur-0`}
+                          unoptimized
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                        {adultContent && !isPreviewOpen && (
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100 transition-opacity group-hover:opacity-0">
+                            <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
+                              Tap to reveal
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                          <div className="text-[9px] font-black uppercase tracking-widest text-[#ff4d00] mb-1">{comic.meta}</div>
+                          <div className="text-xs font-bold text-white line-clamp-1">{comic.title}</div>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </div>
 
             <div ref={loaderRef} className="py-20 flex flex-col items-center justify-center gap-6">
