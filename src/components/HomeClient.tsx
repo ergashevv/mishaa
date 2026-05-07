@@ -526,7 +526,8 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
 
   const hasPersonalLibrary = recentHistory.length > 0 || savedBookmarks.length > 0;
   const activeShelfCount = shelfState[activeTab]?.items.length || 0;
-  const featuredImageSrc = featuredComic?.coverUrl || featuredComic?.bannerUrl || '/logo.png';
+  const featuredImageSrc = featuredComic?.bannerUrl || featuredComic?.coverUrl || '/logo.png';
+  const featuredImageMode = featuredComic?.bannerUrl ? 'banner' : 'cover';
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -633,14 +634,26 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         transition={{ delay: 0.15 }}
                         className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden"
                       >
-                        <div className="relative aspect-[4/5] w-full bg-black">
+                        <div className="relative aspect-[16/10] w-full bg-black">
                           <Image
-                            src={featuredComic.bannerUrl || featuredComic.coverUrl}
+                            src={featuredImageSrc}
                             alt={featuredComic.title}
                             fill
                             priority
                             unoptimized
-                            className="object-cover"
+                            className="scale-110 object-cover opacity-35 blur-2xl"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/25 to-transparent" />
+                          <Image
+                            src={featuredImageSrc}
+                            alt={featuredComic.title}
+                            fill
+                            priority
+                            unoptimized
+                            className={featuredImageMode === 'banner'
+                              ? 'object-cover'
+                              : 'object-contain p-6'
+                            }
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
                         </div>
@@ -703,14 +716,26 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         transition={{ delay: 0.2 }}
                         className="perspective-container relative flex h-full min-h-[540px] w-full items-center justify-center"
                       >
-                        <div className="perspective-card relative aspect-[3/4] w-full max-w-[380px] overflow-hidden rounded-[2.25rem] border border-white/15 bg-black shadow-2xl">
+                        <div className="perspective-card relative w-full max-w-[460px] overflow-hidden rounded-[2.5rem] border border-white/15 bg-black shadow-2xl aspect-[16/10]">
                           <Image
                             src={featuredImageSrc}
                             alt="Cover"
                             fill
                             priority
                             unoptimized
-                            className="object-contain bg-black p-4"
+                            className="scale-110 object-cover opacity-30 blur-2xl"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
+                          <Image
+                            src={featuredImageSrc}
+                            alt="Cover"
+                            fill
+                            priority
+                            unoptimized
+                            className={featuredImageMode === 'banner'
+                              ? 'object-cover'
+                              : 'object-contain bg-black p-6'
+                            }
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
                           <div className="absolute inset-x-0 bottom-0 p-6">
@@ -812,24 +837,45 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
 
         {!hasPersonalLibrary && (
           <section className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 pb-10">
-            <div className="max-w-6xl mx-auto rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 md:p-12 backdrop-blur-2xl">
-              <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] items-center">
-                <div className="space-y-4">
-                  <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">Your library is empty</p>
-                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-[0.95]">
+            <div className="mx-auto max-w-6xl rounded-[2.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-5 shadow-[0_24px_100px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:p-6 md:p-8">
+              <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch">
+                <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 md:p-8">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">Your library is empty</p>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-[0.35em] text-white/45">
+                      Fresh start
+                    </span>
+                  </div>
+                  <h2 className="mt-4 max-w-2xl text-3xl font-black uppercase tracking-tight leading-[0.95] md:text-5xl">
                     Start reading to unlock continue reading and bookmarks
                   </h2>
-                  <p className="text-white/45 text-sm md:text-base max-w-2xl leading-relaxed">
+                  <p className="mt-4 max-w-2xl text-sm leading-7 text-white/45 md:text-base">
                     Once you open a comic and bookmark it, this section will start showing your personal reading queue and saved items here.
                   </p>
                 </div>
-                <div className="flex flex-col gap-3">
-                  <Link href="/library" className="rounded-2xl bg-[#ff5a1f] px-5 py-4 text-center text-[10px] font-black uppercase tracking-[0.35em] text-white transition-all hover:bg-white hover:text-black">
-                    Explore Library
+                <div className="grid gap-3 rounded-[2rem] border border-white/5 bg-black/35 p-4 sm:grid-cols-2 lg:grid-cols-1 lg:p-6">
+                  <Link href="/library" className="group rounded-[1.5rem] border border-[#ff5a1f]/30 bg-[#ff5a1f] px-5 py-5 text-center transition-all hover:-translate-y-0.5 hover:bg-white hover:text-black">
+                    <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/70 group-hover:text-black/60">
+                      Start here
+                    </div>
+                    <div className="mt-3 text-base font-black uppercase tracking-[0.28em] text-white group-hover:text-black">
+                      Explore Library
+                    </div>
                   </Link>
-                  <Link href="/settings" className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-center text-[10px] font-black uppercase tracking-[0.35em] text-white/60 transition-all hover:border-white/25 hover:text-white">
-                    Configure Preferences
+                  <Link href="/settings" className="group rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-5 text-center transition-all hover:border-white/25 hover:bg-white/[0.06]">
+                    <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/35">
+                      Tune it up
+                    </div>
+                    <div className="mt-3 text-base font-black uppercase tracking-[0.28em] text-white/80 group-hover:text-white">
+                      Configure Preferences
+                    </div>
                   </Link>
+                  <div className="rounded-[1.5rem] border border-white/5 bg-white/[0.03] p-5 sm:col-span-2 lg:col-span-1">
+                    <p className="text-[9px] font-black uppercase tracking-[0.45em] text-[#ffca3a]">What appears here later</p>
+                    <p className="mt-3 text-sm leading-7 text-white/45">
+                      Your recent reading queue, saved items, and bookmarks will auto-fill this area once you start interacting with comics.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -837,15 +883,15 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
         )}
 
         {/* --- EXPLORE SECTION --- */}
-        <section className="relative z-20 -mt-16 container mx-auto px-4 sm:px-6 md:px-8 pb-24 sm:pb-28 lg:pb-32">
+        <section className="relative z-20 -mt-8 container mx-auto px-4 sm:px-6 md:px-8 pb-24 sm:-mt-10 sm:pb-28 lg:-mt-12 lg:pb-32">
 
           {/* --- EXPLORE & DISCOVERY CONTROLS --- */}
-          <div className="mb-16 flex flex-col gap-10 max-w-6xl mx-auto sm:mb-20">
+          <div className="mb-14 flex flex-col gap-10 max-w-6xl mx-auto sm:mb-16">
 
             {/* 1. Category Navigation Layer */}
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3 px-2">
-                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">01_Explore_Archives</span>
+                <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.45em] text-[#ff5a1f]">01_Explore_Archives</span>
                 <div className="h-px flex-1 bg-white/10" />
               </div>
 

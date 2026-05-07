@@ -7,6 +7,7 @@ import {
   TELEGRAM_BOT_DEFAULT_NAME,
   TELEGRAM_BOT_DEFAULT_SHORT_DESCRIPTION,
   TELEGRAM_CHANNEL_HANDLE,
+  TELEGRAM_CHANNEL_URL,
 } from '@/lib/telegram-config';
 
 export type TelegramSlot = 'morning' | 'afternoon' | 'evening';
@@ -54,6 +55,8 @@ export const getTelegramBotShortDescription = () =>
   safeEnv(process.env.TELEGRAM_BOT_SHORT_DESCRIPTION, TELEGRAM_BOT_DEFAULT_SHORT_DESCRIPTION);
 export const getTelegramBotDescription = () =>
   safeEnv(process.env.TELEGRAM_BOT_DESCRIPTION, TELEGRAM_BOT_DEFAULT_DESCRIPTION);
+export const getTelegramWebhookSecret = () =>
+  safeEnv(process.env.TELEGRAM_WEBHOOK_SECRET, process.env.TELEGRAM_SETUP_SECRET);
 
 export function hasTelegramConfig() {
   return Boolean(getTelegramToken() && getTelegramChannelId());
@@ -123,6 +126,13 @@ function shortText(value: string, maxLength: number) {
   const compact = value.replace(/\s+/g, ' ').trim();
   if (compact.length <= maxLength) return compact;
   return `${compact.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function extractTelegramCommand(text?: string | null) {
+  if (!text) return null;
+  const [firstToken] = text.trim().split(/\s+/);
+  if (!firstToken?.startsWith('/')) return null;
+  return firstToken.slice(1).split('@')[0]?.toLowerCase() || null;
 }
 
 function seededValue(seed: string) {
@@ -225,6 +235,142 @@ async function sendTelegramComic(slot: TelegramSlot, comic: TelegramComicCandida
     parse_mode: 'HTML',
     disable_web_page_preview: false,
   });
+}
+
+async function sendTelegramChatMessage(
+  chatId: string | number,
+  text: string,
+  replyToMessageId?: number,
+) {
+  return telegramJsonRequest<{ result: { message_id: number } }>('sendMessage', {
+    chat_id: chatId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: false,
+    ...(replyToMessageId ? { reply_to_message_id: replyToMessageId } : {}),
+  });
+}
+
+async function sendTelegramChatComic(
+  chatId: string | number,
+  comic: TelegramComicCandidate,
+  slot: TelegramSlot,
+  replyToMessageId?: number,
+) {
+  const caption = buildTelegramCaption(comic, slot);
+
+  if (comic.coverUrl) {
+    return telegramJsonRequest<{ result: { message_id: number } }>('sendPhoto', {
+      chat_id: chatId,
+      photo: comic.coverUrl,
+      caption,
+      parse_mode: 'HTML',
+      disable_web_page_preview: false,
+      ...(replyToMessageId ? { reply_to_message_id: replyToMessageId } : {}),
+    });
+  }
+
+  return sendTelegramChatMessage(chatId, caption, replyToMessageId);
+}
+
+function buildTelegramStartMessage() {
+  return [
+    `<b>${escapeHtml(getTelegramBotName())}</b>`,
+    'Ishlaydigan buyruqlar:',
+    '/start - bot haqida qisqacha',
+    '/featured - tasodifiy featured comic',
+    '/about - kanal va bot haqida',
+    '',
+    `Kanal: <a href="${TELEGRAM_CHANNEL_URL}">${escapeHtml(TELEGRAM_CHANNEL_URL)}</a>`,
+  ].join('\n');
+}
+
+function buildTelegramAboutMessage() {
+  return [
+    `<b>${escapeHtml(getTelegramBotName())}</b>`,
+    'IComics wiki uchun featured comic curator.',
+    'Kanalga kuniga 3 marta post tashlaydi va chatda asosiy buyruqlarga javob beradi.',
+    '',
+    `Kanal: <a href="${TELEGRAM_CHANNEL_URL}">${escapeHtml(TELEGRAM_CHANNEL_URL)}</a>`,
+  ].join('\n');
+}
+
+export async function setTelegramWebhook() {
+  const siteUrl = getSiteUrl();
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(siteUrl)) {
+    throw new Error('Telegram webhook needs a public HTTPS URL');
+  }
+
+  const webhookSecret = getTelegramWebhookSecret();
+  const payload: Record<string, unknown> = {
+    url: `${siteUrl}/api/telegram/webhook`,
+    allowed_updates: ['message'],
+  };
+
+  if (webhookSecret) {
+    payload.secret_token = webhookSecret;
+  }
+
+  await telegramJsonRequest('setWebhook', payload);
+  return {
+    url: `${siteUrl}/api/telegram/webhook`,
+    secretConfigured: Boolean(webhookSecret),
+  };
+}
+
+type TelegramUpdateMessage = {
+  message_id?: number;
+  chat?: { id?: number | string };
+  text?: string;
+};
+
+type TelegramUpdate = {
+  message?: TelegramUpdateMessage;
+  edited_message?: TelegramUpdateMessage;
+};
+
+export async function handleTelegramUpdate(update: TelegramUpdate) {
+  const message = update.message || update.edited_message;
+  if (!message?.chat?.id) {
+    return { ok: true, ignored: true };
+  }
+
+  const command = extractTelegramCommand(message.text);
+  if (!command) {
+    return { ok: true, ignored: true };
+  }
+
+  const chatId = message.chat.id;
+  const replyToMessageId = message.message_id;
+
+  if (command === 'start') {
+    await sendTelegramChatMessage(chatId, buildTelegramStartMessage(), replyToMessageId);
+    return { ok: true, command };
+  }
+
+  if (command === 'about') {
+    await sendTelegramChatMessage(chatId, buildTelegramAboutMessage(), replyToMessageId);
+    return { ok: true, command };
+  }
+
+  if (command === 'featured') {
+    const candidates = await getTelegramComicCandidates();
+    const comic = pickTelegramComic('morning', candidates);
+
+    if (!comic) {
+      await sendTelegramChatMessage(
+        chatId,
+        'Hozircha featured comic topilmadi. Birozdan keyin qayta urinib ko‘ring.',
+        replyToMessageId,
+      );
+      return { ok: true, command, featured: false };
+    }
+
+    await sendTelegramChatComic(chatId, comic, 'morning', replyToMessageId);
+    return { ok: true, command, featured: true };
+  }
+
+  return { ok: true, ignored: true };
 }
 
 export async function postTelegramComicForSlot(slot: TelegramSlot): Promise<TelegramPostResult> {

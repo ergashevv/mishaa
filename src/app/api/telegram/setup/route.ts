@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { setTelegramBotProfile } from '@/lib/telegram';
+import { setTelegramBotProfile, setTelegramWebhook } from '@/lib/telegram';
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -10,8 +10,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await setTelegramBotProfile();
-    return NextResponse.json({ ok: true, result });
+    const profile = await setTelegramBotProfile();
+    const webhook = await setTelegramWebhook();
+    return NextResponse.json({ ok: true, profile, webhook });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown setup error';
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
