@@ -358,7 +358,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
         const progressData = await progressRes.json().catch(() => null);
         if (cancelled) return;
 
-        const items = Array.isArray(progressData?.items)
+        const items: LibraryComic[] = Array.isArray(progressData?.items)
           ? progressData.items.map((item: {
               comicId?: string;
               comicTitle?: string;

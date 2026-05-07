@@ -114,6 +114,7 @@ export const metadata: Metadata = {
 import SmoothAnimations from "@/components/SmoothAnimations";
 import GlobalAgeGate from "@/components/GlobalAgeGate";
 import AnalyticsBridge from "@/components/AnalyticsBridge";
+import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -135,7 +136,9 @@ export default function RootLayout({
         <SmoothAnimations />
         <GlobalAgeGate />
         <div id="main-content" className="flex-1">
-          <AnalyticsBridge />
+          <Suspense fallback={null}>
+            <AnalyticsBridge />
+          </Suspense>
           {children}
         </div>
       </body>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { trackEvent } from '@/lib/analytics';
 import { motion } from 'framer-motion';
@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { MessageCircle, Send, LifeBuoy } from 'lucide-react';
 
-export default function SupportPage() {
+function SupportPageContent() {
   const searchParams = useSearchParams();
   const [report, setReport] = useState(() => {
     const category = searchParams.get('category') || 'EXPORT_FAILURE';
@@ -159,5 +159,13 @@ export default function SupportPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function SupportPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#020202]" />}>
+      <SupportPageContent />
+    </Suspense>
   );
 }

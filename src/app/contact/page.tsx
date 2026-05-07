@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Mail, Send, MapPin, Globe } from 'lucide-react';
+import { Mail, Send, Globe } from 'lucide-react';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
+import { TELEGRAM_CHANNEL_URL } from '@/lib/telegram-config';
 
 export default function ContactPage() {
   const [lang, setLang] = useState<Lang>('en');
@@ -14,9 +15,11 @@ export default function ContactPage() {
 
   useEffect(() => {
     const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) setLang(savedLang);
+    if (savedLang && translations[savedLang]) {
+      window.setTimeout(() => setLang(savedLang), 0);
+    }
 
-    const handleLang = (e: any) => setLang(e.detail as Lang);
+    const handleLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
     window.addEventListener('langChange', handleLang);
     return () => window.removeEventListener('langChange', handleLang);
   }, []);
@@ -41,7 +44,7 @@ export default function ContactPage() {
             <h1 className="text-6xl md:text-9xl font-display uppercase tracking-tighter leading-none italic">
                {t.title.split(' ')[0]} <br /><span className="text-[#3b82f6]">{t.title.split(' ')[1]}</span>
             </h1>
-            <p className="text-xl font-editorial italic opacity-60">"{t.subtitle}"</p>
+            <p className="text-xl font-editorial italic opacity-60">&quot;{t.subtitle}&quot;</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -58,7 +61,7 @@ export default function ContactPage() {
                     <span className="text-[10px] font-black uppercase tracking-widest text-[#3b82f6]">{t.telegram}</span>
                     <div className="flex items-center gap-4">
                        <Send size={18} />
-                       <a href="https://t.me/icomicsuz" target="_blank" className="text-xl font-black hover:underline tracking-tight">@icomicsuz</a>
+                       <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noreferrer" className="text-xl font-black hover:underline tracking-tight">@icomicswiki</a>
                     </div>
                   </div>
                   <div className="space-y-2">

@@ -85,3 +85,24 @@ model ReadingProgress {
   @@index([userId, updatedAt])
   @@index([source, comicId])
 }
+
+model TelegramPostLog {
+  id                String   @id @default(cuid())
+  slotKey           String   @unique
+  slotName          String
+  comicId           String
+  comicSource       String
+  comicTitle        String
+  comicUrl          String
+  comicRating       String?
+  telegramMessageId Int?
+  status            String   @default("sending")
+  error             String?
+  sentAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([slotName])
+  @@index([status])
+  @@index([sentAt])
+}

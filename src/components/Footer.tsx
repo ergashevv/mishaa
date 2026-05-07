@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
+import { TELEGRAM_CHANNEL_URL } from '@/lib/telegram-config';
 
 export default function Footer() {
   const [lang, setLang] = useState<Lang>('en');
@@ -63,7 +64,7 @@ export default function Footer() {
                 <Link href="/faq" className="hover:text-white hover:translate-x-2 transition-all">{t.faq}</Link>
                 <Link href="/support" className="hover:text-white hover:translate-x-2 transition-all">{t.customer}</Link>
                 <Link href="/settings" className="hover:text-white hover:translate-x-2 transition-all">Settings</Link>
-                <a href="https://t.me/icomicsuz" target="_blank" className="hover:text-white hover:translate-x-2 transition-all">Telegram: @icomicsuz</a>
+                <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noreferrer" className="hover:text-white hover:translate-x-2 transition-all">Telegram: @icomicswiki</a>
               </div>
             </div>
             <div className="space-y-5 sm:space-y-6 lg:space-y-8">
