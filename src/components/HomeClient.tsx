@@ -527,7 +527,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
   const hasPersonalLibrary = recentHistory.length > 0 || savedBookmarks.length > 0;
   const activeShelfCount = shelfState[activeTab]?.items.length || 0;
   const featuredImageSrc = featuredComic?.bannerUrl || featuredComic?.coverUrl || '/logo.png';
-  const featuredImageMode = featuredComic?.bannerUrl ? 'banner' : 'cover';
+  const featuredHasBanner = Boolean(featuredComic?.bannerUrl);
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -578,22 +578,22 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 className="relative w-full"
               >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16">
-                  <div className="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
-                    <div className="space-y-6">
-                      <div className="h-6 w-32 rounded-full bg-white/5 animate-pulse" />
-                      <div className="h-16 w-3/4 rounded-2xl bg-white/5 animate-pulse" />
-                      <div className="h-20 w-2/3 rounded-2xl bg-white/5 animate-pulse" />
-                      <div className="flex flex-wrap gap-3">
-                        <div className="h-12 w-36 rounded-2xl bg-white/5 animate-pulse" />
-                        <div className="h-12 w-36 rounded-2xl bg-white/5 animate-pulse" />
+                  <div className="grid gap-8 rounded-[3rem] border border-white/5 bg-white/[0.02] p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-12 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+                    <div className="space-y-8">
+                      <div className="h-8 w-40 rounded-full bg-white/5 animate-pulse" />
+                      <div className="h-20 w-full rounded-2xl bg-white/5 animate-pulse" />
+                      <div className="h-24 w-3/4 rounded-2xl bg-white/5 animate-pulse" />
+                      <div className="flex flex-wrap gap-4">
+                        <div className="h-14 w-44 rounded-2xl bg-white/5 animate-pulse" />
+                        <div className="h-14 w-44 rounded-2xl bg-white/5 animate-pulse" />
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
-                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
-                        <div className="h-24 rounded-3xl bg-white/5 animate-pulse" />
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="h-28 rounded-[2rem] bg-white/5 animate-pulse" />
+                        <div className="h-28 rounded-[2rem] bg-white/5 animate-pulse" />
+                        <div className="h-28 rounded-[2rem] bg-white/5 animate-pulse" />
                       </div>
                     </div>
-                    <div className="hidden lg:block rounded-[2rem] border border-white/10 bg-white/5 animate-pulse" />
+                    <div className="hidden lg:block rounded-[2.5rem] border border-white/5 bg-white/[0.03] animate-pulse" />
                   </div>
                 </div>
               </motion.div>
@@ -603,149 +603,153 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                 className="relative w-full"
               >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16">
-                  <div className="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-8 lg:grid-cols-[1.08fr_0.92fr] lg:p-10">
-                    {/* Text Info */}
-                    <div className="space-y-6 lg:pr-4">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-20">
+                  {/* Glass Backdrop Container */}
+                  <div className="relative group overflow-hidden rounded-[3rem] border border-white/10 bg-[#0a0c14]/40 p-6 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.7)] backdrop-blur-[60px] sm:p-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:grid lg:items-center lg:gap-12 lg:p-14">
+                    
+                    {/* Atmospheric Glows */}
+                    <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#ff5a1f]/15 blur-[120px] opacity-60 group-hover:opacity-100 transition-opacity duration-1000" />
+                    <div className="absolute -right-20 -bottom-20 h-96 w-96 rounded-full bg-[#ffd36b]/10 blur-[120px] opacity-40 group-hover:opacity-80 transition-opacity duration-1000" />
+                    
+                    {/* Content Left Side */}
+                    <div className="relative z-10 space-y-8 lg:pr-6">
                       <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="flex flex-wrap items-center gap-3"
-                      >
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#ffca3a] backdrop-blur-md">
-                          Trending Now
-                        </span>
-                        <div className="flex items-center gap-1 text-[#ffca3a]">
-                          <Star size={14} fill="currentColor" />
-                          <span className="text-sm font-black">{featuredComic.rating}</span>
-                        </div>
-                        <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/35">
-                          {activeShelfCount} items
-                        </span>
-                      </motion.div>
-
-                      <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.15 }}
-                        className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)] lg:hidden"
-                      >
-                        <div className="relative aspect-[16/10] w-full bg-black">
-                          <Image
-                            src={featuredImageSrc}
-                            alt={featuredComic.title}
-                            fill
-                            priority
-                            unoptimized
-                            className="scale-110 object-cover opacity-35 blur-2xl"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/25 to-transparent" />
-                          <Image
-                            src={featuredImageSrc}
-                            alt={featuredComic.title}
-                            fill
-                            priority
-                            unoptimized
-                            className={featuredImageMode === 'banner'
-                              ? 'object-cover'
-                              : 'object-contain p-6'
-                            }
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
-                        </div>
-                      </motion.div>
-
-                      <motion.h1
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="text-display text-4xl leading-[0.9] sm:text-5xl lg:text-7xl xl:text-8xl"
+                        className="flex flex-wrap items-center gap-4"
                       >
-                        {featuredComic.title}
-                      </motion.h1>
+                        <div className="flex items-center gap-2 rounded-full border border-[#ff5a1f]/30 bg-[#ff5a1f]/10 px-4 py-1.5 backdrop-blur-md">
+                          <Flame size={12} className="text-[#ff5a1f] animate-pulse" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff5a1f]">
+                            Trending Now
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-md">
+                          <Star size={12} fill="#ffd36b" className="text-[#ffd36b]" />
+                          <span className="text-[11px] font-black text-white">{featuredComic.rating}</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hidden sm:block">
+                          {activeShelfCount} Narratives Available
+                        </span>
+                      </motion.div>
 
-                      <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="max-w-2xl text-sm leading-7 text-white/60 md:text-base line-clamp-3"
+                      {/* Mobile Image (Visible only on mobile) */}
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="relative mx-auto w-full max-w-[400px] lg:hidden"
                       >
-                        {featuredComic.description}
-                      </motion.p>
+                        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2.5rem] border border-white/15 bg-black shadow-2xl">
+                          <Image
+                            src={featuredImageSrc}
+                            alt={featuredComic.title}
+                            fill
+                            priority
+                            unoptimized
+                            className={featuredHasBanner ? 'object-cover' : 'object-contain bg-black p-6'}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent opacity-80" />
+                        </div>
+                      </motion.div>
+
+                      <div className="space-y-4">
+                        <motion.h1
+                          initial={{ y: 30, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.3, duration: 0.8 }}
+                          className="text-display max-w-[15ch] text-5xl leading-[0.85] sm:text-7xl lg:text-8xl xl:text-9xl tracking-tighter"
+                        >
+                          {featuredComic.title}
+                        </motion.h1>
+
+                        <motion.p
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                          className="max-w-xl text-base leading-relaxed text-white/50 md:text-lg line-clamp-3 font-medium"
+                        >
+                          {featuredComic.description}
+                        </motion.p>
+                      </div>
 
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                        className="flex flex-wrap gap-3 pt-2"
+                        transition={{ delay: 0.5 }}
+                        className="flex flex-wrap gap-4 pt-4"
                       >
-                        <Link href={featuredComic.href} className="group flex items-center gap-3 rounded-2xl bg-white px-6 py-3 text-[10px] font-black uppercase tracking-widest text-black transition-all hover:bg-[#ff5a1f] hover:text-white md:px-8 md:py-4 md:text-[11px]">
-                          Start Reading
-                          <Play size={16} fill="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <Link href={featuredComic.href} className="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-white px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] text-black transition-all hover:scale-105 active:scale-95">
+                          <span className="relative z-10">Start Reading</span>
+                          <Play size={18} fill="currentColor" className="relative z-10" />
+                          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-[#ff5a1f] to-[#ffca3a] transition-transform duration-500 group-hover:translate-x-0" />
                         </Link>
-                        <button className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all hover:bg-white/10 md:px-8 md:py-4 md:text-[11px]">
+                        <button className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] text-white backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/20 active:scale-95">
                           Add to Library
+                          <Heart size={18} className="group-hover:fill-red-500 group-hover:text-red-500 transition-colors" />
                         </button>
                       </motion.div>
 
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
-                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Focus</p>
-                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{shelfState[activeTab]?.loading ? 'Refreshing feed' : 'Ready to read'}</p>
-                        </div>
-                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
-                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Library</p>
-                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{activeShelfCount} items</p>
-                        </div>
-                        <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
-                          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Mode</p>
-                          <p className="mt-2 text-sm font-black uppercase tracking-tight text-white">{activeTab.replace('-', ' ')}</p>
-                        </div>
+                      <div className="grid gap-4 sm:grid-cols-3 pt-6">
+                        {[
+                          { label: 'Status', value: shelfState[activeTab]?.loading ? 'Updating...' : 'Live' },
+                          { label: 'Library', value: `${activeShelfCount} Titles` },
+                          { label: 'Curation', value: activeTab.replace('-', ' ') }
+                        ].map((stat, i) => (
+                          <div key={i} className="group rounded-[2rem] border border-white/5 bg-white/[0.03] px-6 py-5 transition-all hover:bg-white/[0.06] hover:border-white/10">
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 group-hover:text-[#ff5a1f] transition-colors">{stat.label}</p>
+                            <p className="mt-2 text-sm font-black uppercase tracking-tight text-white/80">{stat.value}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Featured Card Side */}
-                    <div className="hidden lg:block">
+                    {/* Featured Image Right Side (Desktop) */}
+                    <div className="hidden lg:block relative perspective-container">
                       <motion.div
-                        initial={{ x: 50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="perspective-container relative flex h-full min-h-[540px] w-full items-center justify-center"
+                        initial={{ x: 60, opacity: 0, rotateY: -15 }}
+                        animate={{ x: 0, opacity: 1, rotateY: 0 }}
+                        transition={{ delay: 0.4, duration: 1 }}
+                        className="relative z-20 group/card"
                       >
-                        <div className="perspective-card relative w-full max-w-[460px] overflow-hidden rounded-[2.5rem] border border-white/15 bg-black shadow-2xl aspect-[16/10]">
+                        <div className="relative aspect-[3.5/5] w-full overflow-hidden rounded-[3rem] border border-white/20 bg-black shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] transition-all duration-700 group-hover/card:scale-[1.02] group-hover/card:rotate-1 group-hover/card:border-white/40">
                           <Image
                             src={featuredImageSrc}
                             alt="Cover"
                             fill
                             priority
                             unoptimized
-                            className="scale-110 object-cover opacity-30 blur-2xl"
+                            className={`transition-transform duration-1000 group-hover/card:scale-110 ${featuredHasBanner ? 'object-cover' : 'object-contain bg-black p-8'}`}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
-                          <Image
-                            src={featuredImageSrc}
-                            alt="Cover"
-                            fill
-                            priority
-                            unoptimized
-                            className={featuredImageMode === 'banner'
-                              ? 'object-cover'
-                              : 'object-contain bg-black p-6'
-                            }
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
-                          <div className="absolute inset-x-0 bottom-0 p-6">
-                            <div className="rounded-2xl border border-white/10 bg-black/55 p-4 backdrop-blur-xl">
-                              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ffca3a]">Featured pick</p>
-                              <p className="mt-2 text-lg font-black uppercase tracking-tight text-white line-clamp-2">{featuredComic.title}</p>
-                              <p className="mt-2 text-xs leading-6 text-white/55 line-clamp-2">{featuredComic.description}</p>
+                          
+                          {/* Card Overlay Content */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent opacity-90 transition-opacity duration-500 group-hover/card:opacity-100" />
+                          <div className="absolute inset-x-0 bottom-0 p-8 transform transition-transform duration-500 translate-y-4 group-hover/card:translate-y-0">
+                            <div className="rounded-[2.5rem] border border-white/10 bg-black/60 p-6 backdrop-blur-2xl shadow-2xl">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="h-1 w-8 bg-[#ff5a1f] rounded-full" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ffca3a]">Collector Pick</p>
+                              </div>
+                              <p className="text-xl font-black uppercase tracking-tight text-white line-clamp-1 group-hover/card:text-[#ff5a1f] transition-colors">{featuredComic.title}</p>
+                              <div className="mt-4 flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Premium Access</span>
+                                <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center group-hover/card:bg-white group-hover/card:text-black transition-all">
+                                  <ArrowRight size={14} />
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Animated Scan Line */}
+                          <div className="absolute inset-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#ff5a1f]/40 to-transparent top-0 animate-[matrix-scan_4s_linear_infinite]" />
                         </div>
+                        
+                        {/* Shadow/Glow behind card */}
+                        <div className="absolute -inset-10 -z-10 bg-[#ff5a1f]/10 blur-[80px] opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000" />
                       </motion.div>
                     </div>
                   </div>
@@ -754,6 +758,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
             ) : null}
           </AnimatePresence>
         </section>
+
 
         {hasPersonalLibrary && (
           <section className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 pb-10">
@@ -836,45 +841,61 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
         )}
 
         {!hasPersonalLibrary && (
-          <section className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 pb-10">
-            <div className="mx-auto max-w-6xl rounded-[2.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-5 shadow-[0_24px_100px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:p-6 md:p-8">
-              <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch">
-                <div className="rounded-[2rem] border border-white/5 bg-black/20 p-6 md:p-8">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">Your library is empty</p>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-[0.35em] text-white/45">
-                      Fresh start
-                    </span>
-                  </div>
-                  <h2 className="mt-4 max-w-2xl text-3xl font-black uppercase tracking-tight leading-[0.95] md:text-5xl">
-                    Start reading to unlock continue reading and bookmarks
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-white/45 md:text-base">
-                    Once you open a comic and bookmark it, this section will start showing your personal reading queue and saved items here.
-                  </p>
-                </div>
-                <div className="grid gap-3 rounded-[2rem] border border-white/5 bg-black/35 p-4 sm:grid-cols-2 lg:grid-cols-1 lg:p-6">
-                  <Link href="/library" className="group rounded-[1.5rem] border border-[#ff5a1f]/30 bg-[#ff5a1f] px-5 py-5 text-center transition-all hover:-translate-y-0.5 hover:bg-white hover:text-black">
-                    <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/70 group-hover:text-black/60">
-                      Start here
+          <section className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 pb-20">
+            <div className="mx-auto max-w-6xl overflow-hidden rounded-[3.5rem] border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent p-1 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-3xl">
+              <div className="relative overflow-hidden rounded-[3.4rem] bg-[#0a0c14]/60 p-8 sm:p-12 md:p-16">
+                
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+                     style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+                
+                <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr_400px] lg:items-center">
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#ff5a1f]">
+                        <Sparkles size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">Initialize Your Experience</p>
+                        <h2 className="mt-2 text-4xl font-black uppercase tracking-tighter leading-[0.9] sm:text-6xl md:text-7xl text-white">
+                          Your Library <br /> <span className="text-white/20">Awaits Discovery</span>
+                        </h2>
+                      </div>
                     </div>
-                    <div className="mt-3 text-base font-black uppercase tracking-[0.28em] text-white group-hover:text-black">
-                      Explore Library
-                    </div>
-                  </Link>
-                  <Link href="/settings" className="group rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-5 text-center transition-all hover:border-white/25 hover:bg-white/[0.06]">
-                    <div className="text-[10px] font-black uppercase tracking-[0.4em] text-white/35">
-                      Tune it up
-                    </div>
-                    <div className="mt-3 text-base font-black uppercase tracking-[0.28em] text-white/80 group-hover:text-white">
-                      Configure Preferences
-                    </div>
-                  </Link>
-                  <div className="rounded-[1.5rem] border border-white/5 bg-white/[0.03] p-5 sm:col-span-2 lg:col-span-1">
-                    <p className="text-[9px] font-black uppercase tracking-[0.45em] text-[#ffca3a]">What appears here later</p>
-                    <p className="mt-3 text-sm leading-7 text-white/45">
-                      Your recent reading queue, saved items, and bookmarks will auto-fill this area once you start interacting with comics.
+                    
+                    <p className="max-w-2xl text-lg leading-relaxed text-white/40 font-medium">
+                      Unlock a personalized sanctuary for your narrative journey. Start reading any title to automatically track progress, sync bookmarks across devices, and receive AI-curated recommendations tailored to your taste.
                     </p>
+                    
+                    <div className="flex flex-wrap gap-6 pt-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-[#ffca3a] shadow-[0_0_10px_#ffca3a]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Live Sync</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Progress Tracking</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_#06b6d4]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Smart Bookmarks</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Link href="/library" className="group block relative overflow-hidden rounded-3xl border border-[#ff5a1f]/40 bg-[#ff5a1f] p-8 text-center transition-all hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_rgba(255,90,31,0.2)]">
+                      <div className="relative z-10">
+                        <div className="text-[11px] font-black uppercase tracking-[0.5em] text-white/60 group-hover:text-white transition-colors">Phase One</div>
+                        <div className="mt-3 text-2xl font-black uppercase tracking-widest text-white">Explore Library</div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    </Link>
+
+                    <Link href="/settings" className="group block rounded-3xl border border-white/5 bg-white/5 p-8 text-center transition-all hover:bg-white/10 hover:border-white/20 active:scale-95">
+                      <div className="text-[11px] font-black uppercase tracking-[0.5em] text-white/30 group-hover:text-white/50 transition-colors">Phase Two</div>
+                      <div className="mt-3 text-2xl font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">Setup Preferences</div>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -883,34 +904,35 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
         )}
 
         {/* --- EXPLORE SECTION --- */}
-        <section className="relative z-20 -mt-8 container mx-auto px-4 sm:px-6 md:px-8 pb-24 sm:-mt-10 sm:pb-28 lg:-mt-12 lg:pb-32">
+        <section className="relative z-20 -mt-12 container mx-auto px-4 sm:px-6 md:px-8 pb-24 sm:-mt-16 sm:pb-28 lg:-mt-20 lg:pb-32">
 
           {/* --- EXPLORE & DISCOVERY CONTROLS --- */}
-          <div className="mb-14 flex flex-col gap-10 max-w-6xl mx-auto sm:mb-16">
+          <div className="mb-16 flex flex-col gap-12 max-w-6xl mx-auto sm:mb-20">
 
             {/* 1. Category Navigation Layer */}
-            <div className="flex flex-col gap-5">
-              <div className="flex items-center gap-3 px-2">
-                <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.45em] text-[#ff5a1f]">01_Explore_Archives</span>
-                <div className="h-px flex-1 bg-white/10" />
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 px-4">
+                <div className="h-1 w-1 rounded-full bg-[#ff5a1f]" />
+                <span className="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.6em] text-white/40">01_Archive_Matrix</span>
+                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
               </div>
 
-              <div className="flex items-center gap-2 p-1.5 bg-white/[0.03] border border-white/5 rounded-[2.5rem] backdrop-blur-3xl overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-3 p-2 bg-white/[0.02] border border-white/5 rounded-[3rem] backdrop-blur-3xl overflow-x-auto no-scrollbar shadow-2xl">
                 {visibleShelves.map((shelf) => (
                   <button
                     key={shelf.key}
                     onClick={() => setActiveTab(shelf.key)}
-                    className={`relative flex items-center gap-3 md:gap-4 rounded-full px-5 md:px-8 py-3 md:py-4 transition-all duration-500 whitespace-nowrap ${activeTab === shelf.key
-                      ? 'bg-white text-black shadow-2xl scale-[1.02]'
-                      : 'text-white/40 hover:text-white hover:bg-white/5'
+                    className={`relative flex items-center gap-4 rounded-full px-8 py-5 transition-all duration-700 whitespace-nowrap group ${activeTab === shelf.key
+                      ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.1)] scale-[1.02]'
+                      : 'text-white/30 hover:text-white hover:bg-white/5'
                       }`}
                   >
-                    <div className={`transition-all duration-500 ${activeTab === shelf.key ? 'text-[#ff5a1f] scale-110' : 'text-white/20'}`}>
+                    <div className={`transition-all duration-700 ${activeTab === shelf.key ? 'text-[#ff5a1f] scale-110' : 'text-white/10 group-hover:text-[#ff5a1f]/60'}`}>
                       {shelf.icon}
                     </div>
                     <div className="flex flex-col items-start">
-                      <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">{shelf.title}</span>
-                      <span className={`text-[6px] md:text-[7px] font-bold uppercase tracking-widest opacity-40 ${activeTab === shelf.key ? 'text-black/60' : 'text-white/40'}`}>
+                      <span className="text-[11px] font-black uppercase tracking-widest">{shelf.title}</span>
+                      <span className={`text-[7px] font-black uppercase tracking-[0.2em] opacity-40 ${activeTab === shelf.key ? 'text-black/60' : 'text-white/30'}`}>
                         {shelf.subtitle.split(' ').slice(0, 2).join(' ')}
                       </span>
                     </div>
@@ -923,44 +945,55 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
             </div>
 
             {/* 2. Reading Preference Layer */}
-            <div className="flex flex-col gap-5">
-              <div className="flex items-center gap-3 px-2">
-                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">02_Language_Sync</span>
-                <div className="h-px flex-1 bg-white/10" />
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 px-4">
+                <div className="h-1 w-1 rounded-full bg-cyan-500" />
+                <span className="text-[11px] font-black uppercase tracking-[0.6em] text-white/40">02_Linguistic_Sync</span>
+                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/[0.03] border border-white/5 rounded-[2rem] p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 backdrop-blur-2xl">
-                  <div className="flex flex-col items-center sm:items-start pl-0 sm:pl-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40 text-center sm:text-left">Translated_In</span>
-                    <span className="text-[7px] font-bold uppercase tracking-[0.3em] text-white/10 hidden sm:block">Global localization</span>
-                  </div>
-                  <div className="flex items-center gap-1 p-1 bg-black/40 rounded-xl border border-white/5 overflow-x-auto max-w-full no-scrollbar">
-                    {MANGA_LANGUAGE_OPTIONS.filter(o => ['en', 'ru', 'es', 'fr', 'all'].includes(o.value)).map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleLanguageChange(opt.value)}
-                        className={`px-4 md:px-5 py-2 rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${mangaLanguage === opt.value ? 'bg-[#ff5a1f] text-white shadow-lg' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
-                      >
-                        {opt.value === 'all' ? 'MIX' : opt.value}
-                      </button>
-                    ))}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+                <div className="group relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-2 backdrop-blur-2xl transition-all hover:bg-white/[0.04] hover:border-white/10 shadow-xl">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
+                    <div className="flex items-center gap-4 pl-6">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#ffca3a]">Localization</span>
+                        <span className="text-[7px] font-bold uppercase tracking-[0.3em] text-white/20">Target Language</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-1.5 bg-black/40 rounded-2xl border border-white/5 w-full sm:w-auto">
+                      {MANGA_LANGUAGE_OPTIONS.filter(o => ['en', 'ru', 'es', 'fr', 'all'].includes(o.value)).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => handleLanguageChange(opt.value)}
+                          className={`flex-1 sm:flex-none px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${mangaLanguage === opt.value ? 'bg-[#ff5a1f] text-white shadow-[0_10px_20px_rgba(255,90,31,0.3)]' : 'text-white/20 hover:text-white hover:bg-white/5'}`}
+                        >
+                          {opt.value === 'all' ? 'MIX' : opt.value}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 <div className="relative group">
-                  <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-white/20 transition-all duration-500 group-focus-within:text-[#ff5a1f]" size={20} />
+                  <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
+                    <Search className="text-white/10 transition-all duration-700 group-focus-within:text-[#ff5a1f] group-focus-within:scale-110" size={22} />
+                  </div>
                   <input
                     type="text"
-                    placeholder="Search by title..."
+                    placeholder="Search Archive Matrix..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] py-5 pl-16 pr-8 text-[11px] font-black uppercase tracking-widest outline-none backdrop-blur-2xl transition-all duration-500 focus:border-[#ff5a1f]/40 focus:bg-black/40"
+                    className="w-full h-full min-h-[84px] rounded-[2.5rem] border border-white/10 bg-white/[0.02] pl-20 pr-10 text-[12px] font-black uppercase tracking-[0.2em] outline-none backdrop-blur-2xl transition-all duration-700 focus:border-[#ff5a1f]/40 focus:bg-black/60 focus:shadow-[0_20px_50px_rgba(0,0,0,0.4)] placeholder:text-white/10"
                   />
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:block">
+                    <div className="px-3 py-1 rounded-lg border border-white/5 bg-white/5 text-[8px] font-black text-white/20">CTRL + K</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
 
           {/* Shelves Layout */}
           <div className="space-y-20">
@@ -1028,8 +1061,8 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                             <motion.article
                               key={comic.id}
                               initial={false}
-                              whileHover={{ y: -8 }}
-                              transition={{ duration: 0.25, delay: i * 0.02 }}
+                              whileHover={{ y: -12 }}
+                              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                               className="group relative cursor-pointer"
                             >
                               <Link
@@ -1042,46 +1075,52 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                                   }
                                 }}
                               >
-                                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:border-white/30 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
+                                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-2xl transition-all duration-700 group-hover:border-[#ff5a1f]/40 group-hover:shadow-[0_30px_60px_-15px_rgba(255,90,31,0.25)]">
                                   <Image
                                     src={comic.coverUrl}
                                     alt={comic.title}
                                     fill
                                     unoptimized
-                                    className={`object-cover transition-all duration-700 ${
-                                      adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
-                                    } group-hover:scale-110 group-hover:blur-0`}
+                                    className={`object-cover transition-all duration-1000 ${
+                                      adultContent && !isPreviewOpen ? 'scale-110 blur-[8px]' : 'scale-100'
+                                    } group-hover:scale-115 group-hover:blur-0`}
                                   />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                                  
+                                  {/* Glassy Gradient Overlay */}
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 transition-opacity duration-700 group-hover:opacity-100" />
 
                                   {adultContent && !isPreviewOpen && (
-                                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100 transition-opacity group-hover:opacity-0">
-                                      <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
-                                        Tap to reveal
+                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md opacity-100 transition-opacity duration-700 group-hover:opacity-0">
+                                      <Zap size={24} className="text-[#ffca3a] mb-3 animate-pulse" />
+                                      <div className="rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.3em] text-white backdrop-blur-xl">
+                                        RESTRICTED
                                       </div>
                                     </div>
                                   )}
 
-                                  <div className={`absolute bottom-4 left-4 right-4 space-y-1 transition-all duration-300 ${
+                                  <div className={`absolute inset-x-0 bottom-0 p-5 space-y-2 transition-all duration-700 ${
                                     adultContent && !isPreviewOpen
-                                      ? 'translate-y-0 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                                      ? 'translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
                                       : 'translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
                                   } ${isPreviewOpen ? '!translate-y-0 !opacity-100' : ''}`}>
-                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#ffca3a]">
-                                      <Star size={10} fill="currentColor" />
-                                      {comic.rating}
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-1 rounded-md bg-[#ffca3a] px-1.5 py-0.5 text-[8px] font-black text-black">
+                                        <Star size={8} fill="currentColor" />
+                                        {comic.rating}
+                                      </div>
+                                      <div className="text-[8px] font-bold text-white/40 uppercase tracking-widest">{comic.meta}</div>
                                     </div>
-                                    <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white">{comic.title}</h4>
+                                    <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white leading-tight">{comic.title}</h4>
                                   </div>
 
-                                  <div className={`absolute right-3 top-3 rounded-lg border border-white/20 bg-black/60 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all duration-300 ${
-                                    adultContent && !isPreviewOpen ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100'
-                                  } ${isPreviewOpen ? 'opacity-100' : ''}`}>
-                                    READ NOW
+                                  {/* Status Chip */}
+                                  <div className={`absolute right-4 top-4 rounded-xl border border-white/20 bg-black/40 px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all duration-700 scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 ${isPreviewOpen ? 'scale-100 opacity-100' : ''}`}>
+                                    READ
                                   </div>
                                 </div>
                               </Link>
                             </motion.article>
+
                           );
                         })
                       )}
@@ -1113,10 +1152,10 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 return (
                   <motion.div
                     key={`${comic.id}-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    transition={{ delay: (idx % 6) * 0.1 }}
+                    transition={{ delay: (idx % 6) * 0.05, duration: 0.6 }}
                   >
                     <Link
                       href={comic.href || `/library/${comic.source}/${comic.id}`}
@@ -1129,31 +1168,39 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         }
                       }}
                     >
-                      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/5 bg-white/5 transition-all duration-500 group-hover:border-[#ff4d00]/30 group-hover:shadow-[0_20px_50px_rgba(255,77,0,0.15)] group-hover:-translate-y-2">
+                      <div className="relative aspect-[2/3] overflow-hidden rounded-[1.5rem] border border-white/5 bg-white/[0.02] transition-all duration-700 group-hover:border-[#ff5a1f]/30 group-hover:shadow-[0_25px_50px_rgba(255,90,31,0.15)] group-hover:-translate-y-3">
                         <Image
                           src={comic.coverUrl || '/logo.png'}
                           alt={comic.title}
                           fill
-                          className={`object-cover transition-all duration-700 ${
-                            adultContent && !isPreviewOpen ? 'scale-105 blur-[2px]' : 'scale-100'
-                          } group-hover:scale-110 group-hover:blur-0`}
+                          className={`object-cover transition-all duration-1000 ${
+                            adultContent && !isPreviewOpen ? 'scale-110 blur-[10px]' : 'scale-100'
+                          } group-hover:scale-115 group-hover:blur-0`}
                           unoptimized
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+                        
                         {adultContent && !isPreviewOpen && (
-                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100 transition-opacity group-hover:opacity-0">
-                            <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
-                              Tap to reveal
+                          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-md opacity-100 transition-opacity duration-700 group-hover:opacity-0">
+                            <div className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[7px] font-black uppercase tracking-[0.3em] text-white">
+                              RESTRICTED
                             </div>
                           </div>
                         )}
-                        <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-[#ff4d00] mb-1">{comic.meta}</div>
-                          <div className="text-xs font-bold text-white line-clamp-1">{comic.title}</div>
+                        
+                        <div className="absolute bottom-5 left-5 right-5 translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
+                          <div className="text-[8px] font-black uppercase tracking-[0.3em] text-[#ff5a1f] mb-2">{comic.meta}</div>
+                          <div className="text-[11px] font-black uppercase tracking-tight text-white line-clamp-2 leading-tight">{comic.title}</div>
+                        </div>
+
+                        {/* Quick View Icon */}
+                        <div className="absolute right-4 top-4 h-8 w-8 rounded-full border border-white/10 bg-black/40 flex items-center justify-center text-white/40 scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-700 backdrop-blur-xl">
+                          <ArrowRight size={14} />
                         </div>
                       </div>
                     </Link>
                   </motion.div>
+
                 );
               })}
             </div>
