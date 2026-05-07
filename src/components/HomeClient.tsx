@@ -12,9 +12,9 @@ import {
   TrendingUp,
   LayoutGrid,
   Star,
-  Sparkles,
   Heart,
-  Zap
+  Zap,
+  BookOpen,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import {
@@ -22,10 +22,26 @@ import {
   readStoredMangaLanguage,
 } from '@/lib/manga-language';
 import { readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
+import {
+  LIBRARY_ACTIVITY_EVENT,
+  BOOKMARKS_UPDATED_EVENT,
+  readBookmarks,
+  readReadingHistory,
+} from '@/lib/library-storage';
+import {
+  comicKey,
+  createDefaultHomeProfile,
+  dedupeComics,
+  mergeActivityIntoProfile,
+  persistHomePreferenceProfile,
+  rankComicsForHome,
+  readHomePreferenceProfile,
+  type HomePreferenceProfile,
+} from '@/lib/home-personalization';
 
 // --- Types ---
 type ComicSource = 'mangadex' | 'marvel' | 'nhentai';
-type ShelfKey = 'all' | 'featured' | 'manga-hub' | 'webtoons' | 'manhwa' | 'marvel' | 'trending' | 'for-you' | 'new' | 'doujinshi' | 'milf' | 'ntr';
+type ShelfKey = 'all' | 'featured' | 'romance' | 'fantasy' | 'manga-hub' | 'webtoons' | 'manhwa' | 'marvel' | 'trending' | 'for-you' | 'new' | 'doujinshi' | 'milf' | 'ntr';
 
 interface LibraryComic {
   id: string;
@@ -41,16 +57,8 @@ interface LibraryComic {
   timestamp?: number;
   progressPercent?: number;
   progressStatus?: string;
+  genres?: string[];
 }
-
-type NhentaiGallery = {
-  id?: number | string;
-  gallery_id?: number | string;
-  english_title?: string;
-  title?: { english?: string; japanese?: string };
-  num_pages?: number;
-  thumbnail?: string | { path?: string };
-};
 
 interface ShelfDefinition {
   key: ShelfKey;
@@ -106,6 +114,18 @@ function SafeCoverImage({
 
 const SHELVES: ShelfDefinition[] = [
   {
+    key: 'romance',
+    title: 'Romance',
+    subtitle: 'Reader picks',
+    icon: <Heart className="text-rose-400" size={18} />,
+  },
+  {
+    key: 'fantasy',
+    title: 'Fantasy',
+    subtitle: 'Adventure reads',
+    icon: <BookOpen className="text-emerald-400" size={18} />,
+  },
+  {
     key: 'trending',
     title: 'Trending',
     subtitle: 'Popular now',
@@ -114,8 +134,8 @@ const SHELVES: ShelfDefinition[] = [
   {
     key: 'for-you',
     title: 'For You',
-    subtitle: 'Based on your activity',
-    icon: <Sparkles className="text-[#ffca3a]" size={18} />,
+    subtitle: 'From your library',
+    icon: <Star className="text-[#ffca3a]" size={18} />,
   },
   {
     key: 'manga-hub',
@@ -180,7 +200,10 @@ export default function HomeClient({
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(() => Boolean(initialIsTouchDevice));
   const [previewCardKey, setPreviewCardKey] = useState<string | null>(null);
-  const hasCompleteInitialData = SHELVES.every((shelf) => (initialData?.[shelf.key]?.length ?? 0) > 0);
+  const [preferenceProfile, setPreferenceProfile] = useState<HomePreferenceProfile>(() => createDefaultHomeProfile('initial'));
+  const hasCompleteInitialData = SHELVES
+    .filter((shelf) => shelf.key !== 'for-you' && !['doujinshi', 'milf', 'ntr', 'marvel'].includes(shelf.key))
+    .every((shelf) => (initialData?.[shelf.key]?.length ?? 0) > 0);
   const visibleShelves = isAgeVerified
     ? SHELVES
     : SHELVES.filter((shelf) => !['doujinshi', 'milf', 'ntr'].includes(shelf.key));
@@ -188,71 +211,59 @@ export default function HomeClient({
   const [shelfState, setShelfState] = useState<Record<string, { items: LibraryComic[]; loading: boolean }>>(() => {
     const base = {} as Record<string, { items: LibraryComic[]; loading: boolean }>;
     SHELVES.forEach(s => {
-      base[s.key] = { items: initialData?.[s.key] || [], loading: !(initialData?.[s.key]?.length) };
+      base[s.key] = { items: initialData?.[s.key] || [], loading: s.key !== 'for-you' && !(initialData?.[s.key]?.length) };
     });
     base['trending'] = { items: initialData?.['trending'] || [], loading: !(initialData?.['trending']?.length) };
     return base;
   });
   const searchQuery = '';
-  const [activeTab, setActiveTab] = useState<ShelfKey>('all');
+  const [activeTab] = useState<ShelfKey>('all');
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
+  const [personalRecs, setPersonalRecs] = useState<LibraryComic[]>([]);
+  const [isRecsLoading, setIsRecsLoading] = useState(false);
 
   // Infinite Scroll State
   const [infiniteItems, setInfiniteItems] = useState<LibraryComic[]>([]);
-  const [infiniteOffset, setInfiniteOffset] = useState(0);
+  const [infinitePage, setInfinitePage] = useState(0);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
   const [hasMoreInfinite, setHasMoreInfinite] = useState(true);
   const [loaderInView, setLoaderInView] = useState(false);
-  const spicyThresholdRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
+  const autoCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const carouselPausedRef = useRef(false);
+  const seenHomeKeysRef = useRef<Set<string>>(new Set());
 
   const loadMoreInfinite = useCallback(async () => {
-    if (!isAgeVerified) {
-      setShowAgeGate(true);
-      return;
-    }
-
     if (infiniteLoading || !hasMoreInfinite) return;
     setInfiniteLoading(true);
 
     try {
-      const page = Math.floor(infiniteOffset / 25) + 1;
-      const res = await fetch(`/api/proxy/nhentai?path=${encodeURIComponent(`galleries?page=${page}`)}`);
-      if (!res.ok) {
-        if (res.status === 403) {
-          setShowAgeGate(true);
-          setHasMoreInfinite(false);
-          return;
-        }
-        throw new Error('Search failed');
-      }
+      const params = new URLSearchParams({
+        mode: 'feed',
+        lang: mangaLanguage,
+        page: String(infinitePage),
+        seed: String(preferenceProfile.seed),
+      });
+      const res = await fetch(`/api/home/data?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Feed failed');
       const data = await res.json();
-      const results = Array.isArray(data?.result) ? data.result : [];
+      const results = Array.isArray(data?.items) ? data.items as LibraryComic[] : [];
+      const ranked = rankComicsForHome(results, {
+        profile: preferenceProfile,
+        ageVerified: isAgeVerified,
+        pageIndex: infinitePage,
+        seenKeys: seenHomeKeysRef.current,
+      });
 
-      if (results.length > 0) {
-        const items: LibraryComic[] = results.map((item: NhentaiGallery) => {
-          const thumbnailPath = typeof item.thumbnail === 'object'
-            ? item.thumbnail?.path
-            : item.thumbnail;
+      ranked.forEach((item) => seenHomeKeysRef.current.add(comicKey(item)));
 
-          return {
-            id: (item.id || item.gallery_id || '').toString(),
-            title: item.english_title || item.title?.english || item.title?.japanese || 'Untitled',
-            description: `${item.num_pages || '?'} pages`,
-            coverUrl: thumbnailPath
-              ? `/api/proxy/nhentai/image?path=${encodeURIComponent(thumbnailPath)}`
-              : '/logo.png',
-            source: 'nhentai' as const,
-            href: `/library/nhentai/${item.id || item.gallery_id}`,
-            meta: '18+',
-            rating: '5.0',
-          };
-        });
-        setInfiniteItems(prev => [...prev, ...items]);
-        setInfiniteOffset(prev => prev + results.length);
-        setHasMoreInfinite(true);
+      if (ranked.length > 0) {
+        setInfiniteItems(prev => dedupeComics([...prev, ...ranked]));
+        setInfinitePage(prev => prev + 1);
+        setHasMoreInfinite(ranked.length >= 10);
       } else {
-        setHasMoreInfinite(true);
-        setInfiniteOffset(prev => prev + 25);
+        setInfinitePage(prev => prev + 1);
+        setHasMoreInfinite(infinitePage < 8);
       }
     } catch (e) {
       console.error(e);
@@ -260,7 +271,7 @@ export default function HomeClient({
     } finally {
       setInfiniteLoading(false);
     }
-  }, [infiniteLoading, hasMoreInfinite, infiniteOffset, isAgeVerified]);
+  }, [hasMoreInfinite, infiniteLoading, infinitePage, isAgeVerified, mangaLanguage, preferenceProfile]);
 
   useEffect(() => {
     const target = loaderRef.current;
@@ -290,35 +301,11 @@ export default function HomeClient({
     return () => window.clearTimeout(timer);
   }, [loaderInView, infiniteLoading, hasMoreInfinite, loadMoreInfinite]);
 
-  // Scroll Trigger for Age Verification
-  useEffect(() => {
-    if (isAgeVerified) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isAgeVerified) {
-          setShowAgeGate(true);
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
-    );
-
-    if (spicyThresholdRef.current) {
-      observer.observe(spicyThresholdRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [isAgeVerified]);
-
   const handleVerify = () => {
     persistAgeVerification();
     setIsAgeVerified(true);
     setShowAgeGate(false);
   };
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
-  const [personalRecs, setPersonalRecs] = useState<LibraryComic[]>([]);
-  const [isRecsLoading, setIsRecsLoading] = useState(false);
-  const hasTrendingInitialItems = Boolean(initialData?.['trending']?.length);
 
   useEffect(() => {
     const saved = readStoredMangaLanguage();
@@ -337,6 +324,58 @@ export default function HomeClient({
   }, [initialAgeVerified]);
 
   useEffect(() => {
+    const syncPreferenceProfile = async () => {
+      const localProfile = readHomePreferenceProfile();
+      const history = readReadingHistory();
+      const bookmarks = readBookmarks();
+
+      try {
+        const res = await fetch('/api/reading-progress', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const accountItems = Array.isArray(data?.items) ? data.items : [];
+          accountItems.forEach((item: {
+            source?: string;
+            comicId?: string;
+            comicTitle?: string | null;
+            comicCoverUrl?: string | null;
+            updatedAt?: string;
+            progressPercent?: number;
+            progressStatus?: string;
+          }) => {
+            if (!item.source || !item.comicId) return;
+            history[`${item.source}:${item.comicId}`] = {
+              id: item.comicId,
+              comicSource: item.source,
+              comicTitle: item.comicTitle || undefined,
+              comicCoverUrl: item.comicCoverUrl || undefined,
+              timestamp: item.updatedAt ? Date.parse(item.updatedAt) : Date.now(),
+              progressPercent: item.progressPercent,
+              progressStatus: item.progressStatus as never,
+            };
+          });
+        }
+      } catch {
+        // Guest personalization still works without account progress.
+      }
+
+      const merged = mergeActivityIntoProfile(localProfile, history, bookmarks);
+      setPreferenceProfile(merged);
+      persistHomePreferenceProfile(merged);
+    };
+
+    void syncPreferenceProfile();
+    window.addEventListener(LIBRARY_ACTIVITY_EVENT, syncPreferenceProfile);
+    window.addEventListener(BOOKMARKS_UPDATED_EVENT, syncPreferenceProfile);
+    window.addEventListener('storage', syncPreferenceProfile);
+    return () => {
+      window.removeEventListener(LIBRARY_ACTIVITY_EVENT, syncPreferenceProfile);
+      window.removeEventListener(BOOKMARKS_UPDATED_EVENT, syncPreferenceProfile);
+      window.removeEventListener('storage', syncPreferenceProfile);
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const media = window.matchMedia('(hover: none), (pointer: coarse)');
@@ -347,7 +386,7 @@ export default function HomeClient({
     return () => media.removeEventListener('change', update);
   }, []);
 
-  const fetchShelves = async (lang: MangaLanguage) => {
+  const fetchShelves = useCallback(async (lang: MangaLanguage) => {
     setShelfState(prev => {
       const newState = { ...prev };
       Object.keys(newState).forEach(key => newState[key].loading = true);
@@ -355,13 +394,15 @@ export default function HomeClient({
     });
 
     try {
-      const res = await fetch(`/api/home/data?lang=${lang}`, { next: { revalidate: 3600 } });
+      const res = await fetch(`/api/home/data?lang=${lang}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Home data fetch failed');
       const data = await res.json();
 
       if (data?.shelves) {
-        setShelfState({
+        setShelfState(prev => ({
           'trending': { items: data.shelves['trending'] || [], loading: false },
+          'romance': { items: data.shelves['romance'] || [], loading: false },
+          'fantasy': { items: data.shelves['fantasy'] || [], loading: false },
           'manga-hub': { items: data.shelves['manga-hub'] || [], loading: false },
           'new': { items: data.shelves['new'] || [], loading: false },
           webtoons: { items: data.shelves['webtoons'] || [], loading: false },
@@ -370,8 +411,8 @@ export default function HomeClient({
           'doujinshi': { items: data.shelves['doujinshi'] || [], loading: false },
           'milf': { items: data.shelves['milf'] || [], loading: false },
           'ntr': { items: data.shelves['ntr'] || [], loading: false },
-          'for-you': { items: [], loading: false },
-        });
+          'for-you': prev['for-you'] || { items: [], loading: false },
+        }));
       }
     } catch (error) {
       console.error('Home data error:', error);
@@ -381,7 +422,7 @@ export default function HomeClient({
         return newState;
       });
     }
-  };
+  }, []);
 
   const isFirstMount = useRef(true);
   useEffect(() => {
@@ -393,64 +434,75 @@ export default function HomeClient({
       void fetchShelves(mangaLanguage);
     }, 0);
     return () => clearTimeout(t);
-  }, [hasCompleteInitialData, isAgeVerified, mangaLanguage]);
+  }, [fetchShelves, hasCompleteInitialData, isAgeVerified, mangaLanguage]);
 
   useEffect(() => {
-    if (isTouchDevice) return;
-
-    const loadPersonalRecs = async () => {
-      if (typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => {
       setIsRecsLoading(true);
-      try {
-        const history = JSON.parse(localStorage.getItem('reading_history') || '{}');
-        const ids = Object.keys(history);
-        if (ids.length === 0) {
-          setIsRecsLoading(false);
-          return;
-        }
+      const pool = dedupeComics(Object.entries(shelfState)
+        .filter(([key]) => key !== 'for-you')
+        .flatMap(([key, state]) => state.items.map((comic) => ({ ...comic, meta: comic.meta || key }))));
+      const ranked = rankComicsForHome(pool, {
+        profile: preferenceProfile,
+        ageVerified: isAgeVerified,
+        adultPenalty: -14,
+      }).slice(0, 12);
 
-        const historyEntries = Object.values(history) as Array<{ aniListId?: number | string }>;
-        const aniListIds = historyEntries
-          .map(entry => entry.aniListId)
-          .filter(Boolean);
+      setPersonalRecs(ranked);
+      setIsRecsLoading(false);
+    }, 0);
 
-        const backupIds = Object.keys(history).slice(-5).map(id => id.split(':')[1]);
-
-        const res = await fetch('/api/recommendations', {
-          method: 'POST',
-          body: JSON.stringify({
-            history: aniListIds.length > 0 ? aniListIds.slice(-5) : backupIds
-          }),
-        });
-        const data = await res.json();
-        if (data.items?.length > 0) {
-          setPersonalRecs(data.items);
-          setActiveTab(prev => (prev === 'for-you' || !hasTrendingInitialItems) ? 'for-you' : prev);
-        }
-      } catch (e) {
-        console.error('Recs error:', e);
-      } finally {
-        setIsRecsLoading(false);
-      }
-    };
-    loadPersonalRecs();
-  }, [hasTrendingInitialItems, isTouchDevice]);
+    return () => window.clearTimeout(timer);
+  }, [isAgeVerified, preferenceProfile, shelfState]);
 
   const featuredComic = useMemo(() => {
     const pool = activeTab === 'all'
       ? (personalRecs.length > 0 ? personalRecs : shelfState.trending?.items || [])
       : (activeTab === 'for-you' ? personalRecs : (shelfState[activeTab]?.items || []));
     if (!pool.length) return null;
-    return pool[0];
-  }, [activeTab, shelfState, personalRecs]);
+    return rankComicsForHome(pool, {
+      profile: preferenceProfile,
+      ageVerified: isAgeVerified,
+      shelfKey: activeTab,
+      adultPenalty: -16,
+    })[0] || null;
+  }, [activeTab, isAgeVerified, preferenceProfile, shelfState, personalRecs]);
 
   const featuredBackgroundSrc = featuredComic?.bannerUrl || featuredComic?.coverUrl || DEFAULT_IMAGE_SRC;
   const featuredPosterSrc = featuredComic?.coverUrl || featuredComic?.bannerUrl || DEFAULT_IMAGE_SRC;
   const renderedShelves = activeTab === 'all'
     ? visibleShelves
     : visibleShelves.filter((shelf) => shelf.key === activeTab);
-  const shelfCardLimit = isTouchDevice ? 4 : 6;
-  const showInfiniteDiscover = !isTouchDevice;
+  const shelfCardLimit = isTouchDevice ? 8 : 12;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      seenHomeKeysRef.current = new Set();
+      setInfiniteItems([]);
+      setInfinitePage(0);
+      setHasMoreInfinite(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isAgeVerified, mangaLanguage, preferenceProfile.seed]);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const interval = window.setInterval(() => {
+      if (carouselPausedRef.current) return;
+
+      Object.values(autoCarouselRefs.current).forEach((node) => {
+        if (!node || node.scrollWidth <= node.clientWidth) return;
+        const nextLeft = node.scrollLeft + Math.max(180, node.clientWidth * 0.55);
+        node.scrollTo({
+          left: nextLeft >= node.scrollWidth - node.clientWidth - 8 ? 0 : nextLeft,
+          behavior: 'smooth',
+        });
+      });
+    }, 4800);
+
+    return () => window.clearInterval(interval);
+  }, [renderedShelves.length, isTouchDevice]);
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -483,12 +535,6 @@ export default function HomeClient({
       <Navbar />
 
       <main className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute left-[-10%] top-[8rem] h-[30rem] w-[30rem] rounded-full bg-[#ff5a1f]/10 blur-[140px]" />
-          <div className="absolute right-[-12%] top-[18rem] h-[26rem] w-[26rem] rounded-full bg-[#ffd36b]/8 blur-[160px]" />
-          <div className="absolute inset-x-0 top-[20rem] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        </div>
-
         {/* --- DYNAMIC HERO BANNER --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">
@@ -530,7 +576,7 @@ export default function HomeClient({
                 className="relative w-full"
               >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-14 lg:pb-18">
-                  <div className="relative overflow-hidden rounded-[2.75rem] bg-black shadow-[0_50px_140px_rgba(0,0,0,0.72)]">
+                  <div className="relative overflow-hidden bg-black shadow-[0_50px_140px_rgba(0,0,0,0.72)]">
                     <div className="absolute inset-0">
                       {!isTouchDevice && (
                         <>
@@ -543,11 +589,10 @@ export default function HomeClient({
                             className="object-cover object-center scale-105 opacity-[0.2] blur-[2px]"
                           />
                           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.9)_42%,rgba(5,6,10,0.54)_100%)]" />
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_28%,rgba(255,90,31,0.14),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(255,211,107,0.09),transparent_20%),radial-gradient(circle_at_70%_72%,rgba(255,90,31,0.08),transparent_26%)]" />
                         </>
                       )}
                       {isTouchDevice && (
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,90,31,0.18),transparent_34%),linear-gradient(180deg,rgba(5,6,10,0.98)_0%,rgba(5,6,10,0.92)_100%)]" />
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0.98)_0%,rgba(5,6,10,0.92)_100%)]" />
                       )}
                     </div>
 
@@ -584,7 +629,7 @@ export default function HomeClient({
                         transition={{ delay: 0.06, duration: 0.75 }}
                         className="relative z-20 mx-auto w-full max-w-[26rem] lg:mx-0 lg:ml-auto lg:translate-y-2"
                       >
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-[2.25rem] bg-black shadow-[0_35px_110px_rgba(0,0,0,0.62)]">
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-black shadow-[0_35px_110px_rgba(0,0,0,0.62)]">
                           <SafeCoverImage
                             key={featuredPosterSrc}
                             src={featuredPosterSrc}
@@ -625,9 +670,16 @@ export default function HomeClient({
                 const state = shelf.key === 'for-you' ? { items: personalRecs, loading: isRecsLoading } : shelfState[shelf.key];
                 if (!state) return null;
 
-                const filteredItems = state.items.filter(comic =>
-                  comic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  comic.description.toLowerCase().includes(searchQuery.toLowerCase())
+                const filteredItems = rankComicsForHome(
+                  state.items.filter(comic =>
+                    comic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    comic.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  ),
+                  {
+                    profile: preferenceProfile,
+                    ageVerified: isAgeVerified,
+                    shelfKey: shelf.key,
+                  }
                 );
 
                 if (shelf.key === 'for-you' && filteredItems.length === 0 && !isRecsLoading) return null;
@@ -637,7 +689,6 @@ export default function HomeClient({
                   <motion.div
                     key={shelf.key}
                     id={shelf.key}
-                    ref={shelf.key === 'doujinshi' ? spicyThresholdRef : null}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -658,10 +709,29 @@ export default function HomeClient({
                       </Link>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    <div
+                      ref={(node) => {
+                        autoCarouselRefs.current[shelf.key] = node;
+                      }}
+                      onPointerEnter={() => {
+                        carouselPausedRef.current = true;
+                      }}
+                      onPointerLeave={() => {
+                        carouselPausedRef.current = false;
+                      }}
+                      onTouchStart={() => {
+                        carouselPausedRef.current = true;
+                      }}
+                      onTouchEnd={() => {
+                        window.setTimeout(() => {
+                          carouselPausedRef.current = false;
+                        }, 1200);
+                      }}
+                      className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 [&::-webkit-scrollbar]:hidden"
+                    >
                       {state.loading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                          <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-white/5" />
+                          <div key={i} className="h-auto w-[42vw] max-w-[12rem] shrink-0 snap-start aspect-[2/3] animate-pulse rounded-2xl bg-white/5 sm:w-[12rem] lg:w-[13rem]" />
                         ))
                       ) : (
                         filteredItems.slice(0, shelfCardLimit).map((comic) => {
@@ -676,7 +746,7 @@ export default function HomeClient({
                               initial={false}
                               whileHover={{ y: -12 }}
                               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                              className="group relative cursor-pointer"
+                              className="group relative w-[42vw] max-w-[12rem] shrink-0 snap-start cursor-pointer sm:w-[12rem] lg:w-[13rem]"
                             >
                               <Link
                                 href={resolveComicHref(comic)}
@@ -721,7 +791,7 @@ export default function HomeClient({
                                         <Star size={8} fill="currentColor" />
                                         {comic.rating}
                                       </div>
-                                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Access</span>
+                                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{comic.meta}</span>
                                     </div>
                                     <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white leading-tight">{comic.title}</h4>
                                   </div>
@@ -745,8 +815,7 @@ export default function HomeClient({
           </div>
         </section>
 
-        {showInfiniteDiscover ? (
-          <section className="py-20 bg-black/40">
+        <section className="py-20 bg-black/40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
               <div className="flex items-center gap-4 mb-12">
                 <div className="w-1.5 h-8 bg-[#ff4d00] rounded-full" />
@@ -840,28 +909,7 @@ export default function HomeClient({
                 )}
               </div>
             </div>
-          </section>
-        ) : (
-          <section className="py-16 bg-black/30">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
-                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">More</p>
-                <h2 className="mt-3 text-3xl font-black uppercase tracking-tight text-white">
-                  Open the full library
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">
-                  Mobile users get a lighter homepage first. Jump into the full catalog when you need more titles.
-                </p>
-                <Link
-                  href="/library"
-                  className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-[10px] font-black uppercase tracking-[0.4em] text-black transition-transform hover:scale-[1.02] active:scale-95"
-                >
-                  Browse Library
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
+        </section>
 
       </main>
 
@@ -882,7 +930,7 @@ export default function HomeClient({
       <footer className="border-t border-white/10 py-12 text-center">
         <div className="container mx-auto px-4">
           <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">
-            iComics.wiki // Sequential Narrative Archive 2026
+            iComics.wiki
           </div>
         </div>
       </footer>

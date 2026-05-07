@@ -57,7 +57,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
   };
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white/20 font-black uppercase tracking-[0.5em]">Loading_Vault...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white/20 font-black uppercase tracking-[0.5em]">Loading library</div>}>
       <JsonLd data={collectionSchema} />
       <ComicLibraryClient initialAgeVerified={initialAgeVerified} />
     </Suspense>

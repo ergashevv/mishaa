@@ -28,9 +28,9 @@ import {
 import {
   MANGADEX_LONG_STRIP_TAG_ID,
 } from '@/lib/mangadex';
-import { searchComics, fetchNHentaiRaw } from '@/actions/comic';
+import { searchComics } from '@/actions/comic';
 import Image from 'next/image';
-import { readBookmarks, BOOKMARKS_UPDATED_EVENT, LIBRARY_ACTIVITY_EVENT, type StoredBookmark } from '@/lib/library-storage';
+import { readBookmarks, readReadingHistory, BOOKMARKS_UPDATED_EVENT, LIBRARY_ACTIVITY_EVENT, type StoredBookmark } from '@/lib/library-storage';
 interface Comic {
   id: string;
   title: string;
@@ -65,10 +65,15 @@ type LoadResult = {
 };
 
 const CATEGORIES: Category[] = [
-  { label: 'Trending Today', query: '', nsfw: true, source: 'nhentai' },
-  { label: 'Popular Doujinshi', query: '', nsfw: true, source: 'nhentai' },
-  { label: 'New Doujinshi', query: 'english', nsfw: true, source: 'nhentai' },
+  { label: 'Romance', source: 'mangadex', includedTagIds: ['423e2eae-a7a2-4a8b-ac03-a8351462d71d'] },
+  { label: 'Fantasy', source: 'mangadex', includedTagIds: ['cdc58593-87dd-415e-bbc0-2ec27bf404cc'] },
   { label: 'Manga Hub', source: 'mangadex', originalLanguages: ['ja'] },
+  { label: 'Webtoons', source: 'mangadex', includedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
+  { label: 'Manhwa', source: 'mangadex', originalLanguages: ['ko'], excludedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
+  { label: 'Superheroes', source: 'superhero' },
+  { label: 'Trending 18+', query: '', nsfw: true, source: 'nhentai' },
+  { label: 'Doujinshi', query: '', nsfw: true, source: 'nhentai' },
+  { label: 'New 18+', query: 'english', nsfw: true, source: 'nhentai' },
   { label: 'Adult Manga', source: 'mangadex', nsfw: true, ratings: ['pornographic'] },
   { label: 'Erotica', source: 'mangadex', nsfw: true, ratings: ['erotica'] },
   { label: 'Mature Romance', query: 'mature', nsfw: true, source: 'nhentai' },
@@ -80,9 +85,6 @@ const CATEGORIES: Category[] = [
   { label: 'e621', source: 'e621', nsfw: true, query: getBooruDefaultQuery('e621') },
   { label: 'Danbooru', source: 'danbooru', nsfw: true, query: getBooruDefaultQuery('danbooru') },
   { label: 'Gelbooru', source: 'gelbooru', nsfw: true, query: getBooruDefaultQuery('gelbooru') },
-  { label: 'Webtoons', source: 'mangadex', includedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
-  { label: 'Manhwa', source: 'mangadex', originalLanguages: ['ko'], excludedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
-  { label: 'Superheroes', source: 'superhero' },
 ];
 
 const LIMIT = 36;
@@ -149,9 +151,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [bookmarks, setBookmarks] = useState<StoredBookmark[]>([]);
+  const [recentActivity, setRecentActivity] = useState<Record<string, number>>({});
   const [sourceFilter, setSourceFilter] = useState<'all' | Comic['source']>('all');
   const [savedOnly, setSavedOnly] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'featured' | 'title-asc' | 'title-desc'>('featured');
+  const [sortOrder, setSortOrder] = useState<'featured' | 'recent' | 'saved' | 'title-asc' | 'title-desc'>('featured');
   
   const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
   const isMounted = useSyncExternalStore(
@@ -160,7 +163,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     () => false,
   );
   const t_lib = translations[lang].library;
-  const visibleCategories = isAgeVerified
+  const visibleCategories = isAgeVerified && nsfwEnabled
     ? CATEGORIES
     : CATEGORIES.filter((category) => !category.nsfw);
   const requestIdRef = useRef(0);
@@ -185,11 +188,19 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         return matchesQuery && matchesSource && matchesSaved;
       })
       .sort((left, right) => {
+        const leftKey = `${left.source}:${left.id}`;
+        const rightKey = `${right.source}:${right.id}`;
+        if (sortOrder === 'saved') {
+          return Number(bookmarkedKeys.has(rightKey)) - Number(bookmarkedKeys.has(leftKey));
+        }
+        if (sortOrder === 'recent') {
+          return (recentActivity[rightKey] || 0) - (recentActivity[leftKey] || 0);
+        }
         if (sortOrder === 'title-asc') return left.title.localeCompare(right.title);
         if (sortOrder === 'title-desc') return right.title.localeCompare(left.title);
         return 0;
       });
-  }, [bookmarkedKeys, comics, savedOnly, searchQuery, sourceFilter, sortOrder]);
+  }, [bookmarkedKeys, comics, recentActivity, savedOnly, searchQuery, sourceFilter, sortOrder]);
 
   useEffect(() => {
     const verified = initialAgeVerified || readAgeVerification();
@@ -206,7 +217,13 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   }, [mangaLanguage]);
 
   useEffect(() => {
-    const syncBookmarks = () => setBookmarks(readBookmarks());
+    const syncBookmarks = () => {
+      setBookmarks(readBookmarks());
+      const history = readReadingHistory();
+      setRecentActivity(Object.fromEntries(
+        Object.entries(history).map(([key, entry]) => [key, Number(entry.lastReadAt || entry.timestamp || 0)])
+      ));
+    };
     const timer = window.setTimeout(syncBookmarks, 0);
     window.addEventListener(BOOKMARKS_UPDATED_EVENT, syncBookmarks);
     window.addEventListener(LIBRARY_ACTIVITY_EVENT, syncBookmarks);
@@ -307,8 +324,16 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     setOffset(0);
     setHasMore(true);
     setComics([]);
-    setNsfwEnabled((value) => !value);
-  }, [isAgeVerified]);
+    setNsfwEnabled((value) => {
+      const nextValue = !value;
+      if (!nextValue && getCategoryByLabel(activeCategory)?.nsfw) {
+        setActiveCategory('Manga Hub');
+        updateLibraryUrl('Manga Hub', categoryQueries['Manga Hub'] || '', 'replace');
+      }
+      if (!nextValue) setSourceFilter('all');
+      return nextValue;
+    });
+  }, [activeCategory, categoryQueries, isAgeVerified, updateLibraryUrl]);
 
   const lastComicRef = useCallback((node: HTMLDivElement) => {
     if (loading || loadingMore) return;
@@ -411,7 +436,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       const query = searchQuery.trim();
       const safeMarvelQuery = query;
       
-      const canAccessAdultContent = isAgeVerified;
+      const canAccessAdultContent = isAgeVerified && nsfwEnabled;
       const defaultRatings = canAccessAdultContent ? ['safe', 'suggestive', 'erotica', 'pornographic'] : ['safe', 'suggestive'];
       let result: LoadResult = { items: [], hasMore: false };
 
@@ -522,7 +547,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       }
 
       setHasMore(result.hasMore && results.length > 0);
-      setComics(prev => append ? [...prev, ...results] : results);
+      setComics(prev => {
+        const nextItems = append ? [...prev, ...results] : results;
+        return Array.from(new Map(nextItems.map((comic) => [`${comic.source}:${comic.id}`, comic])).values());
+      });
     } catch (e) { 
       if (requestId !== requestIdRef.current) return;
       console.error(e); 
@@ -533,7 +561,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         setLoadingMore(false);
       }
     }
-  }, [activeCategory, fetchArchive, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchSuperheroes, isAgeVerified, mangaLanguage, searchQuery]);
+  }, [activeCategory, fetchArchive, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchSuperheroes, isAgeVerified, mangaLanguage, nsfwEnabled, searchQuery]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -642,7 +670,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
                 <div className="hidden md:flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.45em] text-white/25">
                   <div className="h-[2px] w-16 bg-[#ff4d00]" />
-                  <span>Library Vault</span>
+                  <span>Library</span>
                 </div>
 
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
@@ -676,7 +704,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                 <div ref={searchBoxRef} className="relative flex-1 md:w-96">
                   <input 
                     type="text" 
-                    placeholder="SEARCH_GLOBAL_ARCHIVES..." 
+                    placeholder="Search comics, manga, manhwa..."
                     className="w-full bg-white/5 border border-white/10 py-4 pl-12 pr-4 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none md:py-5 md:px-12" 
                     value={searchQuery} 
                     onChange={e => handleSearchQueryChange(e.target.value)}
@@ -694,7 +722,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                         className="absolute top-full left-0 right-0 mt-2 z-[6000] bg-[#0d0d0d] border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden"
                       >
                         <div className="p-2 border-b border-white/5 flex items-center justify-between">
-                          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Instant_Results</span>
+                          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Results</span>
                           <button
                             type="button"
                             onClick={(event) => {
@@ -710,10 +738,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                           {isSearching ? (
                             <div className="p-8 text-center">
                               <Loader2 className="w-5 h-5 text-[#ff4d00] animate-spin mx-auto mb-3" />
-                              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10">Neural_Search_Active</span>
+                              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10">Searching</span>
                             </div>
                           ) : autoCompleteResults.length === 0 ? (
-                            <div className="p-8 text-center text-[9px] font-black uppercase tracking-[0.5em] text-white/10">No_Matches_Found</div>
+                            <div className="p-8 text-center text-[9px] font-black uppercase tracking-[0.5em] text-white/10">No matches</div>
                           ) : (
                             autoCompleteResults.map(comic => (
                               <button 
@@ -768,10 +796,14 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     <option value="marvel">Marvel</option>
                     <option value="archive">Archive</option>
                     <option value="superhero">Superheroes</option>
-                    <option value="nhentai">nhentai</option>
-                    <option value="e621">e621</option>
-                    <option value="danbooru">danbooru</option>
-                    <option value="gelbooru">gelbooru</option>
+                    {isAgeVerified && nsfwEnabled && (
+                      <>
+                        <option value="nhentai">nhentai</option>
+                        <option value="e621">e621</option>
+                        <option value="danbooru">danbooru</option>
+                        <option value="gelbooru">gelbooru</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -783,6 +815,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     className="flex-1 bg-transparent text-[10px] font-black uppercase tracking-[0.25em] text-white outline-none"
                   >
                     <option value="featured">Featured</option>
+                    <option value="recent">Recently read</option>
+                    <option value="saved">Saved first</option>
                     <option value="title-asc">Title A-Z</option>
                     <option value="title-desc">Title Z-A</option>
                   </select>
@@ -873,11 +907,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       rotateX: -5,
                       rotateY: 5,
                       transition: { type: "spring", stiffness: 400, damping: 25 }
-                    }}
-                    onMouseEnter={() => {
-                      if (comic.source === 'nhentai') {
-                        fetchNHentaiRaw(`gallery/${comic.id}`).catch(() => {});
-                      }
                     }}
                     onClick={(event) => {
                       if (adultContent && !isAgeVerified) {

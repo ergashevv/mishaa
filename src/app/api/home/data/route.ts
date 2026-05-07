@@ -1,6 +1,6 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
-import { getHomeData } from "@/lib/home-data";
+import { getHomeData, getHomeFeed } from "@/lib/home-data";
 import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";
 import { fetchTrendingAniListManga } from "@/lib/anilist";
 import type { MangaLanguage } from "@/lib/manga-language";
@@ -8,13 +8,34 @@ import type { MangaLanguage } from "@/lib/manga-language";
 const normalizeLanguage = (value: string | null): MangaLanguage => {
   return value === 'en' || value === 'ru' || value === 'es' || value === 'fr'
     ? value
-    : 'ru';
+    : 'en';
+};
+
+const parseNumberParam = (value: string | null, fallback = 0) => {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : fallback;
 };
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const lang = normalizeLanguage(searchParams.get("lang"));
   const includeAdultContent = req.headers.get("cookie")?.includes(`${AGE_VERIFICATION_COOKIE}=true`) ?? false;
+
+  if (searchParams.get('mode') === 'feed') {
+    const items = await getHomeFeed(lang, {
+      includeAdultContent,
+      page: parseNumberParam(searchParams.get('page'), 0),
+      seed: parseNumberParam(searchParams.get('seed'), 0),
+    });
+
+    return NextResponse.json({ items }, {
+      headers: {
+        'Cache-Control': includeAdultContent
+          ? 'private, max-age=120'
+          : 'public, s-maxage=600, stale-while-revalidate=3600',
+      }
+    });
+  }
 
   const baseShelves = await getHomeData(lang, { includeAdultContent });
 

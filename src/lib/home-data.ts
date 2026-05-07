@@ -17,6 +17,8 @@ import {
 
 const safeText = (value: unknown, fallback = '') => typeof value === 'string' && value.trim() ? value : fallback;
 const FETCH_TIMEOUT_MS = 7000;
+export const MANGADEX_ROMANCE_TAG_ID = '423e2eae-a7a2-4a8b-ac03-a8351462d71d';
+export const MANGADEX_FANTASY_TAG_ID = 'cdc58593-87dd-415e-bbc0-2ec27bf404cc';
 
 type MangaDexApiItem = {
   id: string;
@@ -25,6 +27,8 @@ type MangaDexApiItem = {
     title?: Record<string, string | undefined> | null;
     description?: Record<string, string | undefined> | null;
     status?: string | null;
+    contentRating?: string | null;
+    tags?: Array<{ attributes?: { name?: Record<string, string | undefined> | null } | null }> | null;
   } | null;
 };
 
@@ -55,6 +59,10 @@ async function loadMangaDex(params: URLSearchParams, lang: MangaLanguage, fallba
 
     return items.map((item: MangaDexApiItem) => {
       const coverFileName = pickMangaDexCoverFileName(item.relationships);
+      const genres = (item.attributes?.tags || [])
+        .map((tag) => resolveMangaDexLocalizedText(tag.attributes?.name, lang) || tag.attributes?.name?.en)
+        .filter((name): name is string => Boolean(name));
+
       return {
         id: item.id,
         title: resolveMangaDexLocalizedText(item.attributes?.title, lang) || safeText(Object.values(item.attributes?.title || {})[0], 'Untitled'),
@@ -63,7 +71,8 @@ async function loadMangaDex(params: URLSearchParams, lang: MangaLanguage, fallba
         source: 'mangadex' as const,
         href: `/library/mangadex/${item.id}`,
         meta: item.attributes?.status?.toUpperCase() || 'MANGA',
-        rating: (Math.random() * 2 + 3).toFixed(1),
+        rating: item.attributes?.contentRating || 'safe',
+        genres,
       };
     }).filter((c: { id: string; title: string }) => c.id && c.title);
   };
@@ -123,6 +132,90 @@ type HomeDataOptions = {
   includeAdultContent?: boolean;
 };
 
+type HomeFeedOptions = HomeDataOptions & {
+  page?: number;
+  seed?: number;
+};
+
+const createMangaDexParams = (
+  limit: number,
+  offset: number,
+  order: 'popular' | 'latest',
+  filters: Parameters<typeof appendMangaDexFilters>[1],
+) => {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(Math.max(0, offset)),
+  });
+  params.append('includes[]', 'cover_art');
+  params.set(order === 'popular' ? 'order[followedCount]' : 'order[createdAt]', 'desc');
+  appendMangaDexFilters(params, filters);
+  return params;
+};
+
+const withoutTranslatedLanguage = (params: URLSearchParams) => {
+  const fallback = new URLSearchParams(params);
+  fallback.delete('availableTranslatedLanguage[]');
+  return fallback;
+};
+
+const dedupeBySourceId = <T extends { source: string; id: string }>(items: T[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.source}:${item.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+export async function getHomeFeed(lang: MangaLanguage = 'en', options: HomeFeedOptions = {}) {
+  const page = Math.max(0, Number(options.page || 0));
+  const seed = Math.max(0, Number(options.seed || 0));
+  const includeAdultContent = options.includeAdultContent ?? false;
+  const limit = 16;
+  const offset = page * limit + (seed % 5);
+  const filters = {
+    contentRatings: ['safe', 'suggestive'],
+    translatedLanguages: getMangaDexTranslatedLanguages(lang),
+  };
+
+  const romanceParams = createMangaDexParams(8, offset, page % 2 === 0 ? 'popular' : 'latest', {
+    ...filters,
+    includedTagIds: [MANGADEX_ROMANCE_TAG_ID],
+  });
+  const fantasyParams = createMangaDexParams(8, offset, page % 2 === 0 ? 'popular' : 'latest', {
+    ...filters,
+    includedTagIds: [MANGADEX_FANTASY_TAG_ID],
+  });
+  const popularParams = createMangaDexParams(8, offset, 'popular', filters);
+  const latestParams = createMangaDexParams(8, offset, 'latest', filters);
+
+  const adultPromise = includeAdultContent && page >= 2
+    ? loadNHentaiShelf(page % 2 === 0 ? 'romance' : 'fantasy', 8)
+    : Promise.resolve([]);
+
+  const [romance, fantasy, popular, latest, adult] = await Promise.all([
+    loadMangaDex(romanceParams, lang, withoutTranslatedLanguage(romanceParams)),
+    loadMangaDex(fantasyParams, lang, withoutTranslatedLanguage(fantasyParams)),
+    loadMangaDex(popularParams, lang, withoutTranslatedLanguage(popularParams)),
+    loadMangaDex(latestParams, lang, withoutTranslatedLanguage(latestParams)),
+    adultPromise,
+  ]);
+
+  const safeItems = dedupeBySourceId([
+    ...romance,
+    ...fantasy,
+    ...popular,
+    ...latest,
+  ]).slice(0, includeAdultContent && page >= 2 ? 20 : 28);
+
+  return dedupeBySourceId([
+    ...safeItems,
+    ...adult.slice(0, 8),
+  ]).slice(0, 28);
+}
+
 export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataOptions = {}) {
   const includeAdultContent = options.includeAdultContent ?? false;
   const filters = {
@@ -155,6 +248,18 @@ export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataO
   const latestFallbackParams = new URLSearchParams(latestParams);
   latestFallbackParams.delete('availableTranslatedLanguage[]');
 
+  const romanceParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  romanceParams.append('includes[]', 'cover_art');
+  appendMangaDexFilters(romanceParams, { ...filters, includedTagIds: [MANGADEX_ROMANCE_TAG_ID] });
+  const romanceFallbackParams = new URLSearchParams(romanceParams);
+  romanceFallbackParams.delete('availableTranslatedLanguage[]');
+
+  const fantasyParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  fantasyParams.append('includes[]', 'cover_art');
+  appendMangaDexFilters(fantasyParams, { ...filters, includedTagIds: [MANGADEX_FANTASY_TAG_ID] });
+  const fantasyFallbackParams = new URLSearchParams(fantasyParams);
+  fantasyFallbackParams.delete('availableTranslatedLanguage[]');
+
   const adultShelves = includeAdultContent
     ? [
         loadNHentaiShelf('doujinshi', 12),
@@ -163,7 +268,9 @@ export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataO
       ]
     : [Promise.resolve([]), Promise.resolve([]), Promise.resolve([])];
 
-  const [manga, webtoons, manhwa, doujinshi, milf, ntr, trending, latest] = await Promise.all([
+  const [romance, fantasy, manga, webtoons, manhwa, doujinshi, milf, ntr, trending, latest] = await Promise.all([
+    loadMangaDex(romanceParams, lang, romanceFallbackParams),
+    loadMangaDex(fantasyParams, lang, fantasyFallbackParams),
     loadMangaDex(mangaParams, lang, mangaFallbackParams),
     loadMangaDex(webtoonsParams, lang, webtoonsFallbackParams),
     loadMangaDex(manhwaParams, lang, manhwaFallbackParams),
@@ -196,6 +303,8 @@ export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataO
 
   return {
     'trending': trending,
+    'romance': romance,
+    'fantasy': fantasy,
     'manga-hub': manga,
     'new': latest,
     'doujinshi': doujinshi,

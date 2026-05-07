@@ -76,7 +76,7 @@ export default function AgeGateOverlay({
 
         <div className="mt-8 pt-8 border-t border-white/5">
           <div className="text-[8px] font-black uppercase tracking-[0.5em] text-white/10">
-            Neural_Verification_Required
+            Age verification required
           </div>
         </div>
       </motion.div>
