@@ -74,7 +74,13 @@ body.studio-light {
   box-shadow: 
     0 20px 80px rgba(0, 0, 0, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 640px) {
+  .glass-panel {
+    backdrop-filter: blur(24px);
+  }
 }
 
 .soft-panel {

@@ -607,20 +607,20 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                 className="relative w-full"
               >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-20">
-                  {/* Glass Backdrop Container */}
-                  <div className="relative group overflow-hidden rounded-[3rem] border border-white/10 bg-[#0a0c14]/40 p-6 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.7)] backdrop-blur-[60px] sm:p-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:grid lg:items-center lg:gap-12 lg:p-14">
+                  {/* Glass Backdrop Container - Reduced blur on mobile for performance */}
+                  <div className="relative group overflow-hidden rounded-[3rem] border border-white/10 bg-[#0a0c14]/40 p-6 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:backdrop-blur-[60px] sm:p-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:grid lg:items-center lg:gap-12 lg:p-14">
                     
                     {/* Atmospheric Glows */}
                     <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#ff5a1f]/15 blur-[120px] opacity-60 group-hover:opacity-100 transition-opacity duration-1000" />
                     <div className="absolute -right-20 -bottom-20 h-96 w-96 rounded-full bg-[#ffd36b]/10 blur-[120px] opacity-40 group-hover:opacity-80 transition-opacity duration-1000" />
                     
                     {/* Content Left Side */}
-                    <div className="relative z-10 space-y-8 lg:pr-6">
+                    <div className="space-y-6 sm:space-y-8 lg:max-w-[90%] relative z-20">
                       <motion.div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="flex flex-wrap items-center gap-4"
+                        className="flex items-center gap-3"
                       >
                         <div className="flex items-center gap-2 rounded-full border border-[#ff5a1f]/30 bg-[#ff5a1f]/10 px-4 py-1.5 backdrop-blur-md">
                           <Flame size={12} className="text-[#ff5a1f] animate-pulse" />
@@ -628,13 +628,6 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                             Trending Now
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-md">
-                          <Star size={12} fill="#ffd36b" className="text-[#ffd36b]" />
-                          <span className="text-[11px] font-black text-white">{featuredComic.rating}</span>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30 hidden sm:block">
-                          {activeShelfCount} Narratives Available
-                        </span>
                       </motion.div>
 
                       {/* Mobile Image (Visible only on mobile) */}
@@ -649,7 +642,8 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                             src={featuredImageSrc}
                             alt={featuredComic.title}
                             fill
-                            priority
+                            priority={true}
+                            sizes="(max-width: 1024px) 100vw, 400px"
                             unoptimized
                             className={featuredHasBanner ? 'object-cover' : 'object-contain bg-black p-6'}
                           />
@@ -662,9 +656,10 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                           initial={{ y: 30, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.3, duration: 0.8 }}
-                          className="text-display max-w-[15ch] text-5xl leading-[0.85] sm:text-7xl lg:text-8xl xl:text-9xl tracking-tighter"
                         >
-                          {featuredComic.title}
+                          <h1 className="text-display text-4xl leading-[1] sm:text-6xl lg:text-7xl xl:text-7xl text-white drop-shadow-2xl">
+                            {featuredComic.title}
+                          </h1>
                         </motion.h1>
 
                         <motion.p
@@ -694,19 +689,20 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                         </button>
                       </motion.div>
 
-                      <div className="grid gap-4 sm:grid-cols-3 pt-6">
+                      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 pt-4 sm:pt-6">
                         {[
                           { label: 'Status', value: shelfState[activeTab]?.loading ? 'Updating...' : 'Live' },
                           { label: 'Library', value: `${activeShelfCount} Titles` },
-                          { label: 'Curation', value: activeTab.replace('-', ' ') }
+                          { label: 'Curation', value: activeTab.replace('-', ' '), hideOnMobile: true }
                         ].map((stat, i) => (
-                          <div key={i} className="group rounded-[2rem] border border-white/5 bg-white/[0.03] px-6 py-5 transition-all hover:bg-white/[0.06] hover:border-white/10">
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 group-hover:text-[#ff5a1f] transition-colors">{stat.label}</p>
-                            <p className="mt-2 text-sm font-black uppercase tracking-tight text-white/80">{stat.value}</p>
+                          <div key={i} className={`group rounded-[1.5rem] sm:rounded-[2rem] border border-white/5 bg-white/[0.03] px-4 py-4 sm:px-6 sm:py-5 transition-all hover:bg-white/[0.06] hover:border-white/10 ${stat.hideOnMobile ? 'hidden sm:block' : ''}`}>
+                            <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/20 group-hover:text-[#ff5a1f] transition-colors">{stat.label}</p>
+                            <p className="mt-1 sm:mt-2 text-[10px] sm:text-sm font-black uppercase tracking-tight text-white/80">{stat.value}</p>
                           </div>
                         ))}
                       </div>
                     </div>
+
 
                     {/* Featured Image Right Side (Desktop) */}
                     <div className="hidden lg:block relative perspective-container">
@@ -842,62 +838,62 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
 
         {!hasPersonalLibrary && (
           <section className="relative z-20 container mx-auto px-4 sm:px-6 md:px-8 pb-20">
-            <div className="mx-auto max-w-6xl overflow-hidden rounded-[3.5rem] border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent p-1 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-3xl">
+            <div className="mx-auto max-w-6xl overflow-hidden rounded-[3.5rem] border border-white/10 bg-gradient-to-br from-white/[0.03] to-transparent p-1 shadow-[0_40px_100px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:backdrop-blur-3xl">
               <div className="relative overflow-hidden rounded-[3.4rem] bg-[#0a0c14]/60 p-8 sm:p-12 md:p-16">
                 
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                      style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
                 
-                <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr_400px] lg:items-center">
-                  <div className="space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#ff5a1f]">
-                        <Sparkles size={24} />
+                <div className="relative z-10 grid gap-8 sm:gap-12 lg:grid-cols-[1fr_400px] lg:items-center">
+                  <div className="space-y-6 sm:space-y-8">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#ff5a1f]">
+                        <Sparkles size={20} className="sm:w-6 sm:h-6" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">Initialize Your Experience</p>
-                        <h2 className="mt-2 text-4xl font-black uppercase tracking-tighter leading-[0.9] sm:text-6xl md:text-7xl text-white">
-                          Your Library <br /> <span className="text-white/20">Awaits Discovery</span>
+                        <h2 className="text-3xl font-black uppercase tracking-tighter leading-[1] sm:text-6xl md:text-7xl text-white">
+                          Your Library <br /> <span className="text-white/20 text-2xl sm:text-5xl md:text-6xl">Awaits Discovery</span>
                         </h2>
                       </div>
                     </div>
                     
-                    <p className="max-w-2xl text-lg leading-relaxed text-white/40 font-medium">
+                    <p className="max-w-2xl text-sm sm:text-lg leading-relaxed text-white/40 font-medium">
                       Unlock a personalized sanctuary for your narrative journey. Start reading any title to automatically track progress, sync bookmarks across devices, and receive AI-curated recommendations tailored to your taste.
                     </p>
                     
-                    <div className="flex flex-wrap gap-6 pt-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-[#ffca3a] shadow-[0_0_10px_#ffca3a]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Live Sync</span>
+                    <div className="flex flex-wrap gap-4 sm:gap-6 pt-2 sm:pt-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#ffca3a] shadow-[0_0_10px_#ffca3a]" />
+                        <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white/60">Live Sync</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Progress Tracking</span>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
+                        <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white/60">Tracking</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_#06b6d4]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-white/60">Smart Bookmarks</span>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_#06b6d4]" />
+                        <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white/60">Bookmarks</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <Link href="/library" className="group block relative overflow-hidden rounded-3xl border border-[#ff5a1f]/40 bg-[#ff5a1f] p-8 text-center transition-all hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_rgba(255,90,31,0.2)]">
+                  <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    <Link href="/library" className="group block relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ff5a1f]/40 bg-[#ff5a1f] p-6 sm:p-8 text-center transition-all hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_rgba(255,90,31,0.2)]">
                       <div className="relative z-10">
-                        <div className="text-[11px] font-black uppercase tracking-[0.5em] text-white/60 group-hover:text-white transition-colors">Phase One</div>
-                        <div className="mt-3 text-2xl font-black uppercase tracking-widest text-white">Explore Library</div>
+                        <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] text-white/60 group-hover:text-white transition-colors">Phase One</div>
+                        <div className="mt-2 sm:mt-3 text-lg sm:text-2xl font-black uppercase tracking-widest text-white">Explore Library</div>
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     </Link>
 
-                    <Link href="/settings" className="group block rounded-3xl border border-white/5 bg-white/5 p-8 text-center transition-all hover:bg-white/10 hover:border-white/20 active:scale-95">
-                      <div className="text-[11px] font-black uppercase tracking-[0.5em] text-white/30 group-hover:text-white/50 transition-colors">Phase Two</div>
-                      <div className="mt-3 text-2xl font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">Setup Preferences</div>
+                    <Link href="/settings" className="group block rounded-2xl sm:rounded-3xl border border-white/5 bg-white/5 p-6 sm:p-8 text-center transition-all hover:bg-white/10 hover:border-white/20 active:scale-95">
+                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] text-white/30 group-hover:text-white/50 transition-colors">Phase Two</div>
+                      <div className="mt-2 sm:mt-3 text-lg sm:text-2xl font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-colors">Preferences</div>
                     </Link>
                   </div>
                 </div>
+
               </div>
             </div>
           </section>
@@ -911,12 +907,6 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
 
             {/* 1. Category Navigation Layer */}
             <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4 px-4">
-                <div className="h-1 w-1 rounded-full bg-[#ff5a1f]" />
-                <span className="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.6em] text-white/40">01_Archive_Matrix</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-              </div>
-
               <div className="flex items-center gap-3 p-2 bg-white/[0.02] border border-white/5 rounded-[3rem] backdrop-blur-3xl overflow-x-auto no-scrollbar shadow-2xl">
                 {visibleShelves.map((shelf) => (
                   <button
@@ -946,12 +936,6 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
 
             {/* 2. Reading Preference Layer */}
             <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4 px-4">
-                <div className="h-1 w-1 rounded-full bg-cyan-500" />
-                <span className="text-[11px] font-black uppercase tracking-[0.6em] text-white/40">02_Linguistic_Sync</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-              </div>
-
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
                 <div className="group relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-2 backdrop-blur-2xl transition-all hover:bg-white/[0.04] hover:border-white/10 shadow-xl">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
@@ -1080,7 +1064,7 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                                     src={comic.coverUrl}
                                     alt={comic.title}
                                     fill
-                                    unoptimized
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px"
                                     className={`object-cover transition-all duration-1000 ${
                                       adultContent && !isPreviewOpen ? 'scale-110 blur-[8px]' : 'scale-100'
                                     } group-hover:scale-115 group-hover:blur-0`}
@@ -1173,10 +1157,10 @@ export default function HomeClient({ initialData, initialAgeVerified = false }: 
                           src={comic.coverUrl || '/logo.png'}
                           alt={comic.title}
                           fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                           className={`object-cover transition-all duration-1000 ${
                             adultContent && !isPreviewOpen ? 'scale-110 blur-[10px]' : 'scale-100'
                           } group-hover:scale-115 group-hover:blur-0`}
-                          unoptimized
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
                         

@@ -222,7 +222,7 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="glass-panel absolute left-0 right-0 top-full mt-4 space-y-8 rounded-3xl p-5 shadow-2xl lg:hidden max-md:mt-2 max-md:p-4"
+            className="glass-panel absolute left-0 right-0 top-full mt-4 space-y-8 rounded-3xl p-5 shadow-2xl lg:hidden max-md:mt-2 max-md:p-4 backdrop-blur-md"
           >
             <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
