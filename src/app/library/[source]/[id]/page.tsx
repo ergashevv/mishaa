@@ -7,6 +7,7 @@ import ComicDetailsClient from './ComicDetailsClient';
 import { getComicDetails as getComicDetailsAction, getChapters } from '@/actions/comic';
 import { fetchAniListManga } from '@/lib/anilist';
 import { cacheMangaDexIdResolution, getCachedMangaDexIdResolution, isMangaDexUuid, resolveMangaDexIdFromTitle } from '@/lib/mangadex';
+import { buildComicOpenGraphImage, getPublicSiteUrl } from '@/lib/og-metadata';
 
 const getComicDetails = cache(getComicDetailsAction);
 
@@ -62,7 +63,8 @@ type ComicSeoData = {
   };
 };
 
-const DEFAULT_DESCRIPTION = 'The ultimate synthesis environment for independent comic creators.';
+const DEFAULT_DESCRIPTION =
+  'Read manga, manhwa, and comics online — chapters, ratings, and official-style catalog pages on iComics.wiki.';
 
 export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
   const { source, id } = await params;
@@ -70,43 +72,64 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   const resolved = source !== 'mangadex' || isMangaDexUuid(id) || resolvedId !== id;
 
   if (source === 'mangadex' && !resolved) {
+    const siteUrl = getPublicSiteUrl();
     return {
+      metadataBase: new URL(siteUrl),
       title: 'Manga Library',
       description: 'Browse the manga catalog and open a title from the library.',
+      openGraph: {
+        title: 'Manga Library',
+        description: 'Browse the manga catalog and open a title from the library.',
+        url: `${siteUrl}/library/${source}/${id}`,
+        siteName: 'iComics.wiki',
+        images: [{ url: `${siteUrl}/logo.png`, width: 512, height: 512, alt: 'iComics.wiki' }],
+      },
       alternates: {
-        canonical: `https://icomics.wiki/library/${source}/${id}`,
+        canonical: `${siteUrl}/library/${source}/${id}`,
       },
     };
   }
 
   const comic = (await getComicDetails(source, resolvedId)) as ComicSeoData | null;
-  
+
+  const siteUrl = getPublicSiteUrl();
+  const canonicalUrl = `${siteUrl}/library/${source}/${resolvedId}`;
+
   const type = source === 'mangadex' ? 'Manga' : source === 'marvel' ? 'Comic' : 'Webtoon';
-  
+
   // Big Data Enrichment for SEO
   const aniList = comic?.aniListData;
   const jikan = comic?.jikanData;
-  
-  const ratingText = aniList?.averageScore ? `Rated ${aniList.averageScore}/100` : jikan?.score ? `Rated ${jikan.score}/10` : '';
-  const title = comic?.title 
-    ? `Read ${comic.title} ${type} Online ${ratingText ? `- ${ratingText}` : ''}` 
+
+  const ratingText = aniList?.averageScore
+    ? `Rated ${aniList.averageScore}/100`
+    : jikan?.score
+      ? `Rated ${jikan.score}/10`
+      : '';
+  const title = comic?.title
+    ? `Read ${comic.title} ${type} Online ${ratingText ? `- ${ratingText}` : ''}`
     : 'Digital Comic Archive';
-    
+
   // Combine descriptions for maximum SEO density
   const baseDescription = comic?.description || '';
   const aniDescription = aniList?.description?.replace(/<[^>]*>/g, '') || '';
-  const finalDescription = `${baseDescription} ${aniDescription}`.slice(0, 160).trim() || DEFAULT_DESCRIPTION;
+  const finalDescription =
+    `${baseDescription} ${aniDescription}`.slice(0, 160).trim() || DEFAULT_DESCRIPTION;
 
-  const image = comic?.coverUrl || '/logo.png';
+  const ogImage = buildComicOpenGraphImage(comic?.coverUrl, siteUrl, comic?.title);
 
   return {
+    metadataBase: new URL(siteUrl),
     title,
     description: finalDescription,
     openGraph: {
       title,
       description: finalDescription,
+      url: canonicalUrl,
+      siteName: 'iComics.wiki',
+      locale: 'en_US',
       type: 'article',
-      images: [{ url: image }],
+      images: [ogImage],
       section: type,
       tags: comic?.genres || [type, 'Comics', 'Reading'],
     },
@@ -114,11 +137,11 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
       card: 'summary_large_image',
       title,
       description: finalDescription,
-      images: [image],
+      images: [ogImage.url],
     },
     alternates: {
-      canonical: `https://icomics.wiki/library/${source}/${resolvedId}`,
-    }
+      canonical: canonicalUrl,
+    },
   };
 }
 

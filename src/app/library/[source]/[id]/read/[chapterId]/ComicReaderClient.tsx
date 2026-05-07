@@ -10,7 +10,8 @@ import {
   ChevronUp,
   Columns, List, ExternalLink,
   Maximize2, Minimize2,
-  ChevronDown
+  ChevronDown,
+  BookOpen,
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -869,10 +870,46 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
   if (metadataLoading) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <Loader2 className="w-12 h-12 text-[#ff4d00] animate-spin" />
-          <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-white/20">Loading comic...</div>
+      <div className="relative min-h-screen overflow-hidden bg-[#020202] flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0">
+          <motion.div
+            className="absolute left-1/2 top-1/3 h-[min(100vmin,28rem)] w-[min(100vmin,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff4d00]/15 blur-[120px]"
+            animate={{ opacity: [0.25, 0.55, 0.25], scale: [1, 1.12, 1] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <div
+            className="absolute inset-0 opacity-[0.05]"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.9) 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+            }}
+          />
+        </div>
+        <div className="relative z-10 flex flex-col items-center gap-8 px-6">
+          <div className="relative flex h-36 w-36 items-center justify-center">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
+              className="absolute inset-0 rounded-2xl border border-[#ff4d00]/20"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], opacity: [0.35, 0.85, 0.35] }}
+              transition={{ duration: 2.4, repeat: Infinity }}
+              className="absolute inset-4 rounded-xl bg-[#ff4d00]/10 blur-xl"
+            />
+            <BookOpen className="relative z-10 h-12 w-12 text-[#ff4d00]" strokeWidth={1.25} />
+          </div>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <Loader2 className="h-5 w-5 text-[#ff4d00]/60 animate-spin" aria-hidden />
+            <p className="text-[11px] font-black uppercase tracking-[0.55em] text-white/90">Preparing library</p>
+            <motion.div
+              className="h-0.5 w-28 rounded-full bg-gradient-to-r from-transparent via-[#ff4d00] to-transparent"
+              animate={{ opacity: [0.35, 1, 0.35], scaleX: [0.75, 1, 0.75] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+            />
+            <p className="text-[9px] font-bold uppercase tracking-[0.45em] text-white/30">Catalog & chapters</p>
+          </div>
         </div>
       </div>
     );
@@ -919,27 +956,121 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[10050] bg-[#020202] flex flex-col items-center justify-center overflow-hidden"
+              transition={{ duration: 0.35 }}
+              className="fixed inset-0 z-[10050] flex flex-col items-center justify-center overflow-hidden bg-[#020202]"
               role="status"
               aria-live="polite"
+              aria-busy="true"
             >
-              <div className="relative w-40 h-40 flex items-center justify-center mb-12">
-                 <motion.div 
-                   animate={{ rotate: 360 }}
-                   transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                   className="absolute inset-0 border-[1px] border-[#ff4d00]/20 rounded-xl"
-                 />
-                 <motion.div 
-                   animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="w-16 h-16 bg-gradient-to-br from-[#ff4d00] to-[#ff9000] rounded-sm rotate-45 shadow-[0_0_40px_rgba(255,77,0,0.4)]"
-                 />
+              <div className="pointer-events-none absolute inset-0">
+                <motion.div
+                  className="absolute -left-[20%] top-[10%] h-[min(90vmin,32rem)] w-[min(90vmin,32rem)] rounded-full bg-[#ff4d00]/18 blur-[110px]"
+                  animate={{ opacity: [0.35, 0.7, 0.35], x: [0, 12, 0] }}
+                  transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <motion.div
+                  className="absolute -right-[25%] bottom-0 h-[min(80vmin,26rem)] w-[min(80vmin,26rem)] rounded-full bg-orange-400/10 blur-[100px]"
+                  animate={{ opacity: [0.2, 0.5, 0.2] }}
+                  transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <div
+                  className="absolute inset-0 opacity-[0.045]"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(to right, rgba(255,255,255,0.85) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.85) 1px, transparent 1px)',
+                    backgroundSize: '44px 44px',
+                  }}
+                />
+                <div
+                  className="absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.14) 1px, transparent 1px)',
+                    backgroundSize: '10px 10px',
+                  }}
+                />
               </div>
-              <div className="text-center relative z-10 space-y-2">
-                <div className="text-[12px] font-bold uppercase tracking-[1.2em] text-white pl-[1.2em]">Opening chapter...</div>
-                <div className="text-[9px] font-bold uppercase tracking-[0.6em] text-[#ff4d00]/50">
-                   Ch.{chapters[currentChapterIdx]?.chapterNum || '–'}
+
+              {/* Manga-style focus brackets */}
+              <div className="relative mb-14 flex h-[min(52vmin,13.5rem)] w-[min(82vmin,21rem)] items-center justify-center">
+                {(
+                  [
+                    'left-0 top-0 border-l-2 border-t-2 rounded-tl-md',
+                    'right-0 top-0 border-r-2 border-t-2 rounded-tr-md',
+                    'left-0 bottom-0 border-l-2 border-b-2 rounded-bl-md',
+                    'right-0 bottom-0 border-r-2 border-b-2 rounded-br-md',
+                  ] as const
+                ).map((cornerClass, i) => (
+                  <motion.span
+                    key={i}
+                    className={`pointer-events-none absolute h-9 w-9 border-[#ff4d00]/90 ${cornerClass}`}
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: [0.4, 1, 0.4], scale: [0.96, 1.02, 0.96] }}
+                    transition={{
+                      opacity: { delay: i * 0.1, duration: 0.35 },
+                      duration: 2.8,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                ))}
+
+                {/* Stacked “panels” */}
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-lg border border-white/12 bg-zinc-950/80 shadow-2xl backdrop-blur-[2px]"
+                    style={{
+                      width: `${78 - i * 9}%`,
+                      height: `${88 - i * 7}%`,
+                      zIndex: i,
+                    }}
+                    initial={{ opacity: 0, y: 16, rotate: -3.5 + i * 1.2 }}
+                    animate={{
+                      opacity: 0.55 - i * 0.14,
+                      y: [0, -3 - i, 0],
+                      rotate: -3.5 + i * 1.2,
+                    }}
+                    transition={{
+                      opacity: { delay: 0.15 + i * 0.1, duration: 0.45 },
+                      y: { duration: 2.8 + i * 0.35, repeat: Infinity, ease: 'easeInOut' },
+                    }}
+                  />
+                ))}
+
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+                  className="absolute inset-[18%] rounded-2xl border border-[#ff4d00]/15"
+                />
+                <motion.div
+                  animate={{ scale: [1, 1.06, 1], opacity: [0.55, 1, 0.55] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="relative z-20 flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-md bg-gradient-to-br from-[#ff4d00] to-[#ff9000] rotate-45 shadow-[0_0_48px_rgba(255,77,0,0.45)]"
+                >
+                  <BookOpen className="h-7 w-7 -rotate-45 text-white/95" strokeWidth={1.35} aria-hidden />
+                </motion.div>
+              </div>
+
+              <div className="relative z-10 flex max-w-[min(92vw,24rem)] flex-col items-center gap-4 px-6 text-center">
+                <p className="line-clamp-2 text-[10px] font-bold uppercase tracking-[0.35em] text-white/45">
+                  {comic.title}
+                </p>
+                <div className="space-y-2">
+                  <h2 className="text-[11px] font-black uppercase tracking-[0.65em] text-white md:text-[12px]">
+                    Opening chapter
+                  </h2>
+                  <motion.div
+                    className="mx-auto h-0.5 max-w-[10rem] rounded-full bg-gradient-to-r from-transparent via-[#ff4d00] to-transparent"
+                    animate={{ opacity: [0.4, 1, 0.4], scaleX: [0.85, 1, 0.85] }}
+                    transition={{ duration: 1.8, repeat: Infinity }}
+                  />
                 </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.75em] text-[#ff4d00]">
+                  Ch. {chapters[currentChapterIdx]?.chapterNum || '–'}
+                </p>
+                <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-white/25">
+                  Decoding spreads · hang tight
+                </p>
               </div>
             </motion.div>
           )}
