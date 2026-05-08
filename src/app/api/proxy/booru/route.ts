@@ -5,6 +5,7 @@ import {
   BooruSource,
   normalizeBooruQuery,
 } from '@/lib/booru';
+import { isBooruLibrarySource } from '@/lib/comic-sources';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +21,8 @@ function parsePageIndex(params: URLSearchParams) {
   return Number.isFinite(raw) && raw > 0 ? raw : 0;
 }
 
-function isBooruSource(value: string | null): value is BooruSource {
-  return value === 'e621' || value === 'danbooru' || value === 'gelbooru' || value === 'rule34';
+function isBooruSourceParam(value: string | null): value is BooruSource {
+  return value !== null && isBooruLibrarySource(value);
 }
 
 function buildUrl(source: BooruSource, kind: 'search' | 'post', params: URLSearchParams) {
@@ -98,7 +99,7 @@ export async function GET(req: NextRequest) {
   const sourceParam = searchParams.get('source');
   const kind = searchParams.get('kind') as 'search' | 'post' | null;
 
-  if (!isBooruSource(sourceParam) || (kind !== 'search' && kind !== 'post')) {
+  if (!isBooruSourceParam(sourceParam) || (kind !== 'search' && kind !== 'post')) {
     return NextResponse.json({ error: 'Invalid booru request' }, { status: 400 });
   }
 

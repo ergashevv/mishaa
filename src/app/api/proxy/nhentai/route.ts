@@ -1,13 +1,18 @@
-export const runtime = "edge";
+export const runtime = 'edge';
 import { NextRequest, NextResponse } from 'next/server';
 import { AGE_VERIFICATION_COOKIE } from '@/lib/age-verification';
+import {
+  NHENTAI_API_MIRRORS,
+  NHENTAI_JSON_HEADERS,
+  isAllowedNHentaiProxyApiPath,
+} from '@/lib/nhentai';
 
 export async function GET(req: NextRequest) {
   const ageVerified = req.cookies.get(AGE_VERIFICATION_COOKIE)?.value === 'true';
   if (!ageVerified) {
     return NextResponse.json(
       { error: 'Age verification required', code: 'AGE_VERIFICATION_REQUIRED' },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -18,24 +23,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Path is required' }, { status: 400 });
   }
 
-  // Common headers to mimic a browser
-  const headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'application/json',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Referer': 'https://nhentai.net/',
-  };
+  if (!isAllowedNHentaiProxyApiPath(path)) {
+    return NextResponse.json({ error: 'Invalid nHentai API path' }, { status: 400 });
+  }
 
   const apiPaths = path.startsWith('v2/')
     ? [path, path.replace(/^v2\//, '')]
     : [path, `v2/${path}`];
-  const mirrors = ['nhentai.net', 'nhentai.to', 'nhentai.xxx'];
 
   try {
-    for (const mirror of mirrors) {
+    for (const mirror of NHENTAI_API_MIRRORS) {
       for (const apiPath of apiPaths) {
         const targetUrl = `https://${mirror}/api/${apiPath}`;
-        const res = await fetch(targetUrl, { headers, next: { revalidate: 3600 }, signal: AbortSignal.timeout(8000) });
+        const res = await fetch(targetUrl, {
+          headers: NHENTAI_JSON_HEADERS,
+          next: { revalidate: 3600 },
+          signal: AbortSignal.timeout(8000),
+        });
 
         if (!res.ok) {
           console.warn(`nhentai mirror ${mirror} returned ${res.status} for ${apiPath}`);

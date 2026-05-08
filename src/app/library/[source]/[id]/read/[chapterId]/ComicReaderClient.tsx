@@ -15,9 +15,6 @@ import {
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
-import {
-  BooruSource,
-} from '@/lib/booru';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
 import { readReadingHistory, upsertReadingHistory } from '@/lib/library-storage';
@@ -29,46 +26,18 @@ import {
 } from '@/lib/manga-language';
 import { calculateReadingProgressPercent, deriveReadingProgressStatus } from '@/lib/reading-progress';
 import { getChapterPages, getComicDetails, getChapters } from '@/actions/comic';
+import { isRestrictedLibrarySource } from '@/lib/comic-sources';
+import type { ComicChapter, ComicDetail } from '@/lib/comic-types';
 import Image from 'next/image';
 
-interface Chapter {
-  id: string;
-  title: string;
-  chapterNum: string;
-  volume?: string;
-  externalUrl?: string;
-}
-
-interface ComicDetails {
-  id: string;
-  title: string;
-  description: string;
-  coverUrl: string;
-  bannerUrl?: string;
-  rating: string;
-  genres: string[];
-  status: string;
-  year?: string;
-  author?: string;
-  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | 'superhero' | BooruSource;
-  aniListId?: string;
-  malId?: string | number;
-  aniListData?: any;
-  jikanData?: any;
-  superheroData?: any;
-}
-
 interface ComicReaderClientProps {
-  initialComic: ComicDetails | null;
-  initialChapters?: Chapter[];
+  initialComic: ComicDetail | null;
+  initialChapters?: ComicChapter[];
   source: string;
   id: string;
   chapterId: string;
   initialAgeVerified?: boolean;
 }
-
-const RESTRICTED_SOURCES = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
-const isRestrictedSource = (value: string) => RESTRICTED_SOURCES.has(value.toLowerCase());
 
 type ReaderTheme = 'dark' | 'light' | 'sepia';
 
@@ -192,8 +161,8 @@ const getReaderLookaheadIndices = (
 export default function ComicReaderClient({ initialComic, initialChapters, source, id, chapterId, initialAgeVerified = false }: ComicReaderClientProps) {
   const router = useRouter();
   
-  const [comic, setComic] = useState<ComicDetails | null>(initialComic);
-  const [chapters, setChapters] = useState<Chapter[]>(initialChapters || []);
+  const [comic, setComic] = useState<ComicDetail | null>(initialComic);
+  const [chapters, setChapters] = useState<ComicChapter[]>(initialChapters || []);
   const [metadataLoading, setMetadataLoading] = useState(() => !initialComic || (initialChapters?.length || 0) === 0);
   
   const initialChapterIdx = chapters.findIndex(c => c.id === chapterId);
@@ -234,7 +203,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const touchStartRef = useRef({ x: 0, y: 0 });
   const progressSaveAbortRef = useRef<AbortController | null>(null);
 
-  const restrictedSource = isRestrictedSource(source);
+  const restrictedSource = isRestrictedLibrarySource(source);
 
   useEffect(() => {
     const initialMobile = window.innerWidth < 768;
@@ -327,10 +296,10 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
         if (cancelled) return;
         if (comicData) {
-          setComic(comicData as ComicDetails);
+          setComic(comicData);
         }
         if (chapterData) {
-          const nextChapters = chapterData as Chapter[];
+          const nextChapters = chapterData;
           setChapters(nextChapters);
           const matchedIdx = nextChapters.findIndex((chapter) => chapter.id === chapterId);
           setCurrentChapterIdx(matchedIdx >= 0 ? matchedIdx : 0);
@@ -408,11 +377,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     return `${String(source)}:${String(id)}:${chapId}`;
   }, [id, source]);
 
-  const buildChapterPages = useCallback(async (chapter: Chapter) => {
+  const buildChapterPages = useCallback(async (chapter: ComicChapter) => {
     return getChapterPages(source as string, id as string, chapter.id);
   }, [id, source]);
 
-  const ensureChapterPages = useCallback(async (chapter: Chapter) => {
+  const ensureChapterPages = useCallback(async (chapter: ComicChapter) => {
     const cacheKey = getChapterCacheKey(chapter.id);
     const inMem = chapterPageCacheRef.current.get(cacheKey);
     if (inMem) return inMem;

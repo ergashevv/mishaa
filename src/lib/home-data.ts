@@ -13,6 +13,7 @@ import {
   resolveMangaDexLocalizedText, 
   MangaLanguage 
 } from "@/lib/manga-language";
+import { NHENTAI_API_MIRRORS, NHENTAI_JSON_HEADERS } from '@/lib/nhentai';
 
 
 const safeText = (value: unknown, fallback = '') => typeof value === 'string' && value.trim() ? value : fallback;
@@ -90,16 +91,11 @@ async function loadMangaDex(params: URLSearchParams, lang: MangaLanguage, fallba
 
 async function loadNHentaiShelf(query: string, limit = 30) {
   try {
-    const mirrors = ['nhentai.net', 'nhentai.xxx', 'nhentai.to'];
     let results: NhentaiGalleryItem[] = [];
 
-    for (const mirror of mirrors) {
+    for (const mirror of NHENTAI_API_MIRRORS) {
       const res = await fetch(`https://${mirror}/api/v2/search?query=${encodeURIComponent(query)}&page=1`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          Accept: 'application/json',
-          Referer: 'https://nhentai.net/',
-        },
+        headers: NHENTAI_JSON_HEADERS,
         next: { revalidate: 3600 },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });

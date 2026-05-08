@@ -4,6 +4,8 @@ import { getHomeData, getHomeFeed } from "@/lib/home-data";
 import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";
 import { fetchTrendingAniListManga } from "@/lib/anilist";
 import type { MangaLanguage } from "@/lib/manga-language";
+import { fetchMarvelShelfItems } from "@/lib/marvel/shelf";
+import { isTruthyCookieFromHeader } from "@/lib/http/cookie-header";
 
 const normalizeLanguage = (value: string | null): MangaLanguage => {
   return value === 'en' || value === 'ru' || value === 'es' || value === 'fr'
@@ -19,7 +21,8 @@ const parseNumberParam = (value: string | null, fallback = 0) => {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const lang = normalizeLanguage(searchParams.get("lang"));
-  const includeAdultContent = req.headers.get("cookie")?.includes(`${AGE_VERIFICATION_COOKIE}=true`) ?? false;
+  const cookieHeader = req.headers.get('cookie');
+  const includeAdultContent = isTruthyCookieFromHeader(cookieHeader, AGE_VERIFICATION_COOKIE, 'true');
 
   if (searchParams.get('mode') === 'feed') {
     const items = await getHomeFeed(lang, {
@@ -40,12 +43,7 @@ export async function GET(req: Request) {
   const baseShelves = await getHomeData(lang, { includeAdultContent });
 
   try {
-    const marvelPromise = fetch(`${new URL(req.url).origin}/api/marvel/shelf?limit=12`, {
-      signal: AbortSignal.timeout(8000),
-    })
-      .then((response) => response.ok ? response.json() : { items: [] })
-      .catch(() => ({ items: [] }))
-      .then((data) => data.items || []);
+    const marvelPromise = fetchMarvelShelfItems({ limit: 12, offset: 0 }).catch(() => []);
 
     const trendingPromise = fetchTrendingAniListManga(12)
       .then((items) => items.map((item, index) => ({

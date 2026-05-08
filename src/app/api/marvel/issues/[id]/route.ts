@@ -1,7 +1,6 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
-
-const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";
+import { MARVEL_PUBLIC_API_BASE } from '@/lib/marvel/public-api';
 
 export async function GET(
   _req: Request,
@@ -10,7 +9,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const response = await fetch(`${MARVEL_API_BASE}/issues/${encodeURIComponent(id)}`, {
+    const response = await fetch(`${MARVEL_PUBLIC_API_BASE}/issues/${encodeURIComponent(id)}`, {
       headers: {
         Accept: "application/json",
       },

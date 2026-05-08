@@ -10,9 +10,6 @@ import {
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
-import {
-  BooruSource,
-} from '@/lib/booru';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
 import { removeBookmark, upsertBookmark, BOOKMARKS_UPDATED_EVENT, LIBRARY_ACTIVITY_EVENT, readReadingHistory } from '@/lib/library-storage';
@@ -22,104 +19,18 @@ import {
   MangaLanguage,
 } from '@/lib/manga-language';
 import { getChapters, getComicDetails } from '@/actions/comic';
+import { isRestrictedLibrarySource } from '@/lib/comic-sources';
+import type { ComicChapter, ComicDetail } from '@/lib/comic-types';
+import type {
+  MarvelCharacter,
+  MarvelIssue,
+  MarvelSeries,
+  MarvelSeriesIssue,
+} from '@/lib/marvel/types';
+import { normalizeMarvelImageToProxyUrl } from '@/lib/marvel/image';
 import Image from 'next/image';
 import { useDominantColor } from '@/hooks/use-dominant-color';
 
-interface Chapter {
-  id: string;
-  title: string;
-  chapterNum: string;
-  volume?: string;
-  externalUrl?: string;
-}
-
-interface ComicDetails {
-  id: string;
-  title: string;
-  description: string;
-  coverUrl: string;
-  bannerUrl?: string;
-  rating: string;
-  genres: string[];
-  status: string;
-  year?: string;
-  author?: string;
-  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | 'superhero' | BooruSource;
-  aniListId?: string;
-  malId?: string;
-  aniListData?: any;
-  jikanData?: any;
-  superheroData?: any;
-  related?: {
-    id: string;
-    title: string;
-    coverUrl: string;
-    source: string;
-    rating: string;
-  }[];
-}
-
-interface MarvelCreator {
-  id: number;
-  name: string;
-  role: string;
-}
-
-interface MarvelIssue {
-  id: number;
-  digitalId?: number;
-  title: string;
-  issueNumber: string;
-  description?: string;
-  modified?: string;
-  pageCount?: number;
-  detailUrl: string;
-  seriesId: number;
-  seriesName: string;
-  onSaleDate?: string;
-  unlimitedDate?: string;
-  yearPage?: number;
-  creators?: MarvelCreator[];
-  cover?: {
-    path: string;
-    extension: string;
-  };
-}
-
-interface MarvelSeriesIssue {
-  id: number;
-  title: string;
-  issueNumber: string;
-  detailUrl: string;
-  seriesId: number;
-  seriesName: string;
-  onSaleDate?: string;
-  unlimitedDate?: string;
-  yearPage?: number;
-}
-
-interface MarvelSeries {
-  id: number;
-  title?: string;
-  description?: string;
-  startYear?: number;
-  endYear?: number;
-  modified?: string;
-  thumbnail?: {
-    path?: string;
-    extension?: string;
-  };
-}
-
-interface MarvelCharacter {
-  id: number;
-  name?: string;
-  description?: string;
-  thumbnail?: {
-    path?: string;
-    extension?: string;
-  };
-}
 
 const formatMarvelDate = (value?: string) => {
   if (!value) return 'Unknown';
@@ -132,42 +43,25 @@ const formatMarvelDate = (value?: string) => {
   });
 };
 
-const normalizeMarvelImage = (image?: { path?: string; extension?: string }) => {
-  if (!image?.path || !image.extension) return '';
-  const path = image.path.replace('http://', 'https://');
-  const finalPath = path.includes('portrait_') ? path : `${path}/portrait_incredible`;
-  const url = `${finalPath}.${image.extension}`;
-  return `/api/proxy/image?url=${encodeURIComponent(url)}`;
-};
-
 const trimText = (value?: string, max = 140) => {
   const cleaned = String(value || '').replace(/\s+/g, ' ').trim();
   if (!cleaned) return '';
   return cleaned.length > max ? `${cleaned.slice(0, max - 1)}...` : cleaned;
 };
 
-
 interface ComicDetailsClientProps {
-  initialComic: (ComicDetails & { 
-    marvelIssue?: MarvelIssue; 
-    marvelSeries?: MarvelSeries; 
-    marvelSeriesIssues?: MarvelSeriesIssue[]; 
-    marvelCharacters?: MarvelCharacter[];
-  }) | null;
-  initialChapters?: Chapter[];
+  initialComic: ComicDetail | null;
+  initialChapters?: ComicChapter[];
   source: string;
   id: string;
   initialAgeVerified?: boolean;
 }
 
-const RESTRICTED_SOURCES = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
-const isRestrictedSource = (value: string) => RESTRICTED_SOURCES.has(value.toLowerCase());
-
 export default function ComicDetailsClient({ initialComic, initialChapters, source, id, initialAgeVerified = false }: ComicDetailsClientProps) {
   const router = useRouter();
-  
-  const [comic, setComic] = useState<ComicDetails | null>(initialComic);
-  const [chapters, setChapters] = useState<Chapter[]>(initialChapters || []);
+
+  const [comic, setComic] = useState<ComicDetail | null>(initialComic);
+  const [chapters, setChapters] = useState<ComicChapter[]>(initialChapters || []);
   const [marvelIssue, setMarvelIssue] = useState<MarvelIssue | null>(initialComic?.marvelIssue || null);
   const [marvelSeries, setMarvelSeries] = useState<MarvelSeries | null>(initialComic?.marvelSeries || null);
   const [marvelSeriesIssues, setMarvelSeriesIssues] = useState<MarvelSeriesIssue[]>(initialComic?.marvelSeriesIssues || []);
@@ -187,7 +81,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   const [lastReadChapter, setLastReadChapter] = useState<{ id: string, title: string, progressPercent?: number, currentPage?: number } | null>(null);
 
   const dominantColor = useDominantColor(comic?.coverUrl);
-  const restrictedSource = isRestrictedSource(source);
+  const restrictedSource = isRestrictedLibrarySource(source);
 
   useEffect(() => {
     const verified = initialAgeVerified || readAgeVerification();
@@ -248,12 +142,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
         setComic(comicData);
         writeStorageItem(comicCacheKey, JSON.stringify(comicData));
         if (comicData.marvelIssue) setMarvelIssue(comicData.marvelIssue);
-        if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries as MarvelSeries);
-        if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues as MarvelSeriesIssue[]);
-        if (comicData.marvelCharacters) setMarvelCharacters(comicData.marvelCharacters as MarvelCharacter[]);
+        if (comicData.marvelSeries) setMarvelSeries(comicData.marvelSeries);
+        if (comicData.marvelSeriesIssues) setMarvelSeriesIssues(comicData.marvelSeriesIssues);
+        if (comicData.marvelCharacters) setMarvelCharacters(comicData.marvelCharacters);
       }
       if (chapterData) {
-        setChapters(chapterData as Chapter[]);
+        setChapters(chapterData);
         writeStorageItem(chaptersCacheKey, JSON.stringify(chapterData));
       }
     } catch (e) {
@@ -736,8 +630,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
                     <div className="aspect-[2/3] bg-black border border-white/10 overflow-hidden relative">
                       <Image
-                        src={normalizeMarvelImage(marvelSeries.thumbnail) || comic.coverUrl}
-                        alt={marvelSeries.title || marvelIssue.seriesName}
+                        src={normalizeMarvelImageToProxyUrl(marvelSeries.thumbnail) || comic.coverUrl}
+                        alt={marvelSeries.title || marvelIssue.seriesName || ''}
                         fill
                         className="object-cover"
                         unoptimized
@@ -1039,7 +933,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                )}
 
                 {/* Big Data - Characters & Actors Section */}
-                {comic.aniListData?.characters?.edges?.length > 0 && (
+                {comic.aniListData && (comic.aniListData.characters?.edges?.length ?? 0) > 0 && (
                   <div className="space-y-6 pt-2">
                     <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-3">
                       <div className="flex items-center gap-2">
@@ -1049,12 +943,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
-                      {comic.aniListData.characters.edges.map((edge: any) => (
-                        <div key={edge.node.id} className="group cursor-default">
+                      {(comic.aniListData?.characters?.edges ?? []).map((edge, index) => (
+                        <div key={edge.node?.id ?? `char-${index}`} className="group cursor-default">
                           <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/10 bg-zinc-900">
                             <Image 
-                              src={edge.node.image?.large || '/logo.png'} 
-                              alt={edge.node.name.full}
+                              src={edge.node?.image?.large || '/logo.png'} 
+                              alt={edge.node?.name?.full || ''}
                               fill
                               sizes="80px"
                               className="object-cover object-top"
@@ -1066,7 +960,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                           </div>
                           <div className="mt-2 space-y-0.5">
                             <div className="truncate text-[9px] font-medium uppercase tracking-wide text-zinc-400">
-                              {edge.node.name.userPreferred}
+                              {edge.node?.name?.userPreferred}
                             </div>
                             <div className="text-[8px] font-medium uppercase tracking-wider text-zinc-600">
                               {edge.role === 'MAIN' ? 'Main' : 'Support'}

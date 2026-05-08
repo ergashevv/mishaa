@@ -613,6 +613,13 @@ export default function HomeClient({
     : visibleShelves.filter((shelf) => shelf.key === activeTab);
   const shelfCardLimit = isTouchDevice ? 8 : 12;
 
+  const heroFeaturedKey = featuredComic ? comicKey(featuredComic) : '';
+
+  /** Trending fuels the hero; `'all'` is not a shelf key (was always `undefined` → wrong loading UX). */
+  const showHeroSkeleton =
+    !featuredComic &&
+    (Boolean(shelfState.trending?.loading) || Boolean(isRecsLoading));
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       seenHomeKeysRef.current = new Set();
@@ -676,7 +683,7 @@ export default function HomeClient({
         {/* --- DYNAMIC HERO BANNER --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">
-            {!featuredComic && (shelfState[activeTab]?.loading || isRecsLoading) ? (
+            {showHeroSkeleton ? (
               <motion.div
                 key="skeleton"
                 initial={{ opacity: 0 }}
@@ -720,38 +727,50 @@ export default function HomeClient({
                 }}
               >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-14 lg:pb-18">
-                  <div className="relative overflow-hidden bg-black shadow-[0_50px_140px_rgba(0,0,0,0.72)]">
-                    <div className="absolute inset-0">
-                      {!isTouchDevice && (
-                        <>
-                          <SafeCoverImage
-                            key={featuredBackgroundSrc}
-                            src={featuredBackgroundSrc}
-                            alt={featuredComic.title}
-                            priority
-                            sizes="100vw"
-                            className="object-cover object-center scale-105 opacity-[0.2] blur-[2px]"
-                          />
-                          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.9)_42%,rgba(5,6,10,0.54)_100%)]" />
-                        </>
-                      )}
-                      {isTouchDevice && (
-                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0.98)_0%,rgba(5,6,10,0.92)_100%)]" />
-                      )}
-                    </div>
+                  <div className="relative min-h-[clamp(22rem,52vw,34rem)] overflow-hidden bg-black shadow-[0_50px_140px_rgba(0,0,0,0.72)] lg:min-h-[28rem]">
+                    <AnimatePresence initial={false} mode="wait">
+                      <motion.div
+                        key={heroFeaturedKey}
+                        initial={
+                          prefersReducedMotion ? false : { opacity: 0 }
+                        }
+                        animate={{ opacity: 1 }}
+                        exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                        transition={{
+                          duration: prefersReducedMotion ? 0 : 0.38,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="relative min-h-[clamp(22rem,52vw,34rem)] lg:min-h-[28rem]"
+                      >
+                        <div className="pointer-events-none absolute inset-0 z-0">
+                          {!isTouchDevice ? (
+                            <>
+                              <SafeCoverImage
+                                src={featuredBackgroundSrc}
+                                alt=""
+                                priority
+                                sizes="100vw"
+                                className="object-cover object-center scale-105 opacity-[0.2] blur-[2px]"
+                              />
+                              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.9)_42%,rgba(5,6,10,0.54)_100%)]" />
+                            </>
+                          ) : (
+                            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0.98)_0%,rgba(5,6,10,0.92)_100%)]" />
+                          )}
+                        </div>
 
-                    <div className="relative grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:px-12 lg:py-12">
+                        <div className="relative z-10 grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:px-12 lg:py-12">
                       <div className="relative z-20 max-w-3xl lg:py-12">
                         <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/42">
                           {featuredComic.source}
                         </p>
 
-                        <h1 className="mt-6 text-display text-5xl leading-[0.9] text-white sm:text-6xl xl:text-[5.9rem]">
+                        <h1 className="mt-6 min-h-[2.75em] text-display text-5xl leading-[0.9] text-white sm:min-h-[2.5em] sm:text-6xl xl:min-h-[2.35em] xl:text-[5.9rem]">
                           {featuredComic.title}
                         </h1>
 
                         {heroRating?.showBlock ? (
-                          <div className="mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+                          <div className="mt-8 flex min-h-[2.75rem] flex-wrap items-baseline gap-x-4 gap-y-2">
                             <span className="text-[9px] font-black uppercase tracking-[0.55em] text-white/32">
                               {heroRating.label}
                             </span>
@@ -759,7 +778,9 @@ export default function HomeClient({
                               {heroRating.value}
                             </span>
                           </div>
-                        ) : null}
+                        ) : (
+                          <div className="mt-8 min-h-[2.75rem]" aria-hidden />
+                        )}
 
                         <Link
                           href={resolveComicHref(featuredComic)}
@@ -769,13 +790,8 @@ export default function HomeClient({
                         </Link>
                       </div>
 
-                      <motion.div
-                        initial={useRichMotion ? { opacity: 0, scale: 0.96, y: 12 } : false}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={useRichMotion ? { delay: 0.06, duration: 0.75 } : { duration: 0.2 }}
-                        className="relative z-20 mx-auto w-full max-w-[26rem] lg:mx-0 lg:ml-auto lg:translate-y-2"
-                      >
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-black shadow-[0_35px_110px_rgba(0,0,0,0.62)]">
+                      <div className="relative z-20 mx-auto w-full max-w-[26rem] lg:mx-0 lg:ml-auto lg:translate-y-2">
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-neutral-950 shadow-[0_35px_110px_rgba(0,0,0,0.62)]">
                           <SafeCoverImage
                             key={featuredPosterSrc}
                             src={featuredPosterSrc}
@@ -784,15 +800,17 @@ export default function HomeClient({
                             sizes="(max-width: 1024px) 78vw, 420px"
                             className="object-cover object-center"
                           />
-                          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.58)_100%)]" />
+                          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.58)_100%)]" />
                           {heroRating?.badge ? (
                             <div className="absolute right-4 top-4 rounded-full border border-white/10 bg-black/55 px-4 py-2 text-[9px] font-black uppercase tracking-[0.35em] text-white/70 backdrop-blur-xl">
                               {heroRating.badge}
                             </div>
                           ) : null}
                         </div>
+                      </div>
+                        </div>
                       </motion.div>
-                    </div>
+                    </AnimatePresence>
                   </div>
                 </div>
               </motion.div>

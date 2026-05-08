@@ -1,7 +1,6 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
-
-const MARVEL_API_BASE = "https://marvel.emreparker.com/v1";
+import { MARVEL_PUBLIC_API_BASE } from '@/lib/marvel/public-api';
 
 export async function GET(req: Request) {
   try {
@@ -11,8 +10,8 @@ export async function GET(req: Request) {
     const offset = Math.max(Number(searchParams.get("offset") || "0"), 0);
 
     const endpoint = query.length >= 2
-      ? `${MARVEL_API_BASE}/search/issues?q=${encodeURIComponent(query)}`
-      : `${MARVEL_API_BASE}/issues?limit=${limit}&offset=${offset}`;
+      ? `${MARVEL_PUBLIC_API_BASE}/search/issues?q=${encodeURIComponent(query)}`
+      : `${MARVEL_PUBLIC_API_BASE}/issues?limit=${limit}&offset=${offset}`;
 
     const response = await fetch(endpoint, {
       headers: {

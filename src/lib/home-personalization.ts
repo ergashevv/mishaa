@@ -1,19 +1,17 @@
 import { isAdultComic } from '@/lib/age-verification';
+import { isRestrictedLibrarySource } from '@/lib/comic-sources';
+import type { ComicListItem } from '@/lib/comic-types';
 import type { StoredBookmark, StoredReadingHistoryEntry } from '@/lib/library-storage';
 
-export type PersonalizableComic = {
-  id: string;
-  title: string;
-  description?: string;
-  coverUrl?: string;
-  source?: string;
-  href?: string;
-  meta?: string;
-  rating?: string;
-  timestamp?: number;
-  progressPercent?: number;
-  genres?: string[];
-};
+export type PersonalizableComic = Omit<Partial<ComicListItem>, 'source'> &
+  Pick<ComicListItem, 'id' | 'title'> & {
+    source?: string;
+    href?: string;
+    meta?: string;
+    timestamp?: number;
+    progressPercent?: number;
+    genres?: string[];
+  };
 
 export type HomePreferenceProfile = {
   sessionId: string;
@@ -29,16 +27,14 @@ export const HOME_PROFILE_STORAGE_KEY = 'home_preference_profile';
 export const HOME_PROFILE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 45;
 export const PREFERRED_HOME_GENRES = ['romance', 'fantasy', 'drama'];
 
-const ADULT_SOURCE_SET = new Set(['nhentai', 'e621', 'danbooru', 'gelbooru', 'rule34']);
-
 const normalize = (value: string | undefined | null) => String(value || '').trim().toLowerCase();
 
-export const comicKey = (comic: Pick<PersonalizableComic, 'source' | 'id'>) =>
+export const comicKey = (comic: { id: string; source?: string | null }) =>
   `${normalize(comic.source) || 'unknown'}:${comic.id}`;
 
 export const isAdultPersonalizedComic = (comic: PersonalizableComic) => {
   const source = normalize(comic.source);
-  return ADULT_SOURCE_SET.has(source) || isAdultComic({ source, rating: comic.rating });
+  return isRestrictedLibrarySource(source) || isAdultComic({ source, rating: comic.rating });
 };
 
 export const hashString = (value: string) => {

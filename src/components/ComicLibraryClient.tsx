@@ -30,29 +30,16 @@ import {
   MANGADEX_LONG_STRIP_TAG_ID,
 } from '@/lib/mangadex';
 import { searchComics } from '@/actions/comic';
+import type { ComicListItem } from '@/lib/comic-types';
 import Image from 'next/image';
 import { readBookmarks, readReadingHistory, BOOKMARKS_UPDATED_EVENT, LIBRARY_ACTIVITY_EVENT, type StoredBookmark } from '@/lib/library-storage';
-interface Comic {
-  id: string;
-  title: string;
-  description: string;
-  coverUrl?: string;
-  rating: string;
-  source: 'mangadex' | 'archive' | 'nhentai' | 'marvel' | 'superhero' | BooruSource;
-  issueNumber?: string;
-  seriesName?: string;
-  onSaleDate?: string;
-  yearPage?: number;
-  detailUrl?: string;
-  pageCount?: number;
-  creators?: { id: number; name: string; role: string }[];
-}
 
+import type { LibrarySource } from '@/lib/comic-sources';
 
 type Category = {
   label: string;
   query?: string;
-  source: Comic['source'];
+  source: LibrarySource;
   nsfw?: boolean;
   ratings?: string[];
   originalLanguages?: string[];
@@ -61,7 +48,7 @@ type Category = {
 };
 
 type LoadResult = {
-  items: Comic[];
+  items: ComicListItem[];
   hasMore: boolean;
 };
 
@@ -131,8 +118,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const initialCategoryQueries = createCategoryQueryMap();
   initialCategoryQueries[initialCategory] = searchParams.get('q') ?? initialCategoryQueries[initialCategory] ?? '';
 
-  const [comics, setComics] = useState<Comic[]>([]);
-  const [selectedComic, setSelectedComic] = useState<Comic | null>(null);
+  const [comics, setComics] = useState<ComicListItem[]>([]);
+  const [selectedComic, setSelectedComic] = useState<ComicListItem | null>(null);
   const [pages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [categoryQueries, setCategoryQueries] = useState<Record<string, string>>(() => initialCategoryQueries);
@@ -148,12 +135,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const [hasMore, setHasMore] = useState(true);
   const [lang, setLang] = useState<Lang>('en');
   const [zoom, setZoom] = useState(1);
-  const [autoCompleteResults, setAutoCompleteResults] = useState<Comic[]>([]);
+  const [autoCompleteResults, setAutoCompleteResults] = useState<ComicListItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [bookmarks, setBookmarks] = useState<StoredBookmark[]>([]);
   const [recentActivity, setRecentActivity] = useState<Record<string, number>>({});
-  const [sourceFilter, setSourceFilter] = useState<'all' | Comic['source']>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | LibrarySource>('all');
   const [savedOnly, setSavedOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<'featured' | 'recent' | 'saved' | 'title-asc' | 'title-desc'>('featured');
   
@@ -593,7 +580,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
           page: 0,
           mangaLanguage 
         });
-        setAutoCompleteResults((res.items as Comic[]).slice(0, 8));
+        setAutoCompleteResults(res.items.slice(0, 8));
       } catch (e) {
         console.error('Autocomplete error:', e);
       } finally {
