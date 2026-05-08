@@ -128,6 +128,8 @@ export const metadata: Metadata = {
 import SmoothAnimations from "@/components/SmoothAnimations";
 import GlobalAgeGate from "@/components/GlobalAgeGate";
 import AnalyticsBridge from "@/components/AnalyticsBridge";
+import JsonLd from "@/components/JsonLd";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/global-jsonld";
 import { Suspense } from "react";
 
 export default function RootLayout({
@@ -149,6 +151,8 @@ export default function RootLayout({
         </a>
         <SmoothAnimations />
         <GlobalAgeGate />
+        <JsonLd data={buildOrganizationJsonLd()} />
+        <JsonLd data={buildWebSiteJsonLd()} />
         <div id="main-content" className="flex-1">
           <Suspense fallback={null}>
             <AnalyticsBridge />

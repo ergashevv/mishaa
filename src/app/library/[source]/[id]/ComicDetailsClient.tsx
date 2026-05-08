@@ -29,6 +29,7 @@ import type {
 } from '@/lib/marvel/types';
 import { normalizeMarvelImageToProxyUrl } from '@/lib/marvel/image';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useDominantColor } from '@/hooks/use-dominant-color';
 
 
@@ -741,9 +742,14 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       </div>
 
       <main className="relative z-10 mx-auto max-w-[min(100%,88rem)] px-4 pb-28 pt-20 sm:px-6 lg:px-10">
-        <motion.button initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} onClick={() => router.push('/library')} className="mb-10 flex items-center gap-3 text-xs font-semibold tracking-wide text-zinc-500 hover:text-[#ff4d00] transition-colors group">
-          <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" /> Back to library
-        </motion.button>
+        <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
+          <Link
+            href="/library"
+            className="mb-10 flex items-center gap-3 text-xs font-semibold tracking-wide text-zinc-500 transition-colors hover:text-[#ff4d00] group"
+          >
+            <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-0.5" /> Back to library
+          </Link>
+        </motion.div>
 
         <article
           itemScope
@@ -785,20 +791,23 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                )}
                
                {lastReadChapter && (
-                 <motion.button 
+                 <motion.div
                    initial={{ opacity: 0, scale: 0.95 }}
                    animate={{ opacity: 1, scale: 1 }}
-                   onClick={() => router.push(`/library/${source}/${id}/read/${lastReadChapter.id}`)}
-                   className="w-full py-4 bg-white/5 border border-white/20 text-white flex flex-col items-center justify-center gap-1 font-black uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all overflow-hidden"
                  >
-                   <span className="text-[#ff4d00]">Continue reading</span>
-                   <span className="text-white/40 opacity-70 truncate px-4 w-full text-center">{lastReadChapter.title}</span>
-                   {typeof lastReadChapter.progressPercent === 'number' && (
-                     <span className="text-[8px] font-black uppercase tracking-[0.35em] text-white/25">
-                       {lastReadChapter.progressPercent}% complete
-                     </span>
-                   )}
-                 </motion.button>
+                   <Link
+                     href={`/library/${source}/${id}/read/${lastReadChapter.id}`}
+                     className="flex w-full flex-col items-center justify-center gap-1 overflow-hidden border border-white/20 bg-white/5 py-4 font-black uppercase tracking-widest text-[9px] text-white transition-all hover:bg-white/10"
+                   >
+                     <span className="text-[#ff4d00]">Continue reading</span>
+                     <span className="w-full truncate px-4 text-center text-white/40 opacity-70">{lastReadChapter.title}</span>
+                     {typeof lastReadChapter.progressPercent === 'number' && (
+                       <span className="text-[8px] font-black uppercase tracking-[0.35em] text-white/25">
+                         {lastReadChapter.progressPercent}% complete
+                       </span>
+                     )}
+                   </Link>
+                 </motion.div>
                )}
                {comic.source === 'superhero' && (
                  <button onClick={() => router.push('/studio')} className="group relative py-6 bg-[#ff4d00] text-white flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[11px] overflow-hidden transition-all hover:bg-white hover:text-black">
@@ -1068,20 +1077,13 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  </div>
                  <div className="grid grid-cols-1 gap-3 max-h-[min(70vh,44rem)] overflow-y-auto custom-scrollbar pr-2 md:pr-4 md:gap-4">
                     {chapters.length > 0 ? (
-                      chapters.map((ch) => (
-                        <button
-                          key={ch.id}
-                          onClick={() => {
-                            if (ch.externalUrl) {
-                              window.open(ch.externalUrl, '_blank');
-                            } else {
-                              router.push(`/library/${source}/${id}/read/${ch.id}`);
-                            }
-                          }}
-                          className="group relative flex w-full items-center gap-4 p-5 text-left transition-all border border-white/5 bg-white/5 hover:border-[#ff4d00]/45 hover:bg-[#ff4d00]/10 md:p-6"
-                        >
-                           <div className="absolute inset-0 bg-gradient-to-r from-[#ff4d00]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                           <div className="relative z-10 min-w-0 flex-1 space-y-1.5">
+                      chapters.map((ch) => {
+                        const sharedClass =
+                          'group relative flex w-full items-center gap-4 border border-white/5 bg-white/5 p-5 text-left transition-all hover:border-[#ff4d00]/45 hover:bg-[#ff4d00]/10 md:p-6';
+                        const inner = (
+                          <>
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#ff4d00]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                            <div className="relative z-10 min-w-0 flex-1 space-y-1.5">
                               <div className="flex flex-wrap items-center gap-2">
                                 <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ff4d00]">
                                   Vol.{ch.volume || '0'} Ch.{ch.chapterNum}
@@ -1092,17 +1094,49 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                   </div>
                                 )}
                               </div>
-                              <div className="text-[13px] font-black uppercase leading-snug tracking-tight text-white/90 transition-colors group-hover:text-white md:text-[15px] wrap-anywhere line-clamp-2">
+                              <div className="wrap-anywhere line-clamp-2 text-[13px] font-black uppercase leading-snug tracking-tight text-white/90 transition-colors group-hover:text-white md:text-[15px]">
                                 {ch.title || `Chapter ${ch.chapterNum}`}
                               </div>
-                           </div>
-                           {ch.externalUrl ? (
-                             <ExternalLink size={20} className="relative z-10 shrink-0 text-white/20 transition-all group-hover:text-blue-400" />
-                           ) : (
-                             <ChevronRight size={20} className="relative z-10 shrink-0 text-white/15 transition-all group-hover:translate-x-0.5 group-hover:text-[#ff4d00]" />
-                           )}
-                        </button>
-                      ))
+                            </div>
+                            {ch.externalUrl ? (
+                              <ExternalLink
+                                size={20}
+                                className="relative z-10 shrink-0 text-white/20 transition-all group-hover:text-blue-400"
+                              />
+                            ) : (
+                              <ChevronRight
+                                size={20}
+                                className="relative z-10 shrink-0 text-white/15 transition-all group-hover:translate-x-0.5 group-hover:text-[#ff4d00]"
+                              />
+                            )}
+                          </>
+                        );
+
+                        if (ch.externalUrl) {
+                          return (
+                            <a
+                              key={ch.id}
+                              href={ch.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={sharedClass}
+                            >
+                              {inner}
+                            </a>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={ch.id}
+                            href={`/library/${source}/${id}/read/${ch.id}`}
+                            prefetch={false}
+                            className={sharedClass}
+                          >
+                            {inner}
+                          </Link>
+                        );
+                      })
                     ) : (
                       <div className="col-span-full py-20 border border-dashed border-white/10 flex flex-col items-center justify-center text-center px-10">
                          <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">

@@ -242,7 +242,6 @@ const SHELVES: ShelfDefinition[] = [
   },
 ];
 
-import JsonLd from '@/components/JsonLd';
 import AgeGateOverlay from './AgeGateOverlay';
 import { isAdultComic } from '@/lib/age-verification';
 
@@ -649,34 +648,8 @@ export default function HomeClient({
     return () => window.clearInterval(interval);
   }, [useRichMotion, renderedShelves.length]);
 
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "iComics.wiki Studio",
-    "url": "https://icomics.wiki",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://icomics.wiki/library?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
-  };
-
-  const orgSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "iComics.wiki Studio",
-    "url": "https://icomics.wiki",
-    "logo": "https://icomics.wiki/logo.png",
-    "sameAs": [
-      "https://twitter.com/icomics_studio",
-      "https://t.me/icomics_studio"
-    ]
-  };
-
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <JsonLd data={websiteSchema} />
-      <JsonLd data={orgSchema} />
       <Navbar />
 
       <main className="relative overflow-hidden pt-14 sm:pt-16 lg:pt-[4.25rem]">

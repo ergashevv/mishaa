@@ -1,24 +1,32 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import HomeClient from '@/components/HomeClient';
+import { getPublicSiteUrl } from '@/lib/og-metadata';
+import { getHomeData } from '@/lib/home-data';
+import type { MangaLanguage } from '@/lib/manga-language';
+
+const site = getPublicSiteUrl().replace(/\/$/, '');
 
 export const metadata: Metadata = {
   title: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
-  description: 'Explore a massive collection of Manga, Manhwa, and Adult stories. Read thousands of chapters online for free on iComics.wiki.',
-  keywords: 'read manga online, manhwa archive, adult comics, hentai library, manhwa wiki, free comic reader, digital comics library',
+  description:
+    'Explore a massive collection of Manga, Manhwa, and Adult stories. Read thousands of chapters online for free on iComics.wiki.',
+  keywords:
+    'read manga online, manhwa archive, adult comics, hentai library, manhwa wiki, free comic reader, digital comics library',
   openGraph: {
     title: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
-    description: 'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience.',
-    url: 'https://icomics.wiki',
+    description:
+      'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience.',
+    url: site,
     siteName: 'iComics.wiki',
     images: [
-        {
-          url: '/logo.png',
-          width: 1200,
-          height: 630,
-          alt: 'iComics.wiki',
-        },
-      ],
+      {
+        url: '/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'iComics.wiki',
+      },
+    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -29,14 +37,9 @@ export const metadata: Metadata = {
     images: ['/logo.png'],
   },
   alternates: {
-    canonical: 'https://icomics.wiki',
+    canonical: site,
   },
 };
-
-import JsonLd from '@/components/JsonLd';
-
-import { getHomeData } from '@/lib/home-data';
-import type { MangaLanguage } from '@/lib/manga-language';
 
 const normalizeLanguage = (value: string | undefined): MangaLanguage => {
   return value === 'en' || value === 'ru' || value === 'es' || value === 'fr'
@@ -54,40 +57,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const initialMangaLanguage = normalizeLanguage(lang);
   const initialData = await getHomeData(initialMangaLanguage, { includeAdultContent });
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "iComics.wiki",
-    "url": "https://icomics.wiki",
-    "logo": "https://icomics.wiki/logo.png",
-    "sameAs": [
-      "https://twitter.com/icomics.wiki",
-      "https://github.com/icomics.wiki"
-    ]
-  };
-
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "iComics.wiki",
-    "url": "https://icomics.wiki",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://icomics.wiki/library?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
-  };
-
   return (
-    <>
-      <JsonLd data={organizationSchema} />
-      <JsonLd data={websiteSchema} />
-      <HomeClient
-        initialData={initialData}
-        initialAgeVerified={includeAdultContent}
-        initialIsTouchDevice={initialIsTouchDevice}
-        initialMangaLanguage={initialMangaLanguage}
-      />
-    </>
+    <HomeClient
+      initialData={initialData}
+      initialAgeVerified={includeAdultContent}
+      initialIsTouchDevice={initialIsTouchDevice}
+      initialMangaLanguage={initialMangaLanguage}
+    />
   );
 }
