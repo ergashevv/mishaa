@@ -1,6 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { getHomeData } from '@/lib/home-data';
-import { getPublicSiteUrl } from '@/lib/og-metadata';
+import { getPublicSiteUrl, preferSocialPreviewCover, toAbsoluteAssetUrl } from '@/lib/og-metadata';
 import { resolveTelegramComicReadUrl as buildTelegramComicReadUrl } from '@/lib/telegram-read-url';
 import { getSiteUrl } from '@/lib/site-url';
 import {
@@ -64,6 +65,23 @@ export const getTelegramWebhookSecret = () =>
 
 export function hasTelegramConfig() {
   return Boolean(getTelegramToken() && getTelegramChannelId());
+}
+
+/** For debugging: whether TELEGRAM_CHANNEL_ID was set (vs fallback @handle). */
+export function isTelegramChannelIdFromEnv(): boolean {
+  return Boolean(process.env.TELEGRAM_CHANNEL_ID?.trim());
+}
+
+export function getTelegramOutboundDiagnostics(): {
+  hasBotToken: boolean;
+  channelTarget: string;
+  channelIdSetInEnv: boolean;
+} {
+  return {
+    hasBotToken: Boolean(getTelegramToken()),
+    channelTarget: getTelegramChannelId(),
+    channelIdSetInEnv: isTelegramChannelIdFromEnv(),
+  };
 }
 
 function assertTelegramConfig() {
@@ -135,6 +153,14 @@ function shortText(value: string, maxLength: number) {
 function resolveTelegramComicReadUrl(comic: TelegramComicCandidate): string {
   const origin = getPublicSiteUrl().replace(/\/$/, '');
   return buildTelegramComicReadUrl(origin, comic);
+}
+
+/** Telegram `sendPhoto` needs a public absolute URL; home feed often uses `/api/proxy/...` paths. */
+function telegramPhotoUrlForSend(coverUrl: string | undefined): string | undefined {
+  if (!coverUrl?.trim()) return undefined;
+  const site = getPublicSiteUrl().replace(/\/$/, '');
+  const absolute = toAbsoluteAssetUrl(coverUrl, site);
+  return preferSocialPreviewCover(absolute, site);
 }
 
 function extractTelegramCommand(text?: string | null) {
@@ -210,6 +236,13 @@ export function pickTelegramComic(slot: TelegramSlot, candidates: TelegramComicC
   return ordered[hash % ordered.length] || ordered[0];
 }
 
+/** Bot /featured: uniform pick so one day / rating weighting does not repeat the same title every time. */
+function pickTelegramFeatureComic(candidates: TelegramComicCandidate[]): TelegramComicCandidate | null {
+  if (!candidates.length) return null;
+  const n = randomBytes(4).readUInt32BE(0);
+  return candidates[n % candidates.length] ?? candidates[0];
+}
+
 function buildTelegramCaptionLines(comic: TelegramComicCandidate, featureLabel: string) {
   const readUrl = resolveTelegramComicReadUrl(comic);
   const rating = comic.rating ? `⭐ ${comic.rating}` : '⭐ N/A';
@@ -232,11 +265,12 @@ function buildTelegramCaption(comic: TelegramComicCandidate, slot: TelegramSlot)
 async function sendTelegramComicWithFeatureLabel(comic: TelegramComicCandidate, featureLabel: string) {
   const channelId = getTelegramChannelId();
   const caption = buildTelegramCaptionLines(comic, featureLabel);
+  const photoUrl = telegramPhotoUrlForSend(comic.coverUrl);
 
-  if (comic.coverUrl) {
+  if (photoUrl) {
     return telegramJsonRequest<{ result: { message_id: number } }>('sendPhoto', {
       chat_id: channelId,
-      photo: comic.coverUrl,
+      photo: photoUrl,
       caption,
       parse_mode: 'HTML',
       disable_web_page_preview: false,
@@ -254,11 +288,12 @@ async function sendTelegramComicWithFeatureLabel(comic: TelegramComicCandidate, 
 async function sendTelegramComic(slot: TelegramSlot, comic: TelegramComicCandidate) {
   const channelId = getTelegramChannelId();
   const caption = buildTelegramCaption(comic, slot);
+  const photoUrl = telegramPhotoUrlForSend(comic.coverUrl);
 
-  if (comic.coverUrl) {
+  if (photoUrl) {
     return telegramJsonRequest<{ result: { message_id: number } }>('sendPhoto', {
       chat_id: channelId,
-      photo: comic.coverUrl,
+      photo: photoUrl,
       caption,
       parse_mode: 'HTML',
       disable_web_page_preview: false,
@@ -294,11 +329,12 @@ async function sendTelegramChatComic(
   replyToMessageId?: number,
 ) {
   const caption = buildTelegramCaption(comic, slot);
+  const photoUrl = telegramPhotoUrlForSend(comic.coverUrl);
 
-  if (comic.coverUrl) {
+  if (photoUrl) {
     return telegramJsonRequest<{ result: { message_id: number } }>('sendPhoto', {
       chat_id: chatId,
-      photo: comic.coverUrl,
+      photo: photoUrl,
       caption,
       parse_mode: 'HTML',
       disable_web_page_preview: false,
@@ -391,7 +427,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate) {
 
   if (command === 'featured') {
     const candidates = await getTelegramComicCandidates();
-    const comic = pickTelegramComic('morning', candidates);
+    const comic = pickTelegramFeatureComic(candidates);
 
     if (!comic) {
       await sendTelegramChatMessage(
@@ -418,12 +454,6 @@ export async function isTelegramIntensiveCampaignActive(): Promise<boolean> {
   });
   if (!row?.intensiveEndsAt) return false;
   return row.intensiveEndsAt.getTime() > Date.now();
-}
-
-function parseTelegramRatingSort(rating?: string): number {
-  if (!rating) return 0;
-  const n = Number.parseFloat(String(rating).replace(/[^\d.+-]/g, ''));
-  return Number.isFinite(n) ? n : 0;
 }
 
 function shuffleInPlace<T>(items: T[]): T[] {
@@ -453,7 +483,7 @@ export type StartTelegramIntensiveCampaignOptions = {
   dryRun?: boolean;
 };
 
-/** Random pool → sort by rating → post #1 now, queue the rest every `hoursBetweenPosts` until `postsInWeek` total. Sets intensive window so slot crons pause. */
+/** Shuffled pool → post #1 now (no rating re-sort, so kickoff is not always the same #1 title), queue the rest every `hoursBetweenPosts` until `postsInWeek` total. Sets intensive window so slot crons pause. */
 export async function startTelegramIntensiveCampaign(
   options: StartTelegramIntensiveCampaignOptions = {},
 ): Promise<{
@@ -478,12 +508,6 @@ export async function startTelegramIntensiveCampaign(
     const raw = dedupeTelegramCandidates(await getTelegramComicCandidates());
     shuffleInPlace(raw);
     const pool = raw.slice(0, Math.min(poolSize, raw.length));
-    pool.sort((a, b) => {
-      const ra = parseTelegramRatingSort(a.rating);
-      const rb = parseTelegramRatingSort(b.rating);
-      if (rb !== ra) return rb - ra;
-      return Math.random() - 0.5;
-    });
 
     const totalInWeek = Math.min(postsInWeek, pool.length);
     if (totalInWeek < 1) {
@@ -537,6 +561,68 @@ export async function startTelegramIntensiveCampaign(
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Campaign start failed';
     return { ok: false, dryRun, totalInWeek: 0, queued: 0, error: message };
+  }
+}
+
+export type TelegramTestPostResult =
+  | {
+      ok: true;
+      messageId: number;
+      title: string;
+      channelTarget: string;
+      channelIdFromEnv: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+      channelTarget?: string;
+      channelIdFromEnv?: boolean;
+    };
+
+/** Single channel post for manual checks (caption shows 🔧 Test post). */
+export async function sendTelegramChannelTestPost(): Promise<TelegramTestPostResult> {
+  const channelTarget = getTelegramChannelId();
+  const channelIdFromEnv = isTelegramChannelIdFromEnv();
+
+  if (!hasTelegramConfig()) {
+    return {
+      ok: false,
+      error: 'TELEGRAM_BOT_TOKEN missing or empty',
+      channelTarget,
+      channelIdFromEnv,
+    };
+  }
+
+  let candidates: TelegramComicCandidate[];
+  try {
+    candidates = await getTelegramComicCandidates();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'getTelegramComicCandidates failed';
+    return { ok: false, error: message, channelTarget, channelIdFromEnv };
+  }
+
+  const comic = pickTelegramFeatureComic(candidates);
+  if (!comic) {
+    return {
+      ok: false,
+      error: 'No comic candidates from home data',
+      channelTarget,
+      channelIdFromEnv,
+    };
+  }
+
+  try {
+    const result = await sendTelegramComicWithFeatureLabel(comic, '🔧 Test post');
+    return {
+      ok: true,
+      messageId: result.result.message_id,
+      title: comic.title,
+      channelTarget,
+      channelIdFromEnv,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Telegram send failed';
+    return { ok: false, error: message, channelTarget, channelIdFromEnv };
   }
 }
 
@@ -614,8 +700,9 @@ export async function processTelegramScheduledQueue(): Promise<{
 }
 
 export async function runTelegramQueueCron(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = process.env.CRON_SECRET?.trim();
+  const auth = request.headers.get('authorization')?.trim();
+  if (!secret || auth !== `Bearer ${secret}`) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -773,8 +860,9 @@ export async function setTelegramBotProfile() {
 }
 
 export async function runTelegramCron(request: Request, slot: TelegramSlot) {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = process.env.CRON_SECRET?.trim();
+  const auth = request.headers.get('authorization')?.trim();
+  if (!secret || auth !== `Bearer ${secret}`) {
     return new Response('Unauthorized', { status: 401 });
   }
 
