@@ -51,7 +51,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const userAgent = headerList.get('user-agent') || '';
   const includeAdultContent = cookieStore.get('age_verified')?.value === 'true';
   const initialIsTouchDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
-  const initialData = await getHomeData(normalizeLanguage(lang), { includeAdultContent });
+  const initialMangaLanguage = normalizeLanguage(lang);
+  const initialData = await getHomeData(initialMangaLanguage, { includeAdultContent });
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -85,6 +86,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
         initialData={initialData}
         initialAgeVerified={includeAdultContent}
         initialIsTouchDevice={initialIsTouchDevice}
+        initialMangaLanguage={initialMangaLanguage}
       />
     </>
   );

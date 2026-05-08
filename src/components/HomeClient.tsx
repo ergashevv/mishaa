@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
@@ -20,8 +20,10 @@ import {
 import Navbar from '@/components/Navbar';
 import {
   MangaLanguage,
-  readStoredMangaLanguage,
+  MANGA_LANGUAGE_OPTIONS,
+  MANGA_LANGUAGE_STORAGE_KEY,
 } from '@/lib/manga-language';
+import { readStorageItem } from '@/lib/browser-storage';
 import { readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
 import {
   LIBRARY_ACTIVITY_EVENT,
@@ -37,7 +39,6 @@ import {
   persistHomePreferenceProfile,
   rankComicsForHome,
   readHomePreferenceProfile,
-  seededUnit,
   type HomePreferenceProfile,
 } from '@/lib/home-personalization';
 
@@ -249,12 +250,15 @@ type HomeClientProps = {
   initialData?: Record<string, LibraryComic[]>;
   initialAgeVerified?: boolean;
   initialIsTouchDevice?: boolean;
+  /** Must match SSR `getHomeData` lang so shelves/hero agree with hydration. */
+  initialMangaLanguage?: MangaLanguage;
 };
 
 export default function HomeClient({
   initialData,
   initialAgeVerified = false,
   initialIsTouchDevice = false,
+  initialMangaLanguage = 'en',
 }: HomeClientProps) {
   const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
@@ -281,7 +285,7 @@ export default function HomeClient({
   });
   const searchQuery = '';
   const [activeTab] = useState<ShelfKey>('all');
-  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>('en');
+  const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(() => initialMangaLanguage);
   const [personalRecs, setPersonalRecs] = useState<LibraryComic[]>([]);
   const [isRecsLoading, setIsRecsLoading] = useState(false);
 
@@ -296,11 +300,9 @@ export default function HomeClient({
   const carouselPausedRef = useRef(false);
   const heroCarouselPausedRef = useRef(false);
   const seenHomeKeysRef = useRef<Set<string>>(new Set());
-  /** SSR trending — stable hero pool until personalization finishes (avoids 2–3 title swaps in ~1s). */
-  const bootstrapHeroTrendingRef = useRef<LibraryComic[]>(
-    Array.isArray(initialData?.trending) ? [...(initialData!.trending as LibraryComic[])] : [],
-  );
-  const [preferencesReady, setPreferencesReady] = useState(false);
+  /** When SSR trending is empty — fill once when client trending arrives. */
+  const [fallbackHeroDeck, setFallbackHeroDeck] = useState<LibraryComic[] | null>(null);
+  const heroFallbackSeededRef = useRef(false);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
   const loadMoreInfinite = useCallback(async () => {
@@ -377,20 +379,21 @@ export default function HomeClient({
     setShowAgeGate(false);
   };
 
-  useEffect(() => {
-    const saved = readStoredMangaLanguage();
-    const t = setTimeout(() => setMangaLanguage(prev => (saved !== prev ? saved : prev)), 0);
-    return () => clearTimeout(t);
-  }, []);
+  useLayoutEffect(() => {
+    const raw = readStorageItem(MANGA_LANGUAGE_STORAGE_KEY);
+    if (
+      raw &&
+      MANGA_LANGUAGE_OPTIONS.some((option) => option.value === raw) &&
+      raw !== initialMangaLanguage
+    ) {
+      setMangaLanguage(raw as MangaLanguage);
+    }
+  }, [initialMangaLanguage]);
 
-  useEffect(() => {
-    const verified = readAgeVerification() || initialAgeVerified;
-    const timer = window.setTimeout(() => {
-      setIsAgeVerified(verified);
-      if (verified) persistAgeVerification();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+  useLayoutEffect(() => {
+    const verified = Boolean(readAgeVerification() || initialAgeVerified);
+    setIsAgeVerified(verified);
+    if (verified) persistAgeVerification();
   }, [initialAgeVerified]);
 
   useEffect(() => {
@@ -434,7 +437,7 @@ export default function HomeClient({
       persistHomePreferenceProfile(merged);
     };
 
-    void syncPreferenceProfile().finally(() => setPreferencesReady(true));
+    void syncPreferenceProfile();
     window.addEventListener(LIBRARY_ACTIVITY_EVENT, syncPreferenceProfile);
     window.addEventListener(BOOKMARKS_UPDATED_EVENT, syncPreferenceProfile);
     window.addEventListener('storage', syncPreferenceProfile);
@@ -445,7 +448,7 @@ export default function HomeClient({
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
     const fineHover = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -464,7 +467,7 @@ export default function HomeClient({
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
     const media = window.matchMedia('(hover: none), (pointer: coarse)');
@@ -545,66 +548,61 @@ export default function HomeClient({
     return () => window.clearTimeout(timer);
   }, [isAgeVerified, preferenceProfile, shelfState]);
 
-  const featuredCandidates = useMemo(() => {
-    // Before prefs + account merge: keep SSR order so title/cover do not thrash on first paint.
-    if (!preferencesReady) {
-      const raw =
-        bootstrapHeroTrendingRef.current.length > 0
-          ? bootstrapHeroTrendingRef.current
-          : shelfState.trending?.items || [];
-      if (!raw.length) return [];
-      return dedupeComics(raw).slice(0, 10);
-    }
+  const initialTrendingKey = useMemo(
+    () =>
+      (initialData?.trending as LibraryComic[] | undefined)
+        ?.map((c) => comicKey(c))
+        .join('|') ?? '',
+    [initialData?.trending],
+  );
 
-    const pool =
-      activeTab === 'all'
-        ? personalRecs.length > 0
-          ? personalRecs
-          : shelfState.trending?.items || []
-        : activeTab === 'for-you'
-          ? personalRecs
-          : shelfState[activeTab]?.items || [];
-    if (!pool.length) return [];
-    const ranked = rankComicsForHome(pool, {
-      profile: preferenceProfile,
-      ageVerified: isAgeVerified,
-      shelfKey: activeTab,
-      adultPenalty: -16,
-    });
-    const cap = 10;
-    if (ranked.length <= cap) return ranked;
-    const head = ranked.slice(0, cap - 3);
-    const tailPick = ranked.slice(cap - 3);
-    const shuffledTail = [...tailPick].sort(
-      (a, b) =>
-        seededUnit(preferenceProfile.seed + 17, comicKey(a)) -
-        seededUnit(preferenceProfile.seed + 17, comicKey(b)),
-    );
-    return dedupeComics([...head, ...shuffledTail]).slice(0, cap);
-  }, [preferencesReady, activeTab, isAgeVerified, preferenceProfile, shelfState, personalRecs]);
+  const ssrHeroDeck = useMemo(() => {
+    const rows = initialData?.trending as LibraryComic[] | undefined;
+    if (!Array.isArray(rows) || rows.length === 0) return [];
+    return dedupeComics([...rows]).slice(0, 10);
+  }, [initialTrendingKey]);
 
-  const featuredCandidateKey = useMemo(
-    () => featuredCandidates.map((c) => comicKey(c)).join(','),
-    [featuredCandidates],
+  const liveTrendingKey =
+    shelfState.trending?.items?.map((c) => comicKey(c)).join('|') ?? '';
+
+  useLayoutEffect(() => {
+    heroFallbackSeededRef.current = false;
+    setFallbackHeroDeck(null);
+  }, [initialTrendingKey]);
+
+  useLayoutEffect(() => {
+    if (ssrHeroDeck.length > 0 || heroFallbackSeededRef.current) return;
+    const live = shelfState.trending?.items ?? [];
+    if (!live.length) return;
+    heroFallbackSeededRef.current = true;
+    setFallbackHeroDeck(dedupeComics([...live]).slice(0, 10));
+  }, [ssrHeroDeck.length, liveTrendingKey]);
+
+  const heroCarouselSlides =
+    ssrHeroDeck.length > 0 ? ssrHeroDeck : (fallbackHeroDeck ?? []);
+
+  const heroDeckKey = useMemo(
+    () => heroCarouselSlides.map((c) => comicKey(c)).join(','),
+    [heroCarouselSlides],
   );
 
   useEffect(() => {
     setHeroSlideIndex(0);
-  }, [featuredCandidateKey]);
+  }, [heroDeckKey]);
 
   useEffect(() => {
-    if (!preferencesReady || featuredCandidates.length <= 1 || prefersReducedMotion) return;
+    if (heroCarouselSlides.length <= 1 || prefersReducedMotion) return;
 
     const id = window.setInterval(() => {
       if (heroCarouselPausedRef.current) return;
-      setHeroSlideIndex((i) => (i + 1) % featuredCandidates.length);
+      setHeroSlideIndex((i) => (i + 1) % heroCarouselSlides.length);
     }, 8200);
 
     return () => window.clearInterval(id);
-  }, [preferencesReady, featuredCandidates.length, featuredCandidateKey, prefersReducedMotion]);
+  }, [heroCarouselSlides.length, heroDeckKey, prefersReducedMotion]);
 
   const featuredComic =
-    featuredCandidates[heroSlideIndex] || featuredCandidates[0] || null;
+    heroCarouselSlides[heroSlideIndex] || heroCarouselSlides[0] || null;
 
   const heroRating = featuredComic ? getHeroRatingPresentation(featuredComic) : null;
 

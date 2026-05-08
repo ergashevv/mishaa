@@ -1,7 +1,20 @@
 export const runtime = "edge";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const isProd = process.env.NODE_ENV === "production";
+  const secret = process.env.TEST_LIMIT_SECRET?.trim();
+
+  if (isProd) {
+    if (!secret) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const auth = req.headers.get("authorization");
+    if (auth !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const apiKey = process.env.AZURE_IMAGE_KEY;
   const endpoint = process.env.AZURE_IMAGE_ENDPOINT;
   const deploymentName = "gpt-image-2-1";

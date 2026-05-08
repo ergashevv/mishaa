@@ -1,8 +1,11 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
-
+import { requireSession } from "@/lib/require-session";
 
 export async function POST(req: Request) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const { prompt: userPrompt } = await req.json();
     const apiKey = process.env.AZURE_IMAGE_KEY;

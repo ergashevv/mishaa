@@ -1,7 +1,11 @@
 export const runtime = "edge";
 import { NextRequest, NextResponse } from 'next/server';
+import { requireSession } from '@/lib/require-session';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await params;
     const apiKey = process.env.LLAMAGEN_API_KEY;
