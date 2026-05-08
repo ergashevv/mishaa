@@ -4,14 +4,14 @@ import LoadingRouteShell from '@/components/LoadingRouteShell';
 import { useResolvedLang } from '@/hooks/useResolvedLang';
 import { translations } from '@/lib/translations';
 
-/** Reader RSC/metadata in-flight state. */
-export default function ReaderRouteLoading() {
+/** Library Suspense fallback and `/library/loading.tsx` shell. */
+export default function LibraryRouteLoading() {
   const lang = useResolvedLang();
   return (
     <LoadingRouteShell
-      tone="reader"
-      label={translations[lang].library.openingReader}
-      spinnerClassName="h-12 w-12"
+      tone="library"
+      label={translations[lang].library.loadingLibrary}
+      spinnerClassName="h-10 w-10"
     />
   );
 }

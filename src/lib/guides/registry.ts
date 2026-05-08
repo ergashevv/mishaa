@@ -39,8 +39,40 @@ export function guidesIndexMetadata(): Metadata {
     description:
       'Practical guides for using iComics.wiki: getting started, comic formats, library sources, and reader settings.',
     path: '/guides',
+    keywords: [
+      'manga reading guide',
+      'how to read webtoon',
+      'manhwa vs manga',
+      'comic reader tutorial',
+      'iComics.wiki guides',
+      'digital comics help',
+      'library age gate',
+    ],
   });
 }
+
+const GUIDE_KEYWORDS: Record<string, readonly string[]> = {
+  'getting-started': [
+    'iComics.wiki getting started',
+    'manga reader first visit',
+    'open comic chapters',
+    'mobile manga reading',
+  ],
+  'manga-formats': [
+    'manga vs manhwa',
+    'manga vs webtoon',
+    'scroll direction comic',
+    'long strip webtoon',
+    'reading direction',
+  ],
+  'library-sources': [
+    'MangaDex library',
+    'comic catalog sources',
+    'age verification reader',
+    '18+ manga settings',
+    'restricted content manga',
+  ],
+};
 
 export function guideArticleMetadata(slug: string): Metadata {
   const g = GUIDES_ORDER.find((x) => x.slug === slug);
@@ -51,5 +83,6 @@ export function guideArticleMetadata(slug: string): Metadata {
     title: g.title,
     description: g.description,
     path: `/guides/${g.slug}`,
+    ...(GUIDE_KEYWORDS[g.slug]?.length ? { keywords: [...GUIDE_KEYWORDS[g.slug]] } : {}),
   });
 }

@@ -4,14 +4,14 @@ import LoadingRouteShell from '@/components/LoadingRouteShell';
 import { useResolvedLang } from '@/hooks/useResolvedLang';
 import { translations } from '@/lib/translations';
 
-/** Reader RSC/metadata in-flight state. */
-export default function ReaderRouteLoading() {
+/** Root segment loading (`/src/app/loading.tsx`) — label follows Settings language. */
+export default function AppRouteLoading() {
   const lang = useResolvedLang();
   return (
     <LoadingRouteShell
-      tone="reader"
-      label={translations[lang].library.openingReader}
-      spinnerClassName="h-12 w-12"
+      tone="app"
+      label={translations[lang].common.appLoading}
+      spinnerClassName="h-11 w-11"
     />
   );
 }

@@ -3,6 +3,9 @@ export type Lang = 'en' | 'ru';
 
 export const translations = {
   en: {
+    common: {
+      appLoading: 'Loading…',
+    },
     nav: {
       gallery: 'Gallery',
       about: 'About',
@@ -230,6 +233,7 @@ export const translations = {
       tryHeaderLanguage: 'Try another language from the menu in the header',
       loadingComic: 'Loading comic...',
       loadingIssue: 'Loading issue...',
+      loadingLibrary: 'Loading library…',
       openingReader: 'Opening reader...',
       shareModalKicker: 'Share',
       shareModalTitle: 'Share link',
@@ -253,9 +257,18 @@ export const translations = {
       readerShortcutsOk: 'Got it',
       readerShortcutsDontShow: "Don't show again",
       readerShortcutsShowHint: 'Open any time from reader settings.',
+      unresolvedLegacyKicker: 'Older MangaDex link',
+      unresolvedTitle: 'This title cannot be opened from this URL',
+      unresolvedBody:
+        'This bookmark uses an old MangaDex ID that the catalog cannot load anymore. Pick the series again from the library, or search by title.',
+      unresolvedBrowseLibrary: 'Open library',
+      unresolvedGoHome: 'Home',
     }
   },
   ru: {
+    common: {
+      appLoading: 'Загрузка…',
+    },
     nav: {
       gallery: 'Галерея',
       about: 'О нас',
@@ -482,6 +495,7 @@ export const translations = {
       tryHeaderLanguage: 'Выберите другой язык в меню в шапке',
       loadingComic: 'Загрузка комикса…',
       loadingIssue: 'Загрузка выпуска…',
+      loadingLibrary: 'Загрузка библиотеки…',
       openingReader: 'Открываем читалку…',
       shareModalKicker: 'Поделиться',
       shareModalTitle: 'Ссылка',
@@ -505,6 +519,12 @@ export const translations = {
       readerShortcutsOk: 'Понятно',
       readerShortcutsDontShow: 'Не показывать снова',
       readerShortcutsShowHint: 'Откройте в любой момент в настройках читалки.',
+      unresolvedLegacyKicker: 'Старая ссылка MangaDex',
+      unresolvedTitle: 'Этот адрес больше не открывает тайтл',
+      unresolvedBody:
+        'Закладка использует устаревший числовой ID MangaDex, который каталог не подгружает. Найдите серию заново в библиотеке или по названию.',
+      unresolvedBrowseLibrary: 'В библиотеку',
+      unresolvedGoHome: 'На главную',
     }
   }
 };

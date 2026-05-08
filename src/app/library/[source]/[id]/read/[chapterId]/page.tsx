@@ -1,12 +1,14 @@
-/** Node serverless avoids Vercel’s ~1 MB Edge bundle cap (this route pulls in large comic action code). */
-export const runtime = "nodejs";
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
+import JsonLd from '@/components/JsonLd';
 import ComicReaderClient from './ComicReaderClient';
 import { getComicDetails, getChapters } from '@/actions/comic';
 import { buildComicOpenGraphImage, getPublicSiteUrl } from '@/lib/og-metadata';
-import JsonLd from '@/components/JsonLd';
+import { ICS_SITE_DISPLAY_NAME } from '@/lib/seo/page-metadata';
+
+/** Node.js runtime avoids Edge bundle limits for heavy comic imports. */
+export const runtime = 'nodejs';
 
 const getComicDetailsCached = cache(getComicDetails);
 const getChaptersCached = cache(getChapters);
@@ -46,7 +48,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   const rawDesc = typeof comic?.description === 'string' ? comic.description : '';
   const description =
     rawDesc.replace(/<[^>]*>/g, '').trim().slice(0, 160) ||
-    `Read ${baseTitle} (${type}) online on iComics.wiki — full-page reader.`;
+    `Read ${baseTitle} (${type}) online on ${ICS_SITE_DISPLAY_NAME} — full-page reader.`;
 
   const ogImage = buildComicOpenGraphImage(comic?.coverUrl, siteUrl, comic?.title);
 
@@ -58,7 +60,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
       title,
       description,
       url: canonicalUrl,
-      siteName: 'iComics.wiki',
+      siteName: ICS_SITE_DISPLAY_NAME,
       locale: 'en_US',
       type: 'article',
       images: [ogImage],

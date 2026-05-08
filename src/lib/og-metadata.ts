@@ -72,6 +72,17 @@ export function preferSocialPreviewCover(absImageUrl: string, siteUrl: string): 
   return `${proxyPrefix}${encodeURIComponent(medium)}`;
 }
 
+/** Open Graph defaults for routes without topical artwork (legal, FAQ, hubs, stale links). */
+export function buildSiteLogoOgImage(siteUrl: string): { url: string; width: number; height: number; alt: string } {
+  const origin = siteUrl.replace(/\/$/, '');
+  return {
+    url: `${origin}/logo.png`,
+    width: 512,
+    height: 512,
+    alt: 'iComics.wiki logo',
+  };
+}
+
 export function buildComicOpenGraphImage(
   coverUrl: string | undefined,
   siteUrl: string,

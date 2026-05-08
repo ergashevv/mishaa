@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Syne, Outfit, Bricolage_Grotesque, JetBrains_Mono, Staatliches, Bangers } from "next/font/google";
 import "./globals.css";
 import { getPublicSiteUrl } from "@/lib/og-metadata";
+import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
 import SmoothAnimations from "@/components/SmoothAnimations";
 import GlobalAgeGate from "@/components/GlobalAgeGate";
 import AnalyticsBridge from "@/components/AnalyticsBridge";
@@ -61,8 +62,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "iComics.wiki",
-    template: "%s | iComics.wiki",
+    default: ICS_SITE_DISPLAY_NAME,
+    template: `%s | ${ICS_SITE_DISPLAY_NAME}`,
   },
   description:
     "Read manga, manhwa, comics, and adult hentai online. Free library for readers: webtoons, Marvel, indie series, and multi-source chapters. Optional AI comic studio for creators.",
@@ -79,9 +80,9 @@ export const metadata: Metadata = {
     "Marvel comics",
     "iComics.wiki",
   ],
-  authors: [{ name: "iComics.wiki Team", url: SITE_ORIGIN }],
-  creator: "iComics.wiki",
-  publisher: "iComics.wiki",
+  authors: [{ name: `${ICS_SITE_DISPLAY_NAME} Team`, url: SITE_ORIGIN }],
+  creator: ICS_SITE_DISPLAY_NAME,
+  publisher: ICS_SITE_DISPLAY_NAME,
   metadataBase: new URL(SITE_ORIGIN),
   alternates: {
     canonical: SITE_ORIGIN,
@@ -90,19 +91,28 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "iComics.wiki",
+    title: ICS_SITE_DISPLAY_NAME,
     description:
       "Online manga, manhwa, comic, and hentai reader. Browse and read chapters free. Webtoons, Marvel, and more—plus optional AI tools for creators.",
     url: SITE_ORIGIN,
-    siteName: "iComics.wiki",
+    siteName: ICS_SITE_DISPLAY_NAME,
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: `${SITE_ORIGIN}/logo.png`,
+        width: 512,
+        height: 512,
+        alt: `${ICS_SITE_DISPLAY_NAME} logo`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "iComics.wiki — Manga, Manhwa & Comic Reader",
+    title: `${ICS_SITE_DISPLAY_NAME} — Manga, Manhwa & Comic Reader`,
     description:
       "Read manga, manhwa, comics, and adult titles online. A reader-first library with webtoons, Marvel, and hentai-capable catalog.",
+    images: [`${SITE_ORIGIN}/logo.png`],
   },
   robots: {
     index: true,

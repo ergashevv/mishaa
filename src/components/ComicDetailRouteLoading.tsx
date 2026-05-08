@@ -4,13 +4,13 @@ import LoadingRouteShell from '@/components/LoadingRouteShell';
 import { useResolvedLang } from '@/hooks/useResolvedLang';
 import { translations } from '@/lib/translations';
 
-/** Reader RSC/metadata in-flight state. */
-export default function ReaderRouteLoading() {
+/** `/library/[source]/[id]` segment loading. */
+export default function ComicDetailRouteLoading() {
   const lang = useResolvedLang();
   return (
     <LoadingRouteShell
-      tone="reader"
-      label={translations[lang].library.openingReader}
+      tone="comic-detail"
+      label={translations[lang].library.loadingComic}
       spinnerClassName="h-12 w-12"
     />
   );

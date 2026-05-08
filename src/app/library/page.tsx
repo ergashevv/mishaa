@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import ComicLibraryClient from '@/components/ComicLibraryClient';
+import LibraryRouteLoading from '@/components/LibraryRouteLoading';
 import JsonLd from '@/components/JsonLd';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
+import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import { Suspense } from 'react';
 
 export async function generateMetadata({
@@ -12,27 +14,31 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tab, q } = await searchParams;
   const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
-  const category = tab || 'Comics';
+  const shelf = typeof tab === 'string' && tab.trim() ? tab.trim() : 'All shelves';
   const queryTrimmed = typeof q === 'string' ? q.trim() : '';
-  const queryLabel = queryTrimmed ? ` — search: ${queryTrimmed.slice(0, 80)}` : '';
+  const queryLabel = queryTrimmed ? ` · ${queryTrimmed.slice(0, 80)}` : '';
 
-  const title = `${category}${queryLabel}`;
-  const description = `Browse our extensive collection of ${category}. Find manga, manhwa, and Marvel comics in the iComics.wiki library.`;
+  const title = `${shelf}${queryLabel}`;
+  const description = queryTrimmed
+    ? `Search “${queryTrimmed.slice(0, 160)}” in the iComics.wiki library (${shelf}). Open any title for chapters, synopsis, and the fullscreen reader.`
+    : `Browse “${shelf}” with covers, genres, chapters, synced reading progress — manga hub, Marvel, NHentai catalogs, galleries, reader-first UX on iComics.wiki.`;
 
   const libraryCanonical =
     tab && !queryTrimmed
       ? `${siteUrl}/library?tab=${encodeURIComponent(tab)}`
       : `${siteUrl}/library`;
 
+  const ogTwitter = openGraphTwitterFromLogo({
+    origin: siteUrl,
+    pageAbsoluteUrl: libraryCanonical,
+    openGraphTitle: title,
+    description,
+  });
+
   const base: Metadata = {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      url: libraryCanonical,
-      siteName: 'iComics.wiki',
-    },
+    ...ogTwitter,
     alternates: {
       canonical: libraryCanonical,
     },
@@ -64,11 +70,13 @@ export default async function Page({
   const initialAgeVerified = cookieStore.get('age_verified')?.value === 'true';
 
   const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
+  const shelf = typeof tab === 'string' && tab.trim() ? tab.trim() : 'All shelves';
   const collectionSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${tab || 'Comic'} Collection | iComics.wiki`,
-    description: 'A curated collection of digital comics, manga, and graphic novels.',
+    name: `${shelf} · iComics.wiki library`,
+    description:
+      'Searchable manga, manhwa, Marvel comics, and saved titles — metadata, chapters, and a fullscreen reader with progress syncing on iComics.wiki.',
     url: `${siteUrl}/library`,
     breadcrumb: {
       '@type': 'BreadcrumbList',
@@ -91,11 +99,7 @@ export default async function Page({
 
   return (
     <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-black uppercase tracking-[0.5em] text-neutral-300 dark:bg-black dark:text-white/20">
-          Loading library
-        </div>
-      }
+      fallback={<LibraryRouteLoading />}
     >
       <JsonLd data={collectionSchema} />
       <ComicLibraryClient initialAgeVerified={initialAgeVerified} />

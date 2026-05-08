@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
 import { buildFaqPageJsonLd } from '@/lib/seo/build-faq-jsonld';
+import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import FAQPageClient from './FAQPageClient';
 
 const faqDesc =
@@ -13,19 +14,21 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'FAQ — Manga & comic reader',
     description: faqDesc,
+    keywords: [
+      'iComics.wiki FAQ',
+      'read manga online help',
+      'comic reader questions',
+      'manhwa reader',
+      'manga accounts',
+      'library how it works',
+    ],
     alternates: { canonical },
-    openGraph: {
-      title: 'FAQ | iComics.wiki',
+    ...openGraphTwitterFromLogo({
+      origin: site,
+      pageAbsoluteUrl: canonical,
+      openGraphTitle: 'FAQ | iComics.wiki',
       description: faqDesc,
-      url: canonical,
-      siteName: 'iComics.wiki',
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'FAQ | iComics.wiki',
-      description: faqDesc,
-    },
+    }),
   };
 }
 

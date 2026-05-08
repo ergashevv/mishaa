@@ -2,31 +2,31 @@ import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import HomeClient from '@/components/HomeClient';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
+import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import { getHomeData } from '@/lib/home-data';
 import type { MangaLanguage } from '@/lib/manga-language';
 
 const site = getPublicSiteUrl().replace(/\/$/, '');
 
+const HOME_META_DESCRIPTION =
+  'Explore a massive collection of Manga, Manhwa, and Adult stories. Read thousands of chapters online for free on iComics.wiki.';
+
 export const metadata: Metadata = {
   title: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
-  description:
-    'Explore a massive collection of Manga, Manhwa, and Adult stories. Read thousands of chapters online for free on iComics.wiki.',
+  description: HOME_META_DESCRIPTION,
   keywords:
     'read manga online, manhwa archive, adult comics, hentai library, manhwa wiki, free comic reader, digital comics library',
-  openGraph: {
-    title: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
-    description:
+  ...openGraphTwitterFromLogo({
+    origin: site,
+    pageAbsoluteUrl: site,
+    openGraphTitle: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
+    twitterTitle: 'Manga, Manhwa & Hentai Library | iComics.wiki',
+    description: HOME_META_DESCRIPTION,
+    openGraphDescription:
       'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience.',
-    url: site,
-    siteName: 'iComics.wiki',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Manga, Manhwa & Hentai Library | iComics.wiki',
-    description: 'The ultimate destination for Manga, Manhwa, and Adult comic readers.',
-  },
+    twitterDescription:
+      'The ultimate destination for Manga, Manhwa, and Adult comic readers.',
+  }),
   alternates: {
     canonical: site,
   },

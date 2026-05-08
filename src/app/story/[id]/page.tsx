@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import CinematicViewer from "@/components/CinematicViewer";
 import { getPublicSiteUrl } from "@/lib/og-metadata";
+import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -14,13 +15,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 
   if (!story) {
-    return { title: "Story | iComics.wiki" };
+    return { title: "Story | iComics.wiki", robots: { index: false, follow: false } };
   }
 
   const site = getPublicSiteUrl().replace(/\/$/, "");
   const titleText = story.title?.trim() || "Untitled story";
   const draft =
     !story.status || story.status.toLowerCase() === "draft";
+  const logoUrl = `${site}/logo.png`;
 
   const description =
     story.globalContext?.replace(/\s+/g, " ").trim().slice(0, 160) ||
@@ -36,14 +38,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: titleText,
       description,
       url: canonical,
-      siteName: "iComics.wiki",
+      siteName: ICS_SITE_DISPLAY_NAME,
       type: "article",
       locale: "en_US",
+      images: [
+        {
+          url: logoUrl,
+          width: 512,
+          height: 512,
+          alt: `${titleText} — iComics.wiki`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: titleText,
       description,
+      images: [logoUrl],
     },
     ...(draft ? { robots: { index: false, follow: false } as const } : {}),
   };

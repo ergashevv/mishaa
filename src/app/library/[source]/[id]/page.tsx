@@ -1,15 +1,22 @@
-/** Node serverless avoids Vercel Edge size limits alongside heavy comic/AniList/MangaDex code. */
-export const runtime = "nodejs";
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
+import JsonLd from '@/components/JsonLd';
 import ComicDetailsClient from './ComicDetailsClient';
+import MangaDexUnresolvedPanel from '@/components/MangaDexUnresolvedPanel';
 import { getComicDetails as getComicDetailsAction, getChapters } from '@/actions/comic';
 import { fetchAniListManga } from '@/lib/anilist';
-import { cacheMangaDexIdResolution, getCachedMangaDexIdResolution, isMangaDexUuid, resolveMangaDexIdFromTitle } from '@/lib/mangadex';
+import {
+  cacheMangaDexIdResolution,
+  getCachedMangaDexIdResolution,
+  isMangaDexUuid,
+  resolveMangaDexIdFromTitle,
+} from '@/lib/mangadex';
 import { buildComicOpenGraphImage, getPublicSiteUrl, toAbsoluteAssetUrl } from '@/lib/og-metadata';
-import JsonLd from '@/components/JsonLd';
+import { ICS_SITE_DISPLAY_NAME, openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
+
+export const runtime = 'nodejs';
 
 const getComicDetails = cache(getComicDetailsAction);
 
@@ -101,7 +108,7 @@ function buildAggregateRating(comicData: ComicSeoData): Record<string, unknown> 
 }
 
 const DEFAULT_DESCRIPTION =
-  'Read manga, manhwa, and comics online — chapters, ratings, and official-style catalog pages on iComics.wiki.';
+  'Read this series online on iComics.wiki — synopsis, chapter list, community scores, fullscreen reader, synced progress.';
 
 export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
   const { source, id } = await params;
@@ -109,21 +116,28 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   const resolved = source !== 'mangadex' || isMangaDexUuid(id) || resolvedId !== id;
 
   if (source === 'mangadex' && !resolved) {
-    const siteUrl = getPublicSiteUrl();
+    const origin = getPublicSiteUrl().replace(/\/$/, '');
+    const staleUrl = `${origin}/library/${source}/${id}`;
+    const headDescription =
+      'This bookmark used an older MangaDex ID. Discover the series again via the manga library search or catalogue on iComics.wiki.';
     return {
-      metadataBase: new URL(siteUrl),
-      title: 'Manga Library',
-      description: 'Browse the manga catalog and open a title from the library.',
-      openGraph: {
-        title: 'Manga Library',
-        description: 'Browse the manga catalog and open a title from the library.',
-        url: `${siteUrl}/library/${source}/${id}`,
-        siteName: 'iComics.wiki',
-        images: [{ url: `${siteUrl}/logo.png`, width: 512, height: 512, alt: 'iComics.wiki' }],
-      },
+      metadataBase: new URL(origin),
+      title: `Outdated manga link · ${ICS_SITE_DISPLAY_NAME}`,
+      description: headDescription,
+      ...openGraphTwitterFromLogo({
+        origin,
+        pageAbsoluteUrl: staleUrl,
+        openGraphTitle: 'Outdated manga link',
+        twitterTitle: `Outdated manga link | ${ICS_SITE_DISPLAY_NAME}`,
+        openGraphDescription:
+          `Open ${ICS_SITE_DISPLAY_NAME} to browse manga, manhwa, and comics this URL no longer resolves.`,
+        twitterDescription:
+          'This URL no longer resolves. Browse the manga and comics library for current catalog links.',
+      }),
       alternates: {
-        canonical: `${siteUrl}/library/${source}/${id}`,
+        canonical: staleUrl,
       },
+      robots: { index: false, follow: true },
     };
   }
 
@@ -163,7 +177,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
       title,
       description: finalDescription,
       url: canonicalUrl,
-      siteName: 'iComics.wiki',
+      siteName: ICS_SITE_DISPLAY_NAME,
       locale: 'en_US',
       type: 'article',
       images: [ogImage],
@@ -192,30 +206,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
   }
 
   if (source === 'mangadex' && !resolved) {
-    return (
-      <article className="min-h-screen bg-zinc-50 text-neutral-900 dark:bg-[#05060a] dark:text-white">
-        <div className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-6 px-4 text-center">
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">
-            Legacy MangaDex link
-          </div>
-          <h1 className="text-4xl font-black uppercase tracking-tight sm:text-6xl">
-            We could not resolve this title
-          </h1>
-          <p className="max-w-2xl text-sm leading-7 text-neutral-600 dark:text-white/60">
-            This MangaDex link uses an old numeric ID that cannot be fetched directly anymore.
-            Open a title from the library to continue reading.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a href="/library" className="rounded-full bg-neutral-900 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white dark:bg-white dark:text-black">
-              Browse library
-            </a>
-            <a href="/" className="rounded-full border border-neutral-300 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-neutral-900 dark:border-white/10 dark:text-white">
-              Go home
-            </a>
-          </div>
-        </div>
-      </article>
-    );
+    return <MangaDexUnresolvedPanel />;
   }
 
   const cookieStore = await cookies();
@@ -262,7 +253,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
         },
         publisher: {
           '@type': 'Organization',
-          name: 'iComics.wiki',
+          name: ICS_SITE_DISPLAY_NAME,
           url: siteOrigin,
         },
         ...(genreLine ? { genre: genreLine } : {}),
