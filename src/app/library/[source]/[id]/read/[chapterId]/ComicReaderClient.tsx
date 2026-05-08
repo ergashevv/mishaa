@@ -14,6 +14,7 @@ import {
   HelpCircle,
   ZoomIn,
   ZoomOut,
+  RotateCcw,
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -649,18 +650,32 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     return () => window.clearTimeout(tid);
   }, [readerLoading, pages.length]);
 
+  /** Trackpad pinch / Ctrl+scroll: capture on reader root, normalize wheel delta (deltaMode), smooth zoom curve. */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const root = readerRef.current;
+    if (!root) return;
+
     const onWheel = (e: WheelEvent) => {
-      if (viewMode === 'flow' || !(e.ctrlKey || e.metaKey)) return;
+      if (viewMode === 'flow') return;
+      if (showSettings || showGrid || showReaderHelp || uiVisible) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+
       e.preventDefault();
-      const delta = e.deltaY > 0 ? -READER_ZOOM_STEP : READER_ZOOM_STEP;
-      setReaderZoom((z) => z + delta);
+      e.stopPropagation();
+
+      let dy = e.deltaY;
+      if (e.deltaMode === 1) dy *= 16;
+      if (e.deltaMode === 2) dy *= canvasRef.current?.clientHeight ?? 800;
+
+      const sensitivity = 0.0016;
+      setReaderZoom((z) =>
+        clampReaderZoom(z * Math.exp(-dy * sensitivity)),
+      );
     };
-    canvas.addEventListener('wheel', onWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', onWheel);
-  }, [setReaderZoom, viewMode]);
+
+    root.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => root.removeEventListener('wheel', onWheel, { capture: true });
+  }, [setReaderZoom, viewMode, showSettings, showGrid, showReaderHelp, uiVisible, readerLoading, pages.length]);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -1383,6 +1398,57 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
           )}
         </AnimatePresence>
 
+        {pages.length > 0 && viewMode !== 'flow' && !readerLoading && (
+          <div
+            className={`fixed z-[10040] flex items-center gap-0.5 rounded-2xl border px-1.5 py-1 shadow-xl backdrop-blur-md transition-all duration-300 bottom-[max(2rem,env(safe-area-inset-bottom))] left-4 max-w-[calc(100vw-8rem)] sm:left-8 ${
+              showSettings || showGrid || showReaderHelp || uiVisible
+                ? 'pointer-events-none opacity-0 scale-95'
+                : 'opacity-100 scale-100'
+            }`}
+            style={{
+              backgroundColor: READER_THEMES[readerTheme].panelBg,
+              borderColor: READER_THEMES[readerTheme].border,
+            }}
+            title={t.readerZoomHint}
+          >
+            <button
+              type="button"
+              aria-label="Zoom out"
+              className="rounded-xl p-2.5 transition-opacity disabled:opacity-30"
+              disabled={readerZoom <= 0.66}
+              style={{ color: READER_THEMES[readerTheme].text }}
+              onClick={() => setReaderZoom((z) => z - READER_ZOOM_STEP)}
+            >
+              <ZoomOut size={18} aria-hidden />
+            </button>
+            <span
+              className="min-w-[3rem] text-center text-[11px] font-black tabular-nums sm:min-w-[3.25rem]"
+              style={{ color: READER_THEMES[readerTheme].text }}
+            >
+              {Math.round(readerZoom * 100)}%
+            </span>
+            <button
+              type="button"
+              aria-label="Zoom in"
+              className="rounded-xl p-2.5 transition-opacity disabled:opacity-30"
+              disabled={readerZoom >= 2.98}
+              style={{ color: READER_THEMES[readerTheme].text }}
+              onClick={() => setReaderZoom((z) => z + READER_ZOOM_STEP)}
+            >
+              <ZoomIn size={18} aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label={t.readerZoomReset}
+              className="rounded-xl p-2.5"
+              style={{ color: READER_THEMES[readerTheme].muted }}
+              onClick={() => setReaderZoom(1)}
+            >
+              <RotateCcw size={17} aria-hidden />
+            </button>
+          </div>
+        )}
+
         {pages.length > 0 && (
           <div
             className={`fixed bottom-8 right-8 z-[10040] transition-all duration-300 ${
@@ -1522,65 +1588,6 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                       <List size={16} />
                       All pages (thumbnails)
                     </button>
-                  </div>
-
-                  {/* Zoom */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label="Zoom out"
-                        onClick={() => setReaderZoom((z) => z - READER_ZOOM_STEP)}
-                        className="flex-1 py-4 border transition-all flex items-center justify-center"
-                        disabled={readerZoom <= 0.66}
-                        style={{
-                          borderColor: READER_THEMES[readerTheme].border,
-                          backgroundColor: READER_THEMES[readerTheme].panelAltBg,
-                          color: readerZoom <= 0.66 ? READER_THEMES[readerTheme].muted : READER_THEMES[readerTheme].text,
-                        }}
-                      >
-                        <ZoomOut size={18} aria-hidden />
-                      </button>
-                      <div
-                        className="flex-[1.4] py-4 border text-center text-[11px] font-black uppercase tracking-widest"
-                        style={{
-                          borderColor: READER_THEMES[readerTheme].border,
-                          color: READER_THEMES[readerTheme].text,
-                        }}
-                      >
-                        {Math.round(readerZoom * 100)}%
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Zoom in"
-                        onClick={() => setReaderZoom((z) => z + READER_ZOOM_STEP)}
-                        className="flex-1 py-4 border transition-all flex items-center justify-center"
-                        disabled={readerZoom >= 2.98}
-                        style={{
-                          borderColor: READER_THEMES[readerTheme].border,
-                          backgroundColor: READER_THEMES[readerTheme].panelAltBg,
-                          color: readerZoom >= 2.98 ? READER_THEMES[readerTheme].muted : READER_THEMES[readerTheme].text,
-                        }}
-                      >
-                        <ZoomIn size={18} aria-hidden />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={t.readerZoomReset}
-                        onClick={() => setReaderZoom(1)}
-                        className="px-4 py-4 border text-[9px] font-black uppercase tracking-tight whitespace-nowrap"
-                        style={{
-                          borderColor: READER_THEMES[readerTheme].border,
-                          backgroundColor: READER_THEMES[readerTheme].panelAltBg,
-                          color: READER_THEMES[readerTheme].muted,
-                        }}
-                      >
-                        {t.readerZoomReset}
-                      </button>
-                    </div>
-                    <p className="text-[9px] font-bold uppercase tracking-wider leading-relaxed" style={{ color: READER_THEMES[readerTheme].muted }}>
-                      {t.readerZoomHint}
-                    </p>
                   </div>
 
                   <button
@@ -1854,7 +1861,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                      )}
                    </div>
                 ) : viewMode === 'journal' ? (
-                   <div className="flex items-center justify-center w-full max-w-[98vw] gap-0 min-h-[85vh]">
+                   <div className="flex items-stretch justify-center w-full max-w-[98vw] gap-0 min-h-[85vh]">
                       {!pageReady ? (
                         <div className="flex items-center justify-center w-full min-h-[85vh]">
                           <div className="w-14 h-14 border-2 border-[#ff4d00]/30 border-t-[#ff4d00] rounded-full animate-spin" />
@@ -1871,8 +1878,8 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center w-full gap-0">
-                          <div className="relative flex-1 aspect-[2/3] max-h-[90vh]">
+                        <div className="flex items-stretch justify-center w-full gap-0">
+                          <div className="relative flex-1 aspect-[2/3] max-h-[90vh] min-h-0">
                             <Image
                               src={pages[currentPage]}
                               fill
@@ -1883,7 +1890,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                             />
                           </div>
                           {pages[currentPage + 1] && (
-                            <div className="relative flex-1 aspect-[2/3] max-h-[90vh]">
+                            <div className="relative flex-1 aspect-[2/3] max-h-[90vh] min-h-0">
                               <Image
                                 src={pages[currentPage + 1]}
                                 fill
