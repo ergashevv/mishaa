@@ -205,9 +205,6 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
                     <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white">
                       <Settings2 size={14} /> Settings
                     </Link>
-                    <Link href="/studio" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white">
-                      <Menu size={14} /> {t.terminal}
-                    </Link>
                     <div className="my-2 h-px bg-neutral-100 dark:bg-white/5" />
                     <button
                       onClick={handleLogout}
@@ -284,13 +281,6 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
               </Link>
               {user && (
                 <>
-                  <Link
-                    href="/studio"
-                    onClick={() => setIsOpen(false)}
-                    className="w-full rounded-2xl border border-neutral-200 bg-neutral-100/80 py-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-neutral-900 transition-colors hover:bg-[#ff5a1f] hover:text-white dark:border-white/10 dark:bg-black/40 dark:text-white dark:hover:bg-[#ff5a1f]"
-                  >
-                    {t.terminal}
-                  </Link>
                   <button
                     onClick={() => { handleLogout(); setIsOpen(false); }}
                     className="w-full rounded-2xl border border-red-500/20 bg-red-500/5 py-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-red-500 transition-colors hover:bg-red-500 hover:text-white"

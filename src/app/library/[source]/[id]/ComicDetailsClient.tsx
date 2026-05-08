@@ -809,12 +809,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                    </Link>
                  </motion.div>
                )}
-               {comic.source === 'superhero' && (
-                 <button onClick={() => router.push('/studio')} className="group relative py-6 bg-[#ff4d00] text-white flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[11px] overflow-hidden transition-all hover:bg-white hover:text-black">
-                   <div className="absolute left-0 top-0 bottom-0 w-0 bg-black group-hover:w-full transition-all duration-500 z-0 opacity-10" />
-                   <span className="relative z-10 flex items-center gap-3"><Sparkles fill="currentColor" size={16} /> Comic studio</span>
-                 </button>
-               )}
               <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={toggleBookmark}

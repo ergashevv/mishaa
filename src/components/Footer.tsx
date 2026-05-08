@@ -53,7 +53,6 @@ export default function Footer() {
             <div className="space-y-5 sm:space-y-6 lg:space-y-8">
               <span className="text-[11px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">{t.studio}</span>
               <div className="flex flex-col gap-4 text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-white/60">
-                <Link href="/studio" className="transition-all hover:translate-x-2 hover:text-[#ff4d00] dark:hover:text-white">{t.launch}</Link>
                 <Link href="/gallery" className="transition-all hover:translate-x-2 hover:text-[#ff4d00] dark:hover:text-white">{t.archives}</Link>
                 <Link href="/about" className="transition-all hover:translate-x-2 hover:text-[#ff4d00] dark:hover:text-white">{t.about}</Link>
               </div>

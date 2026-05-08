@@ -79,11 +79,6 @@ export default function Gallery() {
                      {t.desc}
                   </p>
                </div>
-               <Link href="/studio">
-                  <button className="rounded-lg bg-[#ff4d00] px-8 py-4 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-white hover:text-black">
-                    {t.newPub}
-                  </button>
-               </Link>
             </div>
          </div>
 

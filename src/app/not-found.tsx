@@ -12,9 +12,9 @@ const quickLinks = [
     description: "Explore manga, manhwa, Marvel, and webtoon archives.",
   },
   {
-    href: "/studio",
-    label: "Open studio",
-    description: "Jump into the creation workspace and start a new panel run.",
+    href: "/reading",
+    label: "Reading hub",
+    description: "Guides, formats, and tips for reading on iComics.wiki.",
   },
 ];
 
@@ -48,8 +48,8 @@ export default function NotFound() {
                   This chapter slipped out of the archive.
                 </h1>
                 <p className="max-w-xl text-sm leading-7 text-neutral-600 dark:text-white/65 md:text-base">
-                  The link you opened does not exist in our comic universe, but the library, studio,
-                  and homepage are still here. Let&apos;s get you back on track.
+                  The link you opened does not exist in our comic universe, but the library,
+                  reading hub, and homepage are still here. Let&apos;s get you back on track.
                 </p>
               </div>
             </div>
@@ -111,7 +111,7 @@ export default function NotFound() {
                       </span>
                     </div>
                     <div className="space-y-2">
-                      {["Home", "Library", "Studio"].map((item) => (
+                      {["Home", "Library", "Reading"].map((item) => (
                         <div
                           key={item}
                           className="flex items-center justify-between rounded-2xl border border-black/8 bg-neutral-900/[0.04] px-3 py-2 text-[9px] font-black uppercase tracking-[0.28em] text-neutral-700 dark:border-white/8 dark:bg-black/20 dark:text-white/65"

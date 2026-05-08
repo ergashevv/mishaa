@@ -36,7 +36,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/gallery',
     '/comic',
     '/library',
-    '/studio',
     '/contact',
     '/faq',
     '/support',
@@ -61,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority:
         route === ''
           ? 1
-          : route === '/library' || route === '/studio'
+          : route === '/library'
             ? 0.9
             : route.startsWith('/guides') || route === '/reading'
               ? 0.75
