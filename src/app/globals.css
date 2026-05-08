@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* OS dark preference OR `.dark` on an ancestor (matches cinematic pages that force a dark shell). */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    @slot;
+  }
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+}
+
 @theme {
   --font-sans: var(--font-outfit);
   --font-display: var(--font-bricolage);
