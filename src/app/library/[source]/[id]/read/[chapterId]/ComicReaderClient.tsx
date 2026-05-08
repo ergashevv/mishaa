@@ -1404,7 +1404,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
         {pages.length > 0 && viewMode !== 'flow' && !readerLoading && (
           <div
-            className={`fixed z-[10040] flex items-center gap-0.5 rounded-2xl border px-1.5 py-1 shadow-xl backdrop-blur-md transition-all duration-300 bottom-[max(2rem,env(safe-area-inset-bottom))] left-4 max-w-[calc(100vw-8rem)] sm:left-8 ${
+            className={`fixed z-[10055] flex items-center gap-0.5 rounded-2xl border px-1.5 py-1 shadow-xl backdrop-blur-md transition-all duration-300 bottom-[max(2rem,env(safe-area-inset-bottom))] left-4 max-w-[calc(100vw-8rem)] sm:left-8 ${
               showSettings || showGrid || showReaderHelp || uiVisible
                 ? 'pointer-events-none opacity-0 scale-95'
                 : 'opacity-100 scale-100'
@@ -1414,6 +1414,8 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
               borderColor: READER_THEMES[readerTheme].border,
             }}
             title={t.readerZoomHint}
+            role="toolbar"
+            aria-label="Zoom and display"
           >
             <button
               type="button"
@@ -1449,6 +1451,20 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
               onClick={() => setReaderZoom(1)}
             >
               <RotateCcw size={17} aria-hidden />
+            </button>
+            <span
+              className="mx-0.5 h-6 w-px shrink-0 self-center opacity-40"
+              style={{ backgroundColor: READER_THEMES[readerTheme].border }}
+              aria-hidden
+            />
+            <button
+              type="button"
+              aria-label={isFullscreen ? t.readerFullscreenExit : t.readerFullscreenEnter}
+              className="rounded-xl p-2.5"
+              style={{ color: READER_THEMES[readerTheme].text }}
+              onClick={() => void toggleFullscreen()}
+            >
+              {isFullscreen ? <Minimize2 size={18} aria-hidden /> : <Maximize2 size={18} aria-hidden />}
             </button>
           </div>
         )}
@@ -1795,7 +1811,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
         <div
           ref={canvasRef}
-          className="relative h-full min-h-0 flex-1 w-full overflow-y-auto scroll-smooth touch-pan-y"
+          className={`relative h-full min-h-0 flex-1 w-full overflow-y-auto scroll-smooth touch-pan-y ${
+            viewMode !== 'flow' && pages.length > 0 && !readerLoading
+              ? 'scroll-pb-[max(6.75rem,calc(5.75rem+env(safe-area-inset-bottom)))]'
+              : ''
+          }`}
           style={{
             backgroundColor: READER_THEMES[readerTheme].canvasBg,
             scrollbarGutter: 'stable',
@@ -1848,7 +1868,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                 className={`mx-auto flex w-full flex-col items-center transition-all duration-500 ${
                   viewMode === 'flow'
                     ? 'pt-0 pb-20'
-                    : 'box-border min-h-full justify-center px-3 py-4 sm:px-4 sm:py-6'
+                    : 'box-border min-h-full justify-center px-3 pt-4 pb-[max(6.75rem,calc(5.75rem+env(safe-area-inset-bottom)))] sm:px-4 sm:pt-6 sm:pb-[max(7rem,calc(6rem+env(safe-area-inset-bottom)))]'
                 }`}
               >
                 {viewMode === 'classic' ? (

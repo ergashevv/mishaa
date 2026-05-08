@@ -243,6 +243,8 @@ export const translations = {
       readerZoomSection: 'Page zoom (classic & journal)',
       readerZoomHint: 'Pinch · Ctrl+scroll · + / −',
       readerZoomReset: 'Reset',
+      readerFullscreenEnter: 'Full screen',
+      readerFullscreenExit: 'Exit full screen',
       readerShortcutsBtn: 'Keyboard shortcuts',
       readerShortcutsTitle: 'Reader shortcuts',
       readerShortcutsBody:
@@ -492,6 +494,8 @@ export const translations = {
       readerZoomSection: 'Масштаб (classic и journal)',
       readerZoomHint: 'Щипок · Ctrl+колесо · + / −',
       readerZoomReset: 'Сбросить',
+      readerFullscreenEnter: 'На весь экран',
+      readerFullscreenExit: 'Выйти из полноэкранного',
       readerShortcutsBtn: 'Горячие клавиши',
       readerShortcutsTitle: 'Сочетания клавиш',
       readerShortcutsBody:
