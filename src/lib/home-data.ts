@@ -327,7 +327,9 @@ export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataO
             item.coverImage.medium || item.coverImage.large || item.coverImage.extraLarge || '/logo.png',
           bannerUrl: item.bannerImage || undefined,
           source: 'mangadex' as const,
-          href: mangaDexId ? `/library/mangadex/${mangaDexId}` : item.siteUrl || '/library',
+          // Detail route resolves non-UUID ids via AniList → MangaDex (never use absolute external URLs here:
+          // Telegram and other code join origin + href and would produce a broken double-URL).
+          href: `/library/mangadex/${mangaDexId || item.id}`,
           meta: `TRENDING #${index + 1}`,
           rating: (item.averageScore / 10).toFixed(1) || '8.5'
         };

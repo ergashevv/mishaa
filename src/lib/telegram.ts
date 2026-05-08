@@ -128,6 +128,16 @@ function shortText(value: string, maxLength: number) {
   return `${compact.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
+/** Join site origin with a comic path for Telegram/HTML links; never double-prefix absolute URLs. */
+function absoluteSitePath(siteOrigin: string, pathOrUrl: string) {
+  const origin = siteOrigin.replace(/\/$/, '');
+  const raw = pathOrUrl.trim();
+  if (!raw) return origin;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/')) return `${origin}${raw}`;
+  return `${origin}/${raw}`;
+}
+
 function extractTelegramCommand(text?: string | null) {
   if (!text) return null;
   const [firstToken] = text.trim().split(/\s+/);
@@ -200,7 +210,7 @@ export function pickTelegramComic(slot: TelegramSlot, candidates: TelegramComicC
   return ordered[hash % ordered.length] || ordered[0];
 }
 
-function buildTelegramCaption(comic: TelegramComicCandidate, slot: TelegramSlot) {
+function buildTelegramCaptionLines(comic: TelegramComicCandidate, featureLabel: string) {
   const siteUrl = getSiteUrl();
   const rating = comic.rating ? `⭐ ${comic.rating}` : '⭐ N/A';
   const shelfLabel = comic.shelf.replace(/-/g, ' ').toUpperCase();
@@ -209,10 +219,36 @@ function buildTelegramCaption(comic: TelegramComicCandidate, slot: TelegramSlot)
 
   return [
     `<b>${title}</b>`,
-    `${rating} • ${escapeHtml(shelfLabel)} • ${escapeHtml(TELEGRAM_SLOT_LABELS[slot])}`,
+    `${rating} • ${escapeHtml(shelfLabel)} • ${escapeHtml(featureLabel)}`,
     description,
-    `<a href="${siteUrl}${comic.href}">Read on iComics.wiki</a>`,
+    `<a href="${escapeHtml(absoluteSitePath(siteUrl, comic.href))}">Read on iComics.wiki</a>`,
   ].join('\n');
+}
+
+function buildTelegramCaption(comic: TelegramComicCandidate, slot: TelegramSlot) {
+  return buildTelegramCaptionLines(comic, TELEGRAM_SLOT_LABELS[slot]);
+}
+
+async function sendTelegramComicWithFeatureLabel(comic: TelegramComicCandidate, featureLabel: string) {
+  const channelId = getTelegramChannelId();
+  const caption = buildTelegramCaptionLines(comic, featureLabel);
+
+  if (comic.coverUrl) {
+    return telegramJsonRequest<{ result: { message_id: number } }>('sendPhoto', {
+      chat_id: channelId,
+      photo: comic.coverUrl,
+      caption,
+      parse_mode: 'HTML',
+      disable_web_page_preview: false,
+    });
+  }
+
+  return telegramJsonRequest<{ result: { message_id: number } }>('sendMessage', {
+    chat_id: channelId,
+    text: caption,
+    parse_mode: 'HTML',
+    disable_web_page_preview: false,
+  });
 }
 
 async function sendTelegramComic(slot: TelegramSlot, comic: TelegramComicCandidate) {
@@ -373,12 +409,236 @@ export async function handleTelegramUpdate(update: TelegramUpdate) {
   return { ok: true, ignored: true };
 }
 
+const TELEGRAM_CAMPAIGN_ID = 'singleton';
+const MS_HOUR = 60 * 60 * 1000;
+
+export async function isTelegramIntensiveCampaignActive(): Promise<boolean> {
+  const row = await prisma.telegramCampaignState.findUnique({
+    where: { id: TELEGRAM_CAMPAIGN_ID },
+  });
+  if (!row?.intensiveEndsAt) return false;
+  return row.intensiveEndsAt.getTime() > Date.now();
+}
+
+function parseTelegramRatingSort(rating?: string): number {
+  if (!rating) return 0;
+  const n = Number.parseFloat(String(rating).replace(/[^\d.+-]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function shuffleInPlace<T>(items: T[]): T[] {
+  const a = items;
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function dedupeTelegramCandidates(list: TelegramComicCandidate[]): TelegramComicCandidate[] {
+  const seen = new Set<string>();
+  return list.filter((c) => {
+    const key = `${c.shelf}:${c.id}:${c.href}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export type StartTelegramIntensiveCampaignOptions = {
+  poolSize?: number;
+  postsInWeek?: number;
+  hoursBetweenPosts?: number;
+  intensiveDays?: number;
+  dryRun?: boolean;
+};
+
+/** Random pool → sort by rating → post #1 now, queue the rest every `hoursBetweenPosts` until `postsInWeek` total. Sets intensive window so slot crons pause. */
+export async function startTelegramIntensiveCampaign(
+  options: StartTelegramIntensiveCampaignOptions = {},
+): Promise<{
+  ok: boolean;
+  dryRun: boolean;
+  totalInWeek: number;
+  queued: number;
+  firstTitle?: string;
+  error?: string;
+}> {
+  const poolSize = options.poolSize ?? 100;
+  const postsInWeek = options.postsInWeek ?? 84;
+  const hoursBetween = options.hoursBetweenPosts ?? 2;
+  const intensiveDays = options.intensiveDays ?? 7;
+  const dryRun = options.dryRun ?? false;
+
+  if (!hasTelegramConfig()) {
+    return { ok: false, dryRun, totalInWeek: 0, queued: 0, error: 'Telegram not configured' };
+  }
+
+  try {
+    const raw = dedupeTelegramCandidates(await getTelegramComicCandidates());
+    shuffleInPlace(raw);
+    const pool = raw.slice(0, Math.min(poolSize, raw.length));
+    pool.sort((a, b) => {
+      const ra = parseTelegramRatingSort(a.rating);
+      const rb = parseTelegramRatingSort(b.rating);
+      if (rb !== ra) return rb - ra;
+      return Math.random() - 0.5;
+    });
+
+    const totalInWeek = Math.min(postsInWeek, pool.length);
+    if (totalInWeek < 1) {
+      return { ok: false, dryRun, totalInWeek: 0, queued: 0, error: 'No comic candidates' };
+    }
+
+    const selected = pool.slice(0, totalInWeek);
+    const intensiveEndsAt = new Date(Date.now() + intensiveDays * 24 * MS_HOUR);
+
+    if (dryRun) {
+      return {
+        ok: true,
+        dryRun: true,
+        totalInWeek,
+        queued: totalInWeek - 1,
+        firstTitle: selected[0]?.title,
+      };
+    }
+
+    await prisma.telegramScheduledPost.deleteMany({ where: { status: 'pending' } });
+
+    await prisma.telegramCampaignState.upsert({
+      where: { id: TELEGRAM_CAMPAIGN_ID },
+      create: { id: TELEGRAM_CAMPAIGN_ID, intensiveEndsAt },
+      update: { intensiveEndsAt },
+    });
+
+    await sendTelegramComicWithFeatureLabel(selected[0], `Campaign kickoff · 1/${totalInWeek}`);
+
+    const rest = selected.slice(1);
+    if (rest.length > 0) {
+      const intervalMs = hoursBetween * MS_HOUR;
+      const base = Date.now();
+      await prisma.telegramScheduledPost.createMany({
+        data: rest.map((comic, index) => ({
+          scheduledAt: new Date(base + (index + 1) * intervalMs),
+          orderIndex: index + 1,
+          featureLabel: `2h campaign · ${index + 2}/${totalInWeek}`,
+          comicPayload: JSON.parse(JSON.stringify(comic)) as object,
+        })),
+      });
+    }
+
+    return {
+      ok: true,
+      dryRun: false,
+      totalInWeek,
+      queued: rest.length,
+      firstTitle: selected[0]?.title,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Campaign start failed';
+    return { ok: false, dryRun, totalInWeek: 0, queued: 0, error: message };
+  }
+}
+
+export async function processTelegramScheduledQueue(): Promise<{
+  ok: boolean;
+  sent: boolean;
+  cancelledPending?: number;
+  comicTitle?: string;
+  error?: string;
+}> {
+  if (!hasTelegramConfig()) {
+    return { ok: false, sent: false, error: 'Telegram not configured' };
+  }
+
+  const state = await prisma.telegramCampaignState.findUnique({
+    where: { id: TELEGRAM_CAMPAIGN_ID },
+  });
+  const now = new Date();
+
+  if (state?.intensiveEndsAt && state.intensiveEndsAt.getTime() <= now.getTime()) {
+    const cancel = await prisma.telegramScheduledPost.updateMany({
+      where: { status: 'pending' },
+      data: { status: 'cancelled' },
+    });
+    await prisma.telegramCampaignState.update({
+      where: { id: TELEGRAM_CAMPAIGN_ID },
+      data: { intensiveEndsAt: null },
+    });
+    return { ok: true, sent: false, cancelledPending: cancel.count };
+  }
+
+  if (!state?.intensiveEndsAt) {
+    return { ok: true, sent: false };
+  }
+
+  const next = await prisma.telegramScheduledPost.findFirst({
+    where: { status: 'pending', scheduledAt: { lte: now } },
+    orderBy: [{ scheduledAt: 'asc' }, { orderIndex: 'asc' }],
+  });
+
+  if (!next) {
+    const pendingLeft = await prisma.telegramScheduledPost.count({ where: { status: 'pending' } });
+    if (pendingLeft === 0) {
+      await prisma.telegramCampaignState.update({
+        where: { id: TELEGRAM_CAMPAIGN_ID },
+        data: { intensiveEndsAt: null },
+      });
+    }
+    return { ok: true, sent: false };
+  }
+
+  const comic = next.comicPayload as unknown as TelegramComicCandidate;
+
+  try {
+    const result = await sendTelegramComicWithFeatureLabel(comic, next.featureLabel);
+    const messageId = result.result.message_id;
+    await prisma.telegramScheduledPost.update({
+      where: { id: next.id },
+      data: {
+        status: 'sent',
+        sentAt: new Date(),
+        telegramMessageId: messageId,
+        error: null,
+      },
+    });
+    return { ok: true, sent: true, comicTitle: comic.title };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Queue send failed';
+    await prisma.telegramScheduledPost.update({
+      where: { id: next.id },
+      data: { status: 'failed', error: message },
+    });
+    return { ok: false, sent: false, error: message };
+  }
+}
+
+export async function runTelegramQueueCron(request: Request) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const result = await processTelegramScheduledQueue();
+  return Response.json({
+    ok: result.ok,
+    sent: result.sent,
+    cancelledPending: result.cancelledPending ?? null,
+    comicTitle: result.comicTitle ?? null,
+    error: result.error ?? null,
+  });
+}
+
 export async function postTelegramComicForSlot(slot: TelegramSlot): Promise<TelegramPostResult> {
   if (!hasTelegramConfig()) {
     throw new Error('Telegram configuration is incomplete');
   }
 
   const slotKey = getSlotKey(slot);
+  if (await isTelegramIntensiveCampaignActive()) {
+    return { skipped: true, slotKey, slot };
+  }
+
   const existing = await prisma.telegramPostLog.findUnique({ where: { slotKey } });
   if (existing?.status === 'posted' || existing?.status === 'sending') {
     return { skipped: true, slotKey, slot };
