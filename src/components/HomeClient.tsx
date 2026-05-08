@@ -674,12 +674,12 @@ export default function HomeClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white">
+    <div className="min-h-screen bg-white text-neutral-900">
       <JsonLd data={websiteSchema} />
       <JsonLd data={orgSchema} />
-      <Navbar />
+      <Navbar surface="catalog" />
 
-      <main className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+      <main className="relative overflow-hidden pt-14 sm:pt-16 lg:pt-[4.25rem]">
         {/* --- DYNAMIC HERO BANNER --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">
@@ -691,23 +691,17 @@ export default function HomeClient({
                 exit={{ opacity: 0 }}
                 className="relative w-full"
               >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 pb-16">
-                  <div className="grid gap-6 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-5 shadow-[0_40px_100px_rgba(0,0,0,0.5)] backdrop-blur-3xl lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:p-8">
-                    <div className="space-y-6">
-                      <div className="h-9 w-48 rounded-full bg-white/5 animate-pulse" />
-                      <div className="h-24 w-full rounded-[2rem] bg-white/5 animate-pulse" />
-                      <div className="h-20 w-4/5 rounded-[2rem] bg-white/5 animate-pulse" />
-                      <div className="flex flex-wrap gap-3">
-                        <div className="h-12 w-40 rounded-full bg-white/5 animate-pulse" />
-                        <div className="h-12 w-40 rounded-full bg-white/5 animate-pulse" />
+                <div className="bg-neutral-950 pb-12 pt-4">
+                  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid gap-8 border border-white/10 bg-black/40 p-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:p-10">
+                      <div className="space-y-5">
+                        <div className="h-6 w-36 animate-pulse bg-white/10" />
+                        <div className="h-14 w-full max-w-md animate-pulse bg-white/10" />
+                        <div className="h-10 w-3/4 max-w-sm animate-pulse bg-white/10" />
+                        <div className="h-11 w-44 animate-pulse bg-[#ff5a1f]/40" />
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="h-24 rounded-[1.5rem] bg-white/5 animate-pulse" />
-                        <div className="h-24 rounded-[1.5rem] bg-white/5 animate-pulse" />
-                        <div className="h-24 rounded-[1.5rem] bg-white/5 animate-pulse" />
-                      </div>
+                      <div className="aspect-[3/4] max-h-[22rem] animate-pulse bg-white/10 lg:max-h-none lg:justify-self-end lg:w-full lg:max-w-sm" />
                     </div>
-                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] animate-pulse" />
                   </div>
                 </div>
               </motion.div>
@@ -726,8 +720,9 @@ export default function HomeClient({
                   heroCarouselPausedRef.current = false;
                 }}
               >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-14 lg:pb-18">
-                  <div className="relative min-h-[clamp(22rem,52vw,34rem)] overflow-hidden bg-black shadow-[0_50px_140px_rgba(0,0,0,0.72)] lg:min-h-[28rem]">
+                <div className="bg-neutral-950 pb-10">
+                  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="relative min-h-[clamp(20rem,48vw,30rem)] overflow-hidden border border-white/10 bg-black lg:min-h-[26rem]">
                     <AnimatePresence initial={false} mode="wait">
                       <motion.div
                         key={heroFeaturedKey}
@@ -740,7 +735,7 @@ export default function HomeClient({
                           duration: prefersReducedMotion ? 0 : 0.38,
                           ease: [0.22, 1, 0.36, 1],
                         }}
-                        className="relative min-h-[clamp(22rem,52vw,34rem)] lg:min-h-[28rem]"
+                        className="relative min-h-[clamp(20rem,48vw,30rem)] lg:min-h-[26rem]"
                       >
                         <div className="pointer-events-none absolute inset-0 z-0">
                           {!isTouchDevice ? (
@@ -750,59 +745,60 @@ export default function HomeClient({
                                 alt=""
                                 priority
                                 sizes="100vw"
-                                className="object-cover object-center scale-105 opacity-[0.2] blur-[2px]"
+                                className="object-cover object-center opacity-[0.35]"
                               />
-                              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,10,0.96)_0%,rgba(5,6,10,0.9)_42%,rgba(5,6,10,0.54)_100%)]" />
+                              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/88 to-black/55" />
                             </>
                           ) : (
-                            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0.98)_0%,rgba(5,6,10,0.92)_100%)]" />
+                            <div className="absolute inset-0 bg-neutral-950" />
                           )}
                         </div>
 
-                        <div className="relative z-10 grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:px-12 lg:py-12">
-                      <div className="relative z-20 max-w-3xl lg:py-12">
-                        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/42">
+                        <div className="relative z-10 grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-12 lg:py-12">
+                      <div className="relative z-20 max-w-2xl lg:py-8">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/55">
                           {featuredComic.source}
                         </p>
 
-                        <h1 className="mt-6 min-h-[2.75em] text-display text-5xl leading-[0.9] text-white sm:min-h-[2.5em] sm:text-6xl xl:min-h-[2.35em] xl:text-[5.9rem]">
+                        <h1 className="mt-4 min-h-[2.4em] text-4xl font-bold uppercase leading-[1.05] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl xl:text-6xl">
                           {featuredComic.title}
                         </h1>
 
                         {heroRating?.showBlock ? (
-                          <div className="mt-8 flex min-h-[2.75rem] flex-wrap items-baseline gap-x-4 gap-y-2">
-                            <span className="text-[9px] font-black uppercase tracking-[0.55em] text-white/32">
+                          <div className="mt-6 flex min-h-[2.25rem] flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">
                               {heroRating.label}
                             </span>
-                            <span className="text-2xl font-black uppercase tracking-[0.12em] text-white">
+                            <span className="text-lg font-semibold uppercase tracking-wide text-white">
                               {heroRating.value}
                             </span>
                           </div>
                         ) : (
-                          <div className="mt-8 min-h-[2.75rem]" aria-hidden />
+                          <div className="mt-6 min-h-[2.25rem]" aria-hidden />
                         )}
 
                         <Link
                           href={resolveComicHref(featuredComic)}
-                          className="mt-10 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-[10px] font-black uppercase tracking-[0.4em] text-black transition-transform hover:scale-[1.02] active:scale-95"
+                          className="group mt-9 inline-block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ff5a1f]"
                         >
-                          Read
+                          <span className="inline-flex -skew-x-6 bg-[#ff5a1f] px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-lg transition-transform group-hover:-translate-y-0.5 group-active:translate-y-0">
+                            <span className="skew-x-6">Read now</span>
+                          </span>
                         </Link>
                       </div>
 
-                      <div className="relative z-20 mx-auto w-full max-w-[26rem] lg:mx-0 lg:ml-auto lg:translate-y-2">
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-neutral-950 shadow-[0_35px_110px_rgba(0,0,0,0.62)]">
+                      <div className="relative z-20 mx-auto w-full max-w-[14rem] sm:max-w-[17rem] lg:mx-0 lg:ml-auto lg:max-w-[18rem]">
+                        <div className="relative aspect-[2/3] overflow-hidden border border-white/15 bg-neutral-900 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
                           <SafeCoverImage
                             key={featuredPosterSrc}
                             src={featuredPosterSrc}
                             alt={featuredComic.title}
                             priority
-                            sizes="(max-width: 1024px) 78vw, 420px"
+                            sizes="(max-width: 1024px) 55vw, 320px"
                             className="object-cover object-center"
                           />
-                          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.58)_100%)]" />
                           {heroRating?.badge ? (
-                            <div className="absolute right-4 top-4 rounded-full border border-white/10 bg-black/55 px-4 py-2 text-[9px] font-black uppercase tracking-[0.35em] text-white/70 backdrop-blur-xl">
+                            <div className="absolute right-3 top-3 border border-white/20 bg-black/70 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/85">
                               {heroRating.badge}
                             </div>
                           ) : null}
@@ -812,22 +808,40 @@ export default function HomeClient({
                       </motion.div>
                     </AnimatePresence>
                   </div>
+
+                  {heroCarouselSlides.length > 1 ? (
+                    <div className="mt-6 flex justify-center gap-2">
+                      {heroCarouselSlides.map((_, i) => (
+                        <button
+                          key={`hero-dot-${heroDeckKey}-${i}`}
+                          type="button"
+                          aria-label={`Featured slide ${i + 1}`}
+                          aria-current={i === heroSlideIndex}
+                          className={`h-2 w-2 rounded-full transition-colors ${
+                            i === heroSlideIndex ? 'bg-[#ff5a1f]' : 'bg-white/25 hover:bg-white/40'
+                          }`}
+                          onClick={() => setHeroSlideIndex(i)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                  </div>
                 </div>
               </motion.div>
             ) : null}
           </AnimatePresence>
         </section>
         {/* Shelves Layout */}
-        <section className="relative z-20 px-4 sm:px-6 md:px-8 pb-24 sm:pb-28 lg:pb-32">
-          <div className="space-y-20">
+        <section className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20 sm:pb-24 lg:pb-28">
+          <div className="space-y-16 sm:space-y-20">
             {renderedShelves.every(s => shelfState[s.key]?.items.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0) &&
               searchQuery && (
                 <div className="py-20 text-center">
-                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-white/5 mb-6 text-white/20">
-                    <Search size={40} />
+                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center border border-neutral-200 bg-neutral-100 text-neutral-400">
+                    <Search size={28} strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-2">No results found</h3>
-                  <p className="text-white/40">We couldn&apos;t find any comics matching &quot;{searchQuery}&quot;</p>
+                  <h3 className="mb-2 text-xl font-bold uppercase tracking-tight text-neutral-900">No results found</h3>
+                  <p className="text-sm text-neutral-500">We couldn&apos;t find any comics matching &quot;{searchQuery}&quot;</p>
                 </div>
               )}
 
@@ -859,19 +873,23 @@ export default function HomeClient({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.4 }}
-                    className="space-y-6"
+                    className="space-y-5"
                   >
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-1">
-                          {shelf.icon}
+                    <div className="flex items-end justify-between gap-4 border-b border-neutral-200 pb-4">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
                           {shelf.subtitle}
-                        </div>
-                        <h2 className="text-3xl font-black uppercase tracking-tight text-white">{shelf.title}</h2>
+                        </p>
+                        <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl">
+                          {shelf.title}
+                        </h2>
                       </div>
-                      <Link href={`/library?tab=${encodeURIComponent(shelf.title)}`} className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#ffca3a]">
-                        View All
-                        <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                      <Link
+                        href={`/library?tab=${encodeURIComponent(shelf.title)}`}
+                        className="group flex shrink-0 items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#ff5a1f]"
+                      >
+                        See all
+                        <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
                       </Link>
                     </div>
 
@@ -893,11 +911,18 @@ export default function HomeClient({
                           carouselPausedRef.current = false;
                         }, 1200);
                       }}
-                      className="-mx-4 flex snap-x snap-mandatory touch-pan-x gap-4 overflow-x-auto overscroll-x-contain px-4 pb-3 [scrollbar-width:none] sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 [&::-webkit-scrollbar]:hidden"
+                      className="-mx-4 flex snap-x snap-mandatory touch-pan-x gap-x-4 gap-y-8 overflow-x-auto overscroll-x-contain px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:gap-x-5 lg:px-8 [&::-webkit-scrollbar]:hidden"
                     >
                       {state.loading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                          <div key={i} className="h-auto w-[42vw] max-w-[12rem] shrink-0 snap-start aspect-[2/3] animate-pulse rounded-2xl bg-white/5 sm:w-[12rem] lg:w-[13rem]" />
+                          <div
+                            key={i}
+                            className="flex w-[38vw] max-w-[10.5rem] shrink-0 snap-start flex-col gap-3 sm:w-[10.5rem] lg:w-[11rem]"
+                          >
+                            <div className="aspect-[2/3] animate-pulse bg-neutral-200" />
+                            <div className="h-3 w-4/5 animate-pulse bg-neutral-200" />
+                            <div className="h-3 w-3/5 animate-pulse bg-neutral-100" />
+                          </div>
                         ))
                       ) : (
                         filteredItems.slice(0, shelfCardLimit).map((comic) => {
@@ -910,9 +935,9 @@ export default function HomeClient({
                             <motion.article
                               key={comicKey(comic)}
                               initial={false}
-                              whileHover={useRichMotion ? { y: -10 } : undefined}
-                              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                              className="group relative w-[42vw] max-w-[12rem] shrink-0 snap-start snap-always cursor-pointer sm:w-[12rem] lg:w-[13rem]"
+                              whileHover={useRichMotion ? { y: -4 } : undefined}
+                              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                              className="group relative w-[38vw] max-w-[10.5rem] shrink-0 snap-start snap-always cursor-pointer sm:w-[10.5rem] lg:w-[11rem]"
                             >
                               <Link
                                 href={resolveComicHref(comic)}
@@ -924,67 +949,43 @@ export default function HomeClient({
                                   }
                                 }}
                               >
-                                <div className={`relative aspect-[2/3] w-full overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-2xl transition-all duration-500 ${
-                                  useRichMotion ? 'duration-700 group-hover:border-[#ff5a1f]/40 group-hover:shadow-[0_30px_60px_-15px_rgba(255,90,31,0.25)]' : ''
-                                }`}>
-                                  <SafeCoverImage
-                                    key={comicKey(comic)}
-                                    src={comic.coverUrl}
-                                    alt={comic.title}
-                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px"
-                                    className={`object-cover transition-transform duration-500 ${
-                                      shouldBlur ? 'scale-110 blur-[8px]' : 'scale-100'
-                                    } ${useRichMotion ? 'duration-1000 group-hover:scale-105' : ''}`}
-                                  />
-                                  
-                                  {/* Glassy Gradient Overlay */}
-                                  <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 transition-opacity duration-500 ${useRichMotion ? 'duration-700 group-hover:opacity-100' : 'opacity-75'}`} />
-
-                                  {shouldBlur && (
-                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md opacity-100">
-                                      <Zap size={24} className="text-[#ffca3a] mb-3 animate-pulse" />
-                                      <div className="rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.3em] text-white backdrop-blur-xl">
-                                        RESTRICTED
-                                      </div>
-                                    </div>
-                                  )}
-
+                                <div className="flex flex-col">
                                   <div
-                                    className={`absolute inset-x-0 bottom-0 p-5 space-y-2 transition-all duration-500 ${
-                                      shouldBlur
-                                        ? useRichMotion
-                                          ? 'translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
-                                          : isPreviewOpen
-                                            ? '!translate-y-0 !opacity-100'
-                                            : 'pointer-events-none translate-y-6 opacity-0'
-                                        : useRichMotion
-                                          ? 'translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
-                                          : 'translate-y-0 opacity-100'
-                                    } ${isPreviewOpen ? '!translate-y-0 !opacity-100' : ''}`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex items-center gap-1 rounded-md bg-[#ffca3a] px-1.5 py-0.5 text-[8px] font-black text-black">
-                                        <Star size={8} fill="currentColor" />
-                                        {comic.rating}
-                                      </div>
-                                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{comic.meta}</span>
-                                    </div>
-                                    <h4 className="line-clamp-2 text-sm font-black uppercase tracking-tight text-white leading-tight">{comic.title}</h4>
-                                  </div>
-
-                                  {/* Status Chip */}
-                                  <div
-                                    className={`absolute right-4 top-4 rounded-xl border border-white/20 bg-black/40 px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all duration-500 ${
-                                      useRichMotion
-                                        ? `scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 ${isPreviewOpen ? '!scale-100 !opacity-100' : ''}`
-                                        : shouldBlur
-                                          ? isPreviewOpen
-                                            ? 'scale-100 opacity-100'
-                                            : 'scale-95 opacity-0'
-                                          : 'scale-100 opacity-100'
+                                    className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-neutral-100 shadow-sm transition-all duration-300 ${
+                                      useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md' : ''
                                     }`}
                                   >
-                                    READ
+                                    <SafeCoverImage
+                                      key={comicKey(comic)}
+                                      src={comic.coverUrl}
+                                      alt={shouldBlur ? 'Restricted' : comic.title}
+                                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 200px"
+                                      className={`object-cover object-center transition-transform duration-500 ${
+                                        shouldBlur ? 'scale-105 blur-md' : 'scale-100'
+                                      } ${useRichMotion && !shouldBlur ? 'group-hover:scale-[1.03]' : ''}`}
+                                    />
+
+                                    {shouldBlur ? (
+                                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-neutral-950/25 backdrop-blur-[2px]">
+                                        <Zap size={20} className="mb-2 text-[#ff5a1f]" />
+                                        <span className="border border-white/40 bg-black/70 px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-white">
+                                          Restricted
+                                        </span>
+                                      </div>
+                                    ) : null}
+                                  </div>
+
+                                  <div className="mt-3 min-h-[3.75rem] space-y-1">
+                                    <h4 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900">
+                                      {shouldBlur ? 'Age restricted' : comic.title}
+                                    </h4>
+                                    <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-500">
+                                      {shouldBlur
+                                        ? isTouchDevice && !isPreviewOpen
+                                          ? 'Tap to confirm age'
+                                          : 'Verify age to view details'
+                                        : [comic.meta, comic.rating].filter(Boolean).join(' · ')}
+                                    </p>
                                   </div>
                                 </div>
                               </Link>
@@ -1001,17 +1002,21 @@ export default function HomeClient({
           </div>
         </section>
 
-        <section className="py-20 bg-black/40">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <div className="flex items-center gap-4 mb-12">
-                <div className="w-1.5 h-8 bg-[#ff4d00] rounded-full" />
-                <div>
-                  <h2 className="text-3xl font-black uppercase tracking-tight italic">More</h2>
-                  <p className="text-white/40 text-[11px] font-black uppercase tracking-[0.3em]">Scroll for more titles</p>
-                </div>
+        <section className="border-t border-neutral-200 bg-neutral-100 py-16 sm:py-20">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-10 border-b border-neutral-300 pb-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
+                  Discover
+                </p>
+                <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl">
+                  More titles
+                </h2>
+                <p className="mt-2 max-w-lg text-sm text-neutral-600">
+                  Scroll to load more — picks refresh as you explore.
+                </p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
+              <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4 lg:grid-cols-6">
                 {infiniteItems.map((comic, idx) => {
                   const cardKey = `discover:${comic.source}:${comic.id}`;
                   const adultContent = isAdultComic(comic);
@@ -1041,49 +1046,42 @@ export default function HomeClient({
                           }
                         }}
                       >
-                        <div className={`relative aspect-[2/3] overflow-hidden rounded-[1.5rem] border border-white/5 bg-white/[0.02] transition-all duration-500 ${
-                          useRichMotion
-                            ? 'duration-700 group-hover:border-[#ff5a1f]/30 group-hover:shadow-[0_25px_50px_rgba(255,90,31,0.15)] group-hover:-translate-y-3'
-                            : ''
-                        }`}>
-                          <SafeCoverImage
-                            key={comic.coverUrl || '/logo.png'}
-                            src={comic.coverUrl || '/logo.png'}
-                            alt={comic.title}
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
-                            className={`object-cover transition-transform duration-500 ${
-                              shouldBlur ? 'scale-110 blur-[10px]' : 'scale-100'
-                            } ${useRichMotion ? 'duration-1000 group-hover:scale-105' : ''}`}
-                          />
-                          <div className={`absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent ${useRichMotion ? 'opacity-80' : 'opacity-90'}`} />
-                          
-                          {shouldBlur && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-md opacity-100">
-                              <div className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[7px] font-black uppercase tracking-[0.3em] text-white">
-                                RESTRICTED
-                              </div>
-                            </div>
-                          )}
-                          
+                        <div className="flex flex-col">
                           <div
-                            className={`absolute bottom-5 left-5 right-5 transition-all duration-500 ${
-                              useRichMotion
-                                ? 'translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
-                                : 'translate-y-0 opacity-100'
+                            className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-white shadow-sm transition-all duration-300 ${
+                              useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md' : ''
                             }`}
                           >
-                            <div className="text-[8px] font-black uppercase tracking-[0.3em] text-[#ff5a1f] mb-2">{comic.meta}</div>
-                            <div className="text-[11px] font-black uppercase tracking-tight text-white line-clamp-2 leading-tight">{comic.title}</div>
+                            <SafeCoverImage
+                              key={comic.coverUrl || '/logo.png'}
+                              src={comic.coverUrl || '/logo.png'}
+                              alt={shouldBlur ? 'Restricted' : comic.title}
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+                              className={`object-cover transition-transform duration-500 ${
+                                shouldBlur ? 'scale-105 blur-md' : 'scale-100'
+                              } ${useRichMotion && !shouldBlur ? 'group-hover:scale-[1.03]' : ''}`}
+                            />
+
+                            {shouldBlur ? (
+                              <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-950/25 backdrop-blur-[2px]">
+                                <span className="border border-white/40 bg-black/70 px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.2em] text-white">
+                                  Restricted
+                                </span>
+                              </div>
+                            ) : null}
                           </div>
 
-                          <div
-                            className={`absolute right-4 top-4 h-8 w-8 rounded-full border border-white/10 bg-black/40 flex items-center justify-center text-white/40 transition-all duration-500 backdrop-blur-xl ${
-                              useRichMotion
-                                ? 'scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100'
-                                : 'scale-100 opacity-80'
-                            }`}
-                          >
-                            <ArrowRight size={14} />
+                          <div className="mt-3 min-h-[3.5rem] space-y-1">
+                            <div className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900">
+                              {shouldBlur ? 'Age restricted' : comic.title}
+                            </div>
+                            <div className="line-clamp-2 text-[10px] text-neutral-500">
+                              {shouldBlur
+                                ? isTouchDevice && !isPreviewOpen
+                                  ? 'Tap to confirm age'
+                                  : 'Verify age to view details'
+                                : [comic.meta, comic.rating].filter(Boolean).join(' · ')}
+                            </div>
                           </div>
                         </div>
                       </Link>
@@ -1093,33 +1091,37 @@ export default function HomeClient({
                 })}
               </div>
 
-              <div ref={loaderRef} className="py-20 flex flex-col items-center justify-center gap-6">
+              <div ref={loaderRef} className="flex flex-col items-center justify-center gap-5 py-16">
                 {hasMoreInfinite ? (
                   <>
-                    <div className="w-12 h-12 relative">
+                    <div className="relative h-12 w-12">
                       {useRichMotion ? (
                         <>
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            className="absolute inset-0 border-t-2 border-[#ff4d00] rounded-full"
+                            className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#ff5a1f]"
                           />
                           <motion.div
-                            animate={{ scale: [1, 1.2, 1] }}
+                            animate={{ scale: [1, 1.15, 1] }}
                             transition={{ duration: 1, repeat: Infinity }}
-                            className="absolute inset-4 bg-[#ff4d00]/20 rounded-full"
+                            className="absolute inset-4 rounded-full bg-[#ff5a1f]/15"
                           />
                         </>
                       ) : prefersReducedMotion ? (
-                        <div className="absolute inset-0 border-2 border-[#ff4d00]/40 rounded-full" />
+                        <div className="absolute inset-0 rounded-full border-2 border-[#ff5a1f]/35" />
                       ) : (
-                        <div className="absolute inset-0 border-2 border-white/10 border-t-[#ff4d00] rounded-full animate-spin" style={{ animationDuration: '1.2s' }} />
+                        <div className="absolute inset-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#ff5a1f]" style={{ animationDuration: '1.2s' }} />
                       )}
                     </div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Loading more</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500">
+                      Loading more
+                    </div>
                   </>
                 ) : (
-                  <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff4d00]">No more titles</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#ff5a1f]">
+                    You&apos;re all caught up
+                  </div>
                 )}
               </div>
             </div>
@@ -1140,11 +1142,39 @@ export default function HomeClient({
         )}
       </AnimatePresence>
 
-      {/* Footer minimal */}
-      <footer className="border-t border-white/10 py-12 text-center">
-        <div className="container mx-auto px-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">
-            iComics.wiki
+      <footer className="border-t border-neutral-800 bg-black text-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-8 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
+            <div>
+              <div className="font-accent text-xl tracking-wide">
+                <span className="text-white">iComics</span>
+                <span className="mx-px text-[#ffd36b]">·</span>
+                <span className="text-[#ff5a1f]">wiki</span>
+              </div>
+              <p className="mt-2 max-w-xs text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-500">
+                Manga, manhwa & comics
+              </p>
+            </div>
+            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
+              <Link href="/library" className="transition-colors hover:text-white">
+                Library
+              </Link>
+              <Link href="/gallery" className="transition-colors hover:text-white">
+                Gallery
+              </Link>
+              <Link href="/about" className="transition-colors hover:text-white">
+                About
+              </Link>
+              <Link href="/privacy" className="transition-colors hover:text-white">
+                Privacy
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-white">
+                Terms
+              </Link>
+            </nav>
+          </div>
+          <div className="mt-12 border-t border-white/10 pt-8 text-center text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-600">
+            © {new Date().getFullYear()} iComics.wiki
           </div>
         </div>
       </footer>

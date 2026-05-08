@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// Automated Vitest twin: npm run test:integration (same routes + stronger assertions).
 const defaultBaseUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://icomics.wiki';
 const rawBaseArg = process.argv[2] || defaultBaseUrl;
 const baseUrl = rawBaseArg.startsWith('http://') || rawBaseArg.startsWith('https://')

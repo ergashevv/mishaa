@@ -17,7 +17,12 @@ interface SessionUser {
   avatar?: string | null;
 }
 
-export default function Navbar() {
+type NavbarProps = {
+  /** Full-width black bar (home catalog / Marvel-style). Default: floating glass pill. */
+  surface?: 'glass' | 'catalog';
+};
+
+export default function Navbar({ surface = 'glass' }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -83,10 +88,26 @@ export default function Navbar() {
     window.dispatchEvent(new CustomEvent('langChange', { detail: newLang }));
   };
 
+  const isCatalog = surface === 'catalog';
+
   return (
-    <nav className="fixed top-5 left-1/2 z-[1000] w-[min(96vw,86rem)] -translate-x-1/2 max-md:top-3">
-      <div className="glass-panel relative flex items-center justify-between overflow-hidden rounded-[1.9rem] px-3 py-2 sm:px-2">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+    <nav
+      className={
+        isCatalog
+          ? 'fixed left-0 right-0 top-0 z-[1000] border-b border-white/10 bg-black'
+          : 'fixed top-5 left-1/2 z-[1000] w-[min(96vw,86rem)] -translate-x-1/2 max-md:top-3'
+      }
+    >
+      <div
+        className={
+          isCatalog
+            ? 'relative mx-auto flex max-w-[100rem] items-center justify-between gap-3 overflow-visible px-4 py-2.5 sm:px-6 lg:px-10'
+            : 'glass-panel relative flex items-center justify-between overflow-hidden rounded-[1.9rem] px-3 py-2 sm:px-2'
+        }
+      >
+        {!isCatalog ? (
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+        ) : null}
 
         {/* Branding */}
         <Link href="/" className="flex min-w-0 items-center gap-3 pl-2 pr-2 py-2 sm:gap-4 sm:pl-4 md:pl-6 md:py-3 group">

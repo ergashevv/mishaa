@@ -7,6 +7,9 @@
     "build": "prisma generate && next build && opennextjs-cloudflare build -s",
     "start": "next start",
     "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "smoke:prod": "node scripts/smoke-prod.mjs",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
@@ -38,6 +41,7 @@
     "prisma": "^6.2.1",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "^3.2.4",
     "wrangler": "^4.87.0"
   }
 }
