@@ -9,7 +9,6 @@ export function buildOrganizationJsonLd() {
     name: 'iComics.wiki',
     url: u,
     logo: `${u}/logo.png`,
-    sameAs: ['https://twitter.com/icomics.wiki', 'https://github.com/icomics.wiki'],
   };
 }
 

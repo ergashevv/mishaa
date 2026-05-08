@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import { FileText } from 'lucide-react';
 import LegalPage from '@/components/LegalPage';
+import { staticPageMetadata } from '@/lib/seo/page-metadata';
+
+export const metadata: Metadata = staticPageMetadata({
+  title: 'Terms & Conditions',
+  description:
+    'Terms of use for iComics.wiki — acceptable use, access limits, accounts, and your responsibilities when using the reader.',
+  path: '/terms',
+});
 
 export default function TermsPage() {
   return (

@@ -192,7 +192,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
 
   if (source === 'mangadex' && !resolved) {
     return (
-      <article className="min-h-screen bg-[#05060a] text-white">
+      <article className="min-h-screen bg-zinc-50 text-neutral-900 dark:bg-[#05060a] dark:text-white">
         <div className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-6 px-4 text-center">
           <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5a1f]">
             Legacy MangaDex link
@@ -200,15 +200,15 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
           <h1 className="text-4xl font-black uppercase tracking-tight sm:text-6xl">
             We could not resolve this title
           </h1>
-          <p className="max-w-2xl text-sm leading-7 text-white/60">
+          <p className="max-w-2xl text-sm leading-7 text-neutral-600 dark:text-white/60">
             This MangaDex link uses an old numeric ID that cannot be fetched directly anymore.
             Open a title from the library to continue reading.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href="/library" className="rounded-full bg-white px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-black">
+            <a href="/library" className="rounded-full bg-neutral-900 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white dark:bg-white dark:text-black">
               Browse library
             </a>
-            <a href="/" className="rounded-full border border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white">
+            <a href="/" className="rounded-full border border-neutral-300 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-neutral-900 dark:border-white/10 dark:text-white">
               Go home
             </a>
           </div>

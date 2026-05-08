@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import { ShieldAlert } from 'lucide-react';
 import LegalPage from '@/components/LegalPage';
+import { staticPageMetadata } from '@/lib/seo/page-metadata';
+
+export const metadata: Metadata = staticPageMetadata({
+  title: 'Content policy',
+  description:
+    'Content safety policy for iComics.wiki — adult age gate, reports, moderation, and how we handle unsafe or infringing material.',
+  path: '/content-policy',
+});
 
 export default function ContentPolicyPage() {
   return (

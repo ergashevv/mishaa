@@ -1,9 +1,18 @@
 import { MetadataRoute } from 'next';
-import { searchComics } from '@/actions/comic';
+import { searchComics, getChapters } from '@/actions/comic';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
+import { GUIDES_ORDER } from '@/lib/guides/registry';
 
-/** Extra MangaDex listing pages merged into sitemap (36 titles each). */
-const MANGA_SITEMAP_EXTRA_PAGES = 5;
+/** MangaDex listing pages merged into sitemap (36 titles per page via SEARCH_PAGE_LIMIT). */
+const MANGA_SITEMAP_MAX_PAGES = 55;
+
+/** Marvel API pagination (issues list). */
+const MARVEL_SITEMAP_MAX_PAGES = 45;
+
+/** Sample chapter URLs for long-tail discovery (first listing page → subset of titles × capped chapters). */
+const CHAPTER_SITEMAP_TITLE_CAP = 12;
+
+const CHAPTERS_PER_TITLE_CAP = 18;
 
 function routeEntry(
   baseUrl: string,
@@ -36,17 +45,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/terms',
     '/content-policy',
     '/dmca',
+    '/guides',
+    ...GUIDES_ORDER.map((g) => `/guides/${g.slug}`),
   ];
 
   const staticRoutes = staticPaths.map((route) =>
     routeEntry(baseUrl, route, {
-      changeFrequency: route === '' || route === '/library' ? 'daily' : 'weekly',
+      changeFrequency:
+        route === '' || route === '/library'
+          ? 'daily'
+          : route.startsWith('/guides')
+            ? 'monthly'
+            : 'weekly',
       priority:
         route === ''
           ? 1
           : route === '/library' || route === '/studio'
             ? 0.9
-            : 0.6,
+            : route.startsWith('/guides')
+              ? 0.75
+              : 0.6,
     }),
   );
 
@@ -57,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const mangaPages = await Promise.all(
-      Array.from({ length: MANGA_SITEMAP_EXTRA_PAGES }, (_, page) =>
+      Array.from({ length: MANGA_SITEMAP_MAX_PAGES }, (_, page) =>
         searchComics({
           source: 'mangadex',
           page,
@@ -80,16 +98,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    const marvelPage = await searchComics({ source: 'marvel', page: 0, query: '' });
-    for (const item of marvelPage.items) {
-      const url = `${baseUrl}/library/marvel/${item.id}`;
-      if (!byUrl.has(url)) {
-        byUrl.set(url, {
-          url,
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.65,
-        });
+    for (let page = 0; page < MARVEL_SITEMAP_MAX_PAGES; page++) {
+      const marvelPage = await searchComics({ source: 'marvel', page, query: '' });
+      for (const item of marvelPage.items) {
+        const url = `${baseUrl}/library/marvel/${item.id}`;
+        if (!byUrl.has(url)) {
+          byUrl.set(url, {
+            url,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.65,
+          });
+        }
+      }
+      if (!marvelPage.hasMore || marvelPage.items.length === 0) {
+        break;
+      }
+    }
+
+    const spotlightTitles = (mangaPages[0]?.items ?? []).slice(0, CHAPTER_SITEMAP_TITLE_CAP);
+    for (const item of spotlightTitles) {
+      const chapters = await getChapters('mangadex', item.id);
+      for (const ch of chapters.slice(0, CHAPTERS_PER_TITLE_CAP)) {
+        const url = `${baseUrl}/library/mangadex/${item.id}/read/${ch.id}`;
+        if (!byUrl.has(url)) {
+          byUrl.set(url, {
+            url,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.55,
+          });
+        }
       }
     }
 

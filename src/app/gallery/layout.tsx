@@ -1,10 +1,14 @@
-import { Metadata } from "next";
+import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
+import { staticPageMetadata } from '@/lib/seo/page-metadata';
 
-export const metadata: Metadata = {
-  title: "AI Gallery",
-  description: "Explore the latest creations from our AI comic generator. A showcase of visual narratives and digital art.",
-};
+export const metadata: Metadata = staticPageMetadata({
+  title: 'Gallery',
+  description:
+    'Browse featured artwork and visuals from the iComics.wiki community and catalog highlights.',
+  path: '/gallery',
+});
 
-export default function GalleryLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default function GalleryLayout({ children }: { children: ReactNode }) {
+  return children;
 }

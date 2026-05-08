@@ -25,7 +25,7 @@ export default function ContactPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white selection:bg-[#ff4d00] selection:text-white overflow-x-hidden ">
+    <div className="min-h-screen bg-zinc-50 text-neutral-900 selection:bg-[#ff4d00] selection:text-white overflow-x-hidden dark:bg-[#020202] dark:text-white dark:selection:text-white ">
       
       
       <Navbar />
@@ -38,7 +38,7 @@ export default function ContactPage() {
         >
           {/* Header */}
           <div className="text-center space-y-8">
-            <div className="inline-block bg-[#ff4d00] px-6 py-2 border border-white/10 rounded-xl shadow-[6px_6px_0px_#000]">
+            <div className="inline-block bg-[#ff4d00] px-6 py-2 border border-neutral-200 dark:border-white/10 rounded-xl shadow-[6px_6px_0px_#000]">
               <span className="text-white text-[10px] font-black uppercase tracking-[0.4em]">{t.badge}</span>
             </div>
             <h1 className="text-6xl md:text-9xl font-display uppercase tracking-tighter leading-none italic">
@@ -49,7 +49,7 @@ export default function ContactPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-4 space-y-8">
-               <div className=" p-10 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl space-y-8">
+               <div className=" p-10 bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-3xl backdrop-blur-xl space-y-8">
                   <div className="space-y-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-[#e63946]">{t.email}</span>
                     <div className="flex items-center gap-4">
@@ -65,7 +65,7 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{t.domain}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/40">{t.domain}</span>
                     <div className="flex items-center gap-4">
                        <Globe size={18} />
                        <span className="text-xl font-black tracking-tight">icomics.wiki</span>
@@ -73,7 +73,7 @@ export default function ContactPage() {
                   </div>
                </div>
 
-               <div className=" p-10 bg-[#0a0a0a] border border-white/10 rounded-3xl relative overflow-hidden">
+               <div className=" p-10 bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 rounded-3xl relative overflow-hidden">
                   <div className="absolute inset-0  opacity-10" />
                   <div className="relative z-10 space-y-4">
                     <h4 className="text-2xl font-display uppercase italic">{t.hq}</h4>
@@ -84,24 +84,24 @@ export default function ContactPage() {
                </div>
             </div>
 
-            <div className="lg:col-span-8  p-12 md:p-16 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl">
+            <div className="lg:col-span-8  p-12 md:p-16 bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-3xl backdrop-blur-xl">
                <h2 className="text-4xl font-display uppercase tracking-tight mb-12 italic underline decoration-[#ffca3a] decoration-4">{t.sendTitle}</h2>
                <form className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest opacity-40">{t.alias}</label>
-                    <input type="text" className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderAlias} />
+                    <input type="text" className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderAlias} />
                   </div>
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest opacity-40">{t.frequency}</label>
-                    <input type="email" className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderFreq} />
+                    <input type="email" className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderFreq} />
                   </div>
                   <div className="md:col-span-2 space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest opacity-40">{t.subject}</label>
-                    <input type="text" className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderSub} />
+                    <input type="text" className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10" placeholder={t.placeholderSub} />
                   </div>
                   <div className="md:col-span-2 space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest opacity-40">{t.payload}</label>
-                    <textarea className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10 min-h-[160px]" placeholder={t.placeholderMsg} />
+                    <textarea className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none focus:bg-[#ff4d00]/10 min-h-[160px]" placeholder={t.placeholderMsg} />
                   </div>
                   <div className="md:col-span-2">
                     <button className="px-8 py-4 uppercase font-black tracking-widest transition-all rounded-lg w-full py-8 text-xl bg-black text-white hover:bg-[#ff4d00] transition-colors border-2 border-white">

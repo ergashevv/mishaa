@@ -48,7 +48,7 @@ function SupportPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white selection:bg-[#ff4d00] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-50 text-neutral-900 selection:bg-[#ff4d00] selection:text-white overflow-x-hidden dark:bg-[#020202] dark:text-white dark:selection:text-white">
       
       
       <Navbar />
@@ -61,7 +61,7 @@ function SupportPageContent() {
         >
           {/* Header */}
           <div className="text-center space-y-6 sm:space-y-8">
-            <div className="inline-block bg-white/10 px-6 py-2 border border-white/10 rounded-xl shadow-[6px_6px_0px_#000]">
+            <div className="inline-block bg-black/[0.06] dark:bg-white/10 px-6 py-2 border border-neutral-200 dark:border-white/10 rounded-xl shadow-[6px_6px_0px_#000]">
               <span className="text-white text-[10px] font-black uppercase tracking-[0.4em]">Dispatch Center</span>
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-9xl font-display uppercase tracking-tighter leading-none italic text-balance">
@@ -73,46 +73,46 @@ function SupportPageContent() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="p-6 sm:p-10 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl flex flex-col items-center text-center space-y-6">
-              <div className="w-20 h-20 rounded-full border border-white/10 rounded-xl bg-white flex items-center justify-center">
+            <div className="p-6 sm:p-10 bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-3xl backdrop-blur-xl flex flex-col items-center text-center space-y-6">
+              <div className="w-20 h-20 rounded-full border border-neutral-200 dark:border-white/10 rounded-xl bg-white flex items-center justify-center">
                 <Send size={32} />
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tight">Direct Comms</h3>
               <p className="text-sm opacity-60">Reach out directly via email for high-priority system issues.</p>
-              <div className="pt-4 border-t-2 border-white/5 w-full">
+              <div className="pt-4 border-t-2 border-neutral-100 dark:border-white/5 w-full">
                 <a href="mailto:info@icomics.wiki" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#e63946] hover:underline">info@icomics.wiki</a>
               </div>
             </div>
 
-            <div className="p-6 sm:p-10 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl flex flex-col items-center text-center space-y-6">
-              <div className="w-20 h-20 rounded-full border border-white/10 rounded-xl bg-white flex items-center justify-center">
+            <div className="p-6 sm:p-10 bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-3xl backdrop-blur-xl flex flex-col items-center text-center space-y-6">
+              <div className="w-20 h-20 rounded-full border border-neutral-200 dark:border-white/10 rounded-xl bg-white flex items-center justify-center">
                 <MessageCircle size={32} />
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tight">Telegram Hub</h3>
               <p className="text-sm opacity-60">Join our community dispatch for instant updates and peer support.</p>
-              <div className="pt-4 border-t-2 border-white/5 w-full">
+              <div className="pt-4 border-t-2 border-neutral-100 dark:border-white/5 w-full">
                 <a href="https://t.me/icomicsuz" target="_blank" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3b82f6] hover:underline">@icomicsuz</a>
               </div>
             </div>
 
-            <div className="p-6 sm:p-10 bg-[#0a0a0a] border border-white/10 rounded-3xl flex flex-col items-center text-center space-y-6">
+            <div className="p-6 sm:p-10 bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 rounded-3xl flex flex-col items-center text-center space-y-6">
               <div className="w-20 h-20 rounded-full border-4 border-white bg-[#111111] flex items-center justify-center">
                 <LifeBuoy size={32} />
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tight">System FAQ</h3>
               <p className="text-sm opacity-40">Documentation on how to master the Identity Forge and Inking Engine.</p>
-              <div className="pt-4 border-t-2 border-white/10 w-full">
+              <div className="pt-4 border-t-2 border-neutral-200 dark:border-white/10 w-full">
                 <a href="/faq" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ffca3a] hover:underline">Read Archives</a>
               </div>
             </div>
           </div>
 
           {/* Form placeholder or CTA */}
-          <form onSubmit={submitReport} className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10 md:p-16 backdrop-blur-xl">
+          <form onSubmit={submitReport} className="relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-black/[0.04] dark:bg-white/5 p-6 sm:p-10 md:p-16 backdrop-blur-xl">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff4d00] border-l-4 border-b-4 border-black  opacity-20" />
             <div className="space-y-8 relative z-10">
               <h2 className="text-3xl sm:text-5xl font-display uppercase tracking-tighter text-balance">System Diagnostic</h2>
-              <p className="font-editorial italic text-xl border-l-8 border-white/10 pl-8">&quot;Is your character forge experiencing misalignment? Describe the issue and our protocol agents will investigate.&quot;</p>
+              <p className="font-editorial italic text-xl border-l-8 border-neutral-200 dark:border-white/10 pl-8">&quot;Is your character forge experiencing misalignment? Describe the issue and our protocol agents will investigate.&quot;</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
                 <div className="space-y-4">
@@ -121,7 +121,7 @@ function SupportPageContent() {
                     type="text"
                     value={report.email}
                     onChange={(event) => setReport((current) => ({ ...current, email: event.target.value }))}
-                    className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none"
+                    className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none"
                     placeholder="IDENTIFY_YOURSELF"
                   />
                 </div>
@@ -130,7 +130,7 @@ function SupportPageContent() {
                   <select
                     value={report.category}
                     onChange={(event) => setReport((current) => ({ ...current, category: event.target.value }))}
-                    className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none appearance-none"
+                    className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none appearance-none"
                   >
                     <option value="CONTENT_ISSUE">CONTENT_ISSUE</option>
                     <option value="IDENTITY_FORGE_ERROR">IDENTITY_FORGE_ERROR</option>
@@ -144,7 +144,7 @@ function SupportPageContent() {
                   <textarea
                     value={report.details}
                     onChange={(event) => setReport((current) => ({ ...current, details: event.target.value }))}
-                    className="w-full bg-transparent border border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none min-h-[200px]"
+                    className="w-full bg-transparent border border-neutral-300 dark:border-white/20 rounded-xl px-6 text-white py-4 text-xs font-bold focus:outline-none min-h-[200px]"
                     placeholder="WHAT_HAPPENED_DURING_PRODUCTION?"
                   />
                 </div>
@@ -164,7 +164,7 @@ function SupportPageContent() {
 
 export default function SupportPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#020202]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-zinc-50 dark:bg-[#020202]" />}>
       <SupportPageContent />
     </Suspense>
   );

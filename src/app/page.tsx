@@ -19,14 +19,6 @@ export const metadata: Metadata = {
       'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience.',
     url: site,
     siteName: 'iComics.wiki',
-    images: [
-      {
-        url: '/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'iComics.wiki',
-      },
-    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -34,7 +26,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Manga, Manhwa & Hentai Library | iComics.wiki',
     description: 'The ultimate destination for Manga, Manhwa, and Adult comic readers.',
-    images: ['/logo.png'],
   },
   alternates: {
     canonical: site,

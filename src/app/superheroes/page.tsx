@@ -114,11 +114,11 @@ export default function SuperheroesDashboard() {
     const num = getStatValue(val);
     return (
       <div className="space-y-1 w-full">
-        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/50">
+        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/50">
           <span>{label}</span>
-          <span className="text-white/80">{num}</span>
+          <span className="text-neutral-800 dark:text-white/80">{num}</span>
         </div>
-        <div className="h-1.5 w-full bg-white/5 overflow-hidden">
+        <div className="h-1.5 w-full bg-black/[0.04] dark:bg-white/5 overflow-hidden">
           <motion.div 
             initial={{ width: 0 }} 
             animate={{ width: `${num}%` }} 
@@ -131,22 +131,22 @@ export default function SuperheroesDashboard() {
   };
 
   const renderHeroListItem = (h: Superhero, onClick: () => void, selected: boolean = false) => (
-     <button key={h.id} onClick={onClick} className={`w-full text-left p-3 flex items-center gap-4 border ${selected ? 'border-[#ff4d00] bg-[#ff4d00]/10' : 'border-white/5 bg-[#0a0a0a] hover:border-white/20 hover:bg-white/5'} transition-all`}>
+     <button key={h.id} onClick={onClick} className={`w-full text-left p-3 flex items-center gap-4 border ${selected ? 'border-[#ff4d00] bg-[#ff4d00]/10' : 'border-neutral-100 dark:border-white/5 bg-[#0a0a0a] hover:border-neutral-300 dark:border-white/20 hover:bg-black/[0.05] dark:hover:bg-black/[0.04] dark:bg-white/5'} transition-all`}>
         <img src={h.image.url} className="w-10 h-10 object-cover rounded" alt={h.name} />
         <div className="flex-1 min-w-0">
           <div className="text-[10px] font-black uppercase truncate text-white">{h.name}</div>
-          <div className="text-[8px] font-bold uppercase text-white/40 tracking-widest mt-0.5">PWR: {calculateTotalPower(h.powerstats)}</div>
+          <div className="text-[8px] font-bold uppercase text-neutral-500 dark:text-white/40 tracking-widest mt-0.5">PWR: {calculateTotalPower(h.powerstats)}</div>
         </div>
         {selected && <Check size={14} className="text-[#ff4d00]" />}
      </button>
   );
 
   const renderHeroCard = (hero: Superhero, compact = false) => (
-    <div className={`relative bg-[#0a0a0a] border border-white/10 overflow-hidden group ${compact ? 'aspect-[3/4]' : 'aspect-square md:aspect-[4/5]'}`}>
+    <div className={`relative bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 overflow-hidden group ${compact ? 'aspect-[3/4]' : 'aspect-square md:aspect-[4/5]'}`}>
        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10" />
        <img src={hero.image.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={hero.name} />
        <div className="absolute inset-0 z-20 p-4 sm:p-6 flex flex-col justify-between">
-          <div className="self-end px-3 py-1 bg-white/10 backdrop-blur-md text-[8px] font-black uppercase tracking-widest border border-white/10">
+          <div className="self-end px-3 py-1 bg-black/[0.06] dark:bg-white/10 backdrop-blur-md text-[8px] font-black uppercase tracking-widest border border-neutral-200 dark:border-white/10">
              PWR: {calculateTotalPower(hero.powerstats)}
           </div>
           <div className="space-y-3">
@@ -155,7 +155,7 @@ export default function SuperheroesDashboard() {
                <p className="text-[10px] font-black text-[#ff4d00] uppercase tracking-widest">{hero.biography.publisher}</p>
              </div>
              {!compact && (
-               <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-white/10">
+               <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-neutral-200 dark:border-white/10">
                  {renderStatBar('INT', hero.powerstats.intelligence, 'bg-blue-500')}
                  {renderStatBar('STR', hero.powerstats.strength, 'bg-red-500')}
                  {renderStatBar('SPD', hero.powerstats.speed, 'bg-yellow-500')}
@@ -178,11 +178,11 @@ export default function SuperheroesDashboard() {
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff4d00]">Global Database</span>
              </div>
              <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter">Superhero hub</h1>
-             <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-xl mx-auto">Browse popular heroes, duel in the arena, then save a dream team for your next comic.</p>
+             <p className="text-neutral-500 dark:text-white/40 text-sm font-bold uppercase tracking-widest max-w-xl mx-auto">Browse popular heroes, duel in the arena, then save a dream team for your next comic.</p>
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-center gap-4 border-b border-white/10 pb-1 overflow-x-auto custom-scrollbar">
+          <div className="flex justify-center gap-4 border-b border-neutral-200 dark:border-white/10 pb-1 overflow-x-auto custom-scrollbar">
              {[
                { id: 'home', icon: Star, label: 'Daily Intel' },
                { id: 'arena', icon: Swords, label: 'Battle Arena' },
@@ -191,7 +191,7 @@ export default function SuperheroesDashboard() {
                <button 
                  key={t.id} 
                  onClick={() => setActiveTab(t.id as any)}
-                 className={`flex items-center gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === t.id ? 'border-[#ff4d00] text-white' : 'border-transparent text-white/40 hover:text-white'}`}
+                 className={`flex items-center gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === t.id ? 'border-[#ff4d00] text-white' : 'border-transparent text-neutral-500 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white'}`}
                >
                  <t.icon size={16} className={activeTab === t.id ? 'text-[#ff4d00]' : ''} /> {t.label}
                </button>
@@ -206,32 +206,32 @@ export default function SuperheroesDashboard() {
                     <div className="space-y-8">
                        <h2 className="text-2xl font-black uppercase tracking-widest border-l-4 border-[#ff4d00] pl-4">Hero of the cycle</h2>
                        {loadingRandom ? (
-                         <div className="aspect-[4/5] bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
-                           <RefreshCw className="animate-spin text-white/20" size={32} />
+                         <div className="aspect-[4/5] bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center animate-pulse">
+                           <RefreshCw className="animate-spin text-neutral-400 dark:text-white/20" size={32} />
                          </div>
                        ) : randomHero ? (
                          renderHeroCard(randomHero)
                        ) : (
-                         <div className="aspect-[4/5] bg-white/5 border border-white/10 flex items-center justify-center">Failed to load.</div>
+                         <div className="aspect-[4/5] bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center">Failed to load.</div>
                        )}
-                       <button onClick={fetchRandomHero} disabled={loadingRandom} className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all flex justify-center items-center gap-2">
+                       <button onClick={fetchRandomHero} disabled={loadingRandom} className="w-full py-4 bg-black/[0.04] dark:bg-white/5 hover:bg-black/[0.08] dark:hover:bg-black/[0.06] dark:bg-white/10 border border-neutral-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest transition-all flex justify-center items-center gap-2">
                          <RefreshCw size={14} className={loadingRandom ? "animate-spin" : ""} /> New random pick
                        </button>
                     </div>
-                    <div className="bg-[#0a0a0a] border border-white/10 p-8 space-y-6">
+                    <div className="bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 p-8 space-y-6">
                        <h3 className="text-[12px] font-black text-[#ff4d00] uppercase tracking-[0.4em]">Database Overview</h3>
-                       <p className="text-white/60 leading-relaxed font-bold text-sm">
+                       <p className="text-neutral-600 dark:text-white/60 leading-relaxed font-bold text-sm">
                          The Superhero Nexus is directly connected to the universal superhero registry, encompassing 731 distinct entities. 
                          You can access their power metrics, true identities, and operational data.
                        </p>
                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white/5 p-4 border border-white/5 text-center">
+                          <div className="bg-black/[0.04] dark:bg-white/5 p-4 border border-neutral-100 dark:border-white/5 text-center">
                              <div className="text-3xl font-black italic">731</div>
-                             <div className="text-[8px] font-black uppercase tracking-widest text-white/40 mt-1">Total Entries</div>
+                             <div className="text-[8px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/40 mt-1">Total Entries</div>
                           </div>
-                          <div className="bg-white/5 p-4 border border-white/5 text-center">
+                          <div className="bg-black/[0.04] dark:bg-white/5 p-4 border border-neutral-100 dark:border-white/5 text-center">
                              <div className="text-3xl font-black italic">6</div>
-                             <div className="text-[8px] font-black uppercase tracking-widest text-white/40 mt-1">Power Metrics</div>
+                             <div className="text-[8px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/40 mt-1">Power Metrics</div>
                           </div>
                        </div>
                     </div>
@@ -243,21 +243,21 @@ export default function SuperheroesDashboard() {
               <motion.div key="arena" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-12">
                  <div className="text-center">
                     <h2 className="text-3xl font-black uppercase tracking-widest text-white">Combat Simulation</h2>
-                    <p className="text-[10px] uppercase font-bold text-white/40 tracking-[0.2em] mt-2">Select combatants to calculate win probability</p>
+                    <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-white/40 tracking-[0.2em] mt-2">Select combatants to calculate win probability</p>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative">
                     {/* Fighter A */}
                     <div className="space-y-4">
                        <div className="relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-white/20" size={16} />
                           <input 
                             value={arenaSearchA} onChange={e => { setArenaSearchA(e.target.value); searchHero(e.target.value, setSearchA_Results); }}
                             placeholder="SEARCH FIGHTER A..." 
-                            className="w-full bg-[#0a0a0a] border border-white/10 p-4 pl-12 text-[10px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
+                            className="w-full bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 p-4 pl-12 text-[10px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
                           />
                           {searchA_Results.length > 0 && !fighterA && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 max-h-60 overflow-y-auto z-50 flex flex-col">
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 max-h-60 overflow-y-auto z-50 flex flex-col">
                                {searchA_Results.map(h => renderHeroListItem(h, () => { setFighterA(h); setSearchA_Results([]); setArenaSearchA(''); }))}
                             </div>
                           )}
@@ -274,7 +274,7 @@ export default function SuperheroesDashboard() {
                             {renderHeroCard(fighterA)}
                          </div>
                        ) : (
-                         <div className="aspect-[4/5] bg-white/5 border border-white/10 border-dashed flex flex-col items-center justify-center text-white/20">
+                         <div className="aspect-[4/5] bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 border-dashed flex flex-col items-center justify-center text-neutral-400 dark:text-white/20">
                             <Crosshair size={48} className="mb-4 opacity-50" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Entity 1</span>
                          </div>
@@ -289,7 +289,7 @@ export default function SuperheroesDashboard() {
                        <button 
                          onClick={startBattle}
                          disabled={!fighterA || !fighterB}
-                         className="px-8 py-4 bg-white text-black text-[12px] font-black uppercase tracking-widest hover:bg-[#ff4d00] hover:text-white transition-all disabled:opacity-20 shadow-[4px_4px_0_rgba(255,255,255,0.2)]"
+                         className="px-8 py-4 bg-white text-black text-[12px] font-black uppercase tracking-widest hover:bg-[#ff4d00] hover:text-neutral-900 dark:hover:text-white transition-all disabled:opacity-20 shadow-[4px_4px_0_rgba(255,255,255,0.2)]"
                        >
                          Simulate
                        </button>
@@ -298,14 +298,14 @@ export default function SuperheroesDashboard() {
                     {/* Fighter B */}
                     <div className="space-y-4">
                        <div className="relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-white/20" size={16} />
                           <input 
                             value={arenaSearchB} onChange={e => { setArenaSearchB(e.target.value); searchHero(e.target.value, setSearchB_Results); }}
                             placeholder="SEARCH FIGHTER B..." 
-                            className="w-full bg-[#0a0a0a] border border-white/10 p-4 pl-12 text-[10px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
+                            className="w-full bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 p-4 pl-12 text-[10px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
                           />
                           {searchB_Results.length > 0 && !fighterB && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 max-h-60 overflow-y-auto z-50 flex flex-col">
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 max-h-60 overflow-y-auto z-50 flex flex-col">
                                {searchB_Results.map(h => renderHeroListItem(h, () => { setFighterB(h); setSearchB_Results([]); setArenaSearchB(''); }))}
                             </div>
                           )}
@@ -322,7 +322,7 @@ export default function SuperheroesDashboard() {
                             {renderHeroCard(fighterB)}
                          </div>
                        ) : (
-                         <div className="aspect-[4/5] bg-white/5 border border-white/10 border-dashed flex flex-col items-center justify-center text-white/20">
+                         <div className="aspect-[4/5] bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 border-dashed flex flex-col items-center justify-center text-neutral-400 dark:text-white/20">
                             <Crosshair size={48} className="mb-4 opacity-50" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Entity 2</span>
                          </div>
@@ -347,14 +347,14 @@ export default function SuperheroesDashboard() {
 
             {activeTab === 'team' && (
               <motion.div key="team" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-12">
-                 <div className="flex flex-col md:flex-row gap-8 justify-between items-end border-b border-white/10 pb-8">
+                 <div className="flex flex-col md:flex-row gap-8 justify-between items-end border-b border-neutral-200 dark:border-white/10 pb-8">
                     <div>
                       <h2 className="text-3xl font-black uppercase tracking-widest">Squad Assembly</h2>
-                      <p className="text-[10px] uppercase font-bold text-white/40 tracking-[0.2em] mt-2">Form a 5-member elite strike team</p>
+                      <p className="text-[10px] uppercase font-bold text-neutral-500 dark:text-white/40 tracking-[0.2em] mt-2">Form a 5-member elite strike team</p>
                     </div>
-                    <div className="bg-white/5 px-8 py-4 border border-white/10 text-center">
+                    <div className="bg-black/[0.04] dark:bg-white/5 px-8 py-4 border border-neutral-200 dark:border-white/10 text-center">
                        <div className="text-2xl font-black text-[#ff4d00]">{teamPower}</div>
-                       <div className="text-[8px] font-black uppercase tracking-[0.3em] text-white/50 mt-1">Total Squad Power</div>
+                       <div className="text-[8px] font-black uppercase tracking-[0.3em] text-neutral-500 dark:text-white/50 mt-1">Total Squad Power</div>
                     </div>
                  </div>
 
@@ -367,7 +367,7 @@ export default function SuperheroesDashboard() {
                            {renderHeroCard(member, true)}
                          </div>
                        ) : (
-                         <div key={idx} className="aspect-[3/4] bg-white/5 border border-white/10 border-dashed flex flex-col items-center justify-center text-white/20">
+                         <div key={idx} className="aspect-[3/4] bg-black/[0.04] dark:bg-white/5 border border-neutral-200 dark:border-white/10 border-dashed flex flex-col items-center justify-center text-neutral-400 dark:text-white/20">
                             <span className="text-[10px] font-black uppercase tracking-widest">Empty Slot</span>
                          </div>
                        );
@@ -376,11 +376,11 @@ export default function SuperheroesDashboard() {
 
                  <div className="max-w-xl mx-auto space-y-4">
                     <div className="relative">
-                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-white/20" size={16} />
                        <input 
                          value={teamSearch} onChange={e => { setTeamSearch(e.target.value); searchHero(e.target.value, setTeamSearchResults); }}
                          placeholder="SEARCH RECRUITS..." 
-                         className="w-full bg-[#0a0a0a] border border-white/10 p-5 pl-12 text-[12px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
+                         className="w-full bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 p-5 pl-12 text-[12px] font-black text-white uppercase outline-none focus:border-[#ff4d00]"
                          disabled={team.length >= 5}
                        />
                     </div>

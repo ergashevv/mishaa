@@ -1,6 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Syne, Outfit, Bricolage_Grotesque, JetBrains_Mono, Staatliches, Bangers } from "next/font/google";
 import "./globals.css";
+import { getPublicSiteUrl } from "@/lib/og-metadata";
+import SmoothAnimations from "@/components/SmoothAnimations";
+import GlobalAgeGate from "@/components/GlobalAgeGate";
+import AnalyticsBridge from "@/components/AnalyticsBridge";
+import JsonLd from "@/components/JsonLd";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/global-jsonld";
+
+const SITE_ORIGIN = getPublicSiteUrl().replace(/\/$/, "");
 
 const syne = Syne({
   variable: "--font-syne",
@@ -34,11 +43,14 @@ const bangers = Bangers({
   weight: "400",
 });
 
-export const viewport = {
-  themeColor: "#06070b",
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#090a0f" },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -61,24 +73,21 @@ export const metadata: Metadata = {
     "Marvel comics",
     "iComics.wiki",
   ],
-  authors: [{ name: "iComics.wiki Team", url: "https://icomics.wiki" }],
+  authors: [{ name: "iComics.wiki Team", url: SITE_ORIGIN }],
   creator: "iComics.wiki",
   publisher: "iComics.wiki",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://icomics.wiki"),
+  metadataBase: new URL(SITE_ORIGIN),
   alternates: {
-    canonical: "https://icomics.wiki",
-    languages: {
-      "en-US": "https://icomics.wiki/en",
-      "ru-RU": "https://icomics.wiki/ru",
-      "es-ES": "https://icomics.wiki/es",
-      "fr-FR": "https://icomics.wiki/fr",
+    canonical: SITE_ORIGIN,
+    types: {
+      "application/rss+xml": `${SITE_ORIGIN}/feed.xml`,
     },
   },
   openGraph: {
     title: "iComics.wiki",
     description:
       "Online manga, manhwa, comic, and hentai reader. Browse and read chapters free. Webtoons, Marvel, and more—plus optional AI tools for creators.",
-    url: "https://icomics.wiki",
+    url: SITE_ORIGIN,
     siteName: "iComics.wiki",
     locale: "en_US",
     type: "website",
@@ -125,13 +134,6 @@ export const metadata: Metadata = {
   }
 };
 
-import SmoothAnimations from "@/components/SmoothAnimations";
-import GlobalAgeGate from "@/components/GlobalAgeGate";
-import AnalyticsBridge from "@/components/AnalyticsBridge";
-import JsonLd from "@/components/JsonLd";
-import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/global-jsonld";
-import { Suspense } from "react";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -140,9 +142,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${outfit.variable} ${bricolage.variable} ${jetBrainsMono.variable} ${staatliches.variable} ${bangers.variable} h-full antialiased bg-[#06070b]`}
+      className={`${syne.variable} ${outfit.variable} ${bricolage.variable} ${jetBrainsMono.variable} ${staatliches.variable} ${bangers.variable} h-full min-h-dvh antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-transparent pb-[env(safe-area-inset-bottom)]">
+      <body className="min-h-dvh flex flex-col bg-transparent pb-[env(safe-area-inset-bottom)]">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only fixed left-4 top-4 z-[99999] rounded-xl bg-white px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-black"

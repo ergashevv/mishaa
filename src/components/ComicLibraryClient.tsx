@@ -643,7 +643,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   return (
     <>
     <Navbar />
-    <div className="min-h-screen bg-[#020202] text-white pt-14 sm:pt-16 lg:pt-[4.25rem]">
+    <div className="min-h-screen bg-zinc-50 text-neutral-900 pt-14 sm:pt-16 lg:pt-[4.25rem] dark:bg-[#020202] dark:text-white">
       {/* Unrestricted Access */}
 
       {!selectedComic && (
@@ -653,26 +653,26 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <button
                   onClick={() => router.push('/')}
-                  className="inline-flex w-full items-center justify-center gap-3 border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/70 hover:bg-white/10 hover:text-white transition-all md:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-3 border border-neutral-200 bg-neutral-100/80 px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-neutral-600 transition-all hover:bg-neutral-200/90 hover:text-neutral-900 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white md:w-auto"
                 >
                   <ChevronLeft size={14} />
                   Back
                 </button>
 
-                <div className="hidden md:flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.45em] text-white/25">
+                <div className="hidden md:flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.45em] text-neutral-400 dark:text-white/25">
                   <div className="h-[2px] w-16 bg-[#ff4d00]" />
                   <span>Library</span>
                 </div>
 
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
-                  <div className="flex items-center gap-2 px-4 py-3 border border-white/10 bg-white/5">
+                  <div className="flex items-center gap-2 border border-neutral-200 bg-neutral-100/80 px-4 py-3 dark:border-white/10 dark:bg-white/5">
                     <Globe size={14} className="text-[#ff4d00]" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/40">Manga Language</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-white/40">Manga Language</span>
                   </div>
                   <select
                     value={mangaLanguage}
                     onChange={(e) => setMangaLanguage(e.target.value as MangaLanguage)}
-                    className="w-full bg-[#0a0a0a] border border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-[#ff4d00] md:min-w-[220px] md:w-auto"
+                    className="w-full bg-neutral-100 dark:bg-[#0a0a0a] border border-neutral-200 dark:border-white/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-neutral-900 outline-none dark:text-white focus:border-[#ff4d00] md:min-w-[220px] md:w-auto"
                   >
                     {MANGA_LANGUAGE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -689,19 +689,19 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   skipNextOffsetFetchRef.current = true;
                   setOffset(randomOffset);
                   loadData(randomOffset, false);
-                }} className="h-12 w-full flex items-center justify-center border border-white/10 text-white/20 hover:bg-[#ff4d00] hover:text-white transition-all md:h-16 md:w-16">
+                }} className="h-12 w-full flex items-center justify-center border border-neutral-200 dark:border-white/10 text-neutral-400 transition-all hover:bg-[#ff4d00] hover:text-white dark:text-white/20 md:h-16 md:w-16">
                   <Shuffle size={20} />
                 </button>
                 <div ref={searchBoxRef} className="relative flex-1 md:w-96">
                   <input 
                     type="text" 
                     placeholder="Search comics, manga, manhwa..."
-                    className="w-full bg-white/5 border border-white/10 py-4 pl-12 pr-4 text-[11px] font-black uppercase focus:border-[#ff4d00] transition-all outline-none md:py-5 md:px-12" 
+                    className="w-full border border-neutral-200 bg-white py-4 pl-12 pr-4 text-[11px] font-black uppercase text-neutral-900 outline-none transition-all placeholder:text-neutral-400 focus:border-[#ff4d00] dark:border-white/10 dark:bg-black/[0.04] dark:text-white dark:placeholder:text-white/25 md:py-5 md:px-12"
                     value={searchQuery} 
                     onChange={e => handleSearchQueryChange(e.target.value)}
                     onFocus={() => searchQuery.length >= 3 && setShowDropdown(true)}
                   />
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-white/20" />
                   
                   {/* Professional Search Dropdown */}
                   <AnimatePresence>
@@ -710,10 +710,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                        className="absolute top-full left-0 right-0 mt-2 z-[6000] bg-[#0d0d0d] border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden"
+                        className="absolute top-full left-0 right-0 mt-2 z-[6000] bg-white dark:bg-[#0d0d0d] border border-neutral-200 dark:border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden"
                       >
-                        <div className="p-2 border-b border-white/5 flex items-center justify-between">
-                          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 px-2">Results</span>
+                        <div className="p-2 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between">
+                          <span className="text-[8px] font-black uppercase tracking-[0.4em] text-neutral-400 dark:text-white/20 px-2">Results</span>
                           <button
                             type="button"
                             onClick={(event) => {
@@ -722,17 +722,17 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                               closeSearchDropdown();
                             }}
                           >
-                            <X size={12} className="text-white/20 hover:text-white" />
+                            <X size={12} className="text-neutral-400 dark:text-white/20 hover:text-neutral-900 dark:hover:text-white" />
                           </button>
                         </div>
                         <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                           {isSearching ? (
                             <div className="p-8 text-center">
                               <Loader2 className="w-5 h-5 text-[#ff4d00] animate-spin mx-auto mb-3" />
-                              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/10">Searching</span>
+                              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-neutral-400 dark:text-white/10">Searching</span>
                             </div>
                           ) : autoCompleteResults.length === 0 ? (
-                            <div className="p-8 text-center text-[9px] font-black uppercase tracking-[0.5em] text-white/10">No matches</div>
+                            <div className="p-8 text-center text-[9px] font-black uppercase tracking-[0.5em] text-neutral-400 dark:text-white/10">No matches</div>
                           ) : (
                             autoCompleteResults.map(comic => (
                               <button 
@@ -741,26 +741,26 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                                   closeSearchDropdown();
                                   router.push(`/library/${comic.source}/${comic.id}`);
                                 }}
-                                className="w-full p-3 flex items-center gap-4 hover:bg-white/5 border-b border-white/5 transition-all text-left group"
+                                className="w-full p-3 flex items-center gap-4 hover:bg-black/[0.05] dark:hover:bg-black/[0.04] dark:bg-white/5 border-b border-neutral-100 dark:border-white/5 transition-all text-left group"
                               >
-                                <div className="relative w-10 aspect-[2/3] bg-black border border-white/10 shrink-0">
+                                <div className="relative w-10 aspect-[2/3] bg-black border border-neutral-200 dark:border-white/10 shrink-0">
                                   <Image src={comic.coverUrl || '/logo.png'} fill className="object-cover" alt="" unoptimized />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-[10px] font-black uppercase tracking-widest text-white/80 group-hover:text-[#ff4d00] transition-colors truncate">{comic.title}</div>
+                                  <div className="text-[10px] font-black uppercase tracking-widest text-neutral-800 dark:text-white/80 group-hover:text-[#ff4d00] transition-colors truncate">{comic.title}</div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <span className={`px-1 py-0.5 text-[6px] font-black uppercase tracking-tighter ${
                                       comic.source === 'mangadex' ? 'bg-orange-500/20 text-orange-400' :
                                       comic.source === 'marvel' ? 'bg-red-600/20 text-red-500' :
                                       comic.source === 'archive' ? 'bg-blue-500/20 text-blue-400' :
-                                      'bg-white/10 text-white/40'
+                                      'bg-black/[0.06] dark:bg-white/10 text-neutral-500 dark:text-white/40'
                                     }`}>
                                       {comic.source}
                                     </span>
-                                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/10">{comic.rating}</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-neutral-400 dark:text-white/10">{comic.rating}</span>
                                   </div>
                                 </div>
-                                <ChevronRight size={14} className="text-white/10 group-hover:text-[#ff4d00] transition-all" />
+                                <ChevronRight size={14} className="text-neutral-400 dark:text-white/10 group-hover:text-[#ff4d00] transition-all" />
                               </button>
                             ))
                           )}
@@ -769,18 +769,18 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     )}
                   </AnimatePresence>
                 </div>
-                <button onClick={handleNsfwToggle} className={`h-12 w-full flex items-center justify-center border transition-all md:h-16 md:w-16 ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-white/10 text-white/20'}`}>
+                <button onClick={handleNsfwToggle} className={`h-12 w-full flex items-center justify-center border transition-all md:h-16 md:w-16 ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-neutral-200 dark:border-white/10 text-neutral-400 dark:text-white/20'}`}>
                   {isMounted && nsfwEnabled ? <Eye /> : <EyeOff />}
                 </button>
               </div>
 
               <div className="grid gap-3 md:grid-cols-[1.4fr_1fr_auto]">
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <span className="text-[8px] font-black uppercase tracking-[0.35em] text-white/30">Filter</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-100/80 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                  <span className="text-[8px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-white/30">Filter</span>
                   <select
                     value={sourceFilter}
                     onChange={(e) => setSourceFilter(e.target.value as typeof sourceFilter)}
-                    className="flex-1 bg-transparent text-[10px] font-black uppercase tracking-[0.25em] text-white outline-none"
+                    className="flex-1 bg-transparent text-[10px] font-black uppercase tracking-[0.25em] text-neutral-900 outline-none dark:text-white"
                   >
                     <option value="all">All sources</option>
                     <option value="mangadex">MangaDex</option>
@@ -798,12 +798,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <span className="text-[8px] font-black uppercase tracking-[0.35em] text-white/30">Sort</span>
+                <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-100/80 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                  <span className="text-[8px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-white/30">Sort</span>
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
-                    className="flex-1 bg-transparent text-[10px] font-black uppercase tracking-[0.25em] text-white outline-none"
+                    className="flex-1 bg-transparent text-[10px] font-black uppercase tracking-[0.25em] text-neutral-900 outline-none dark:text-white"
                   >
                     <option value="featured">Featured</option>
                     <option value="recent">Recently read</option>
@@ -818,7 +818,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   className={`rounded-2xl border px-4 py-3 text-[10px] font-black uppercase tracking-[0.35em] transition-all ${
                     savedOnly
                       ? 'border-[#ff4d00] bg-[#ff4d00] text-white'
-                      : 'border-white/10 bg-white/5 text-white/40 hover:border-white/30 hover:text-white'
+                      : 'border-neutral-200 bg-black/[0.04] text-neutral-500 hover:border-neutral-400 hover:text-neutral-900 dark:border-white/10 dark:bg-white/5 dark:text-white/40 dark:hover:border-white/30 dark:hover:text-white'
                   }`}
                 >
                   Saved Only
@@ -826,12 +826,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
               </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 pt-6 border-t border-white/5 md:flex-wrap md:overflow-visible md:gap-3 md:pb-0">
+            <div className="flex gap-2 overflow-x-auto pb-2 pt-6 border-t border-neutral-100 dark:border-white/5 md:flex-wrap md:overflow-visible md:gap-3 md:pb-0">
               {visibleCategories.map(cat => (
                 <button 
                   key={cat.label} 
                   onClick={() => handleCategoryChange(cat)} 
-                  className={`shrink-0 whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase tracking-widest border transition-all md:px-6 md:py-3 ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-white/10 text-white/30 hover:border-white/80'}`}
+                  className={`shrink-0 whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase tracking-widest border transition-all md:px-6 md:py-3 ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-neutral-200 text-neutral-500 hover:border-neutral-400 dark:border-white/10 dark:text-white/30 dark:hover:border-white/80'}`}
                 >
                   {cat.source === 'archive' && <Flag size={10} className="inline mr-2" />}
                   {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={10} className="inline mr-2" />}
@@ -848,9 +848,9 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             </div>
           ) : visibleComics.length === 0 ? (
              <div className="max-w-3xl mx-auto py-28 text-center">
-                <Sparkles className="w-12 h-12 text-white/5 mx-auto mb-6" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.8em] text-white/20">No results found</h3>
-                <p className="mt-4 text-sm text-white/35 leading-relaxed">
+                <Sparkles className="mx-auto mb-6 w-12 h-12 text-neutral-200 dark:text-white/5" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.8em] text-neutral-400 dark:text-white/20">No results found</h3>
+                <p className="mt-4 text-sm text-neutral-500 dark:text-white/35 leading-relaxed">
                   {savedOnly
                     ? 'You are filtering to saved items only. Try turning off Saved Only or clear the source filter.'
                     : searchQuery
@@ -864,7 +864,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       setSourceFilter('all');
                       setSortOrder('featured');
                     }}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/60 transition-all hover:border-white/25 hover:text-white"
+                    className="rounded-2xl border border-neutral-200 bg-neutral-100/90 px-5 py-3 text-[10px] font-black uppercase tracking-[0.35em] text-neutral-600 transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white"
                   >
                     Reset Filters
                   </button>
@@ -910,7 +910,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     }}
                     className="relative group cursor-pointer perspective-container"
                   >
-                    <div className="aspect-[2/3] border border-white/5 bg-[#0a0a0a] overflow-hidden relative shadow-[0_40px_80px_rgba(0,0,0,0.8)] group-hover:shadow-[0_0_50px_rgba(255,90,31,0.2)] transition-shadow duration-500">
+                    <div className="aspect-[2/3] overflow-hidden relative border border-neutral-200 bg-neutral-100 shadow-lg transition-shadow duration-500 dark:border-white/5 dark:bg-[#0a0a0a] dark:shadow-[0_40px_80px_rgba(0,0,0,0.8)] group-hover:shadow-[0_0_50px_rgba(255,90,31,0.2)]">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#ff4d00]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                       {comic.source === 'marvel' ? (
                         comic.coverUrl ? (
@@ -929,13 +929,13 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                             <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                             <div className="absolute inset-0 flex flex-col justify-between p-4">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] bg-white text-white">MARVEL</span>
-                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/35">{comic.yearPage || '----'}</span>
+                                <span className="bg-neutral-900 px-2 py-1 text-[7px] font-black uppercase tracking-[0.35em] text-white">MARVEL</span>
+                                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-neutral-500 dark:text-white/35">{comic.yearPage || '----'}</span>
                               </div>
                               <div className="space-y-2">
                                 <div className="text-[11px] font-black uppercase tracking-[0.35em] text-[#ff4d00]">Issue {comic.issueNumber || '?'}</div>
-                                <div className="text-xl font-black uppercase leading-[0.9] tracking-tighter text-white line-clamp-3">{comic.title}</div>
-                                <div className="text-[8px] uppercase tracking-[0.28em] text-white/35 line-clamp-2">{comic.seriesName || comic.description}</div>
+                                <div className="line-clamp-3 text-xl font-black uppercase leading-[0.9] tracking-tighter text-neutral-900 dark:text-white">{comic.title}</div>
+                                <div className="text-[8px] uppercase tracking-[0.28em] text-neutral-500 dark:text-white/35 line-clamp-2">{comic.seriesName || comic.description}</div>
                               </div>
                             </div>
                           </div>
@@ -965,7 +965,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       )}
                       {shouldBlur && (
                         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[2px] opacity-100">
-                          <div className="rounded-full border border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
+                          <div className="rounded-full border border-neutral-300 dark:border-white/15 bg-black/60 px-3 py-1 text-[8px] font-black uppercase tracking-[0.4em] text-white">
                             Tap to reveal
                           </div>
                         </div>
@@ -973,17 +973,19 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent flex items-center justify-between">
                          <span className="text-[7px] font-black uppercase tracking-widest text-[#ff4d00]">{comic.source}</span>
                          {comic.source === 'marvel' ? (
-                           <span className="text-[6px] font-black uppercase tracking-[0.35em] text-white/40">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
+                           <span className="text-[6px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-white/40">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
                          ) : (
                            isAdultComic(comic) && <span className="px-1.5 py-0.5 bg-red-600 text-white text-[6px] font-black uppercase">18+</span>
                          )}
                       </div>
                     </div>
-                    <h3 className="mt-6 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-white leading-relaxed line-clamp-2">{comic.title}</h3>
+                    <h3 className="mt-6 text-[10px] font-black uppercase tracking-widest text-neutral-400 leading-relaxed line-clamp-2 group-hover:text-neutral-900 dark:text-white/20 dark:group-hover:text-white">
+                      {comic.title}
+                    </h3>
                     {comic.source === 'marvel' && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">#{comic.issueNumber || '?'}</span>
-                        <span className="px-2 py-1 border border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-white/45">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
+                        <span className="px-2 py-1 border border-neutral-200 dark:border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-neutral-600 dark:text-white/45">#{comic.issueNumber || '?'}</span>
+                        <span className="px-2 py-1 border border-neutral-200 dark:border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-neutral-600 dark:text-white/45">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
                       </div>
                     )}
                   </motion.div>
@@ -1191,10 +1193,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
 const ComicSkeleton = () => (
   <div className="space-y-6">
-    <div className="aspect-[2/3] border border-white/5 shimmer bg-[#0a0a0a]" />
+    <div className="aspect-[2/3] border border-neutral-200 bg-neutral-200/80 shimmer dark:border-white/5 dark:bg-[#0a0a0a]" />
     <div className="space-y-2">
-      <div className="h-2 w-full shimmer bg-[#0a0a0a]" />
-      <div className="h-2 w-2/3 shimmer bg-[#0a0a0a]" />
+      <div className="h-2 w-full shimmer bg-neutral-200 dark:bg-[#0a0a0a]" />
+      <div className="h-2 w-2/3 shimmer bg-neutral-100 dark:bg-[#0a0a0a]" />
     </div>
   </div>
 );

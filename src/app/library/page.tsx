@@ -92,7 +92,7 @@ export default async function Page({
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-black font-black uppercase tracking-[0.5em] text-white/20">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-black uppercase tracking-[0.5em] text-neutral-300 dark:bg-black dark:text-white/20">
           Loading library
         </div>
       }

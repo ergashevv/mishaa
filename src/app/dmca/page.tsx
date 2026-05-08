@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import { Scale } from 'lucide-react';
 import LegalPage from '@/components/LegalPage';
+import { staticPageMetadata } from '@/lib/seo/page-metadata';
+
+export const metadata: Metadata = staticPageMetadata({
+  title: 'DMCA & copyright',
+  description:
+    'Copyright and DMCA information for iComics.wiki — how to submit takedown notices and what we need to process claims.',
+  path: '/dmca',
+});
 
 export default function DmcaPage() {
   return (

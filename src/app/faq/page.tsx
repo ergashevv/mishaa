@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: 'FAQ | iComics.wiki',
       description: faqDesc,
     },

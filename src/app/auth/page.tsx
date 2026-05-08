@@ -83,7 +83,7 @@ function AuthPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen flex flex-col items-center justify-center overflow-hidden bg-zinc-100 p-6 font-sans text-neutral-900 dark:bg-[#05060a] dark:text-white">
       {/* Dynamic Background */}
       <div className="absolute inset-0 pointer-events-none">
          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ff5a1f]/10 blur-[120px] rounded-full" />
@@ -92,8 +92,8 @@ function AuthPageContent() {
       </div>
 
       {/* Back Button */}
-      <Link href="/" className="absolute top-8 left-8 flex items-center gap-3 text-white/40 hover:text-white transition-all group z-[100] scale-90 md:scale-100">
-        <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 backdrop-blur-md group-hover:border-white/30 transition-all">
+      <Link href="/" className="absolute top-8 left-8 z-[100] flex scale-90 items-center gap-3 text-neutral-500 transition-all group hover:text-neutral-900 dark:text-white/40 dark:hover:text-white md:scale-100">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white/80 backdrop-blur-md transition-all group-hover:border-neutral-300 dark:border-white/10 dark:bg-white/5 dark:group-hover:border-white/30">
           <ArrowRight size={16} className="rotate-180" />
         </div>
         <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t.abortMission}</span>
@@ -104,7 +104,7 @@ function AuthPageContent() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className="w-full max-w-[460px] z-10"
       >
-        <div className="glass-panel border-white/10 bg-black/40 p-8 md:p-10 shadow-2xl rounded-[2.5rem] relative overflow-hidden">
+        <div className="glass-panel relative overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white/95 p-8 shadow-2xl md:p-10 dark:border-white/10 dark:bg-black/40">
           {/* Top Branding */}
           <div className="text-center mb-10 space-y-4">
             <motion.div 
@@ -115,26 +115,26 @@ function AuthPageContent() {
               <span className="text-3xl font-display font-black text-black">iC</span>
             </motion.div>
             <div className="space-y-1">
-              <h1 className="text-4xl font-black uppercase tracking-tight text-white leading-none">
+              <h1 className="text-4xl font-black uppercase tracking-tight text-neutral-900 leading-none dark:text-white">
                 {mode === 'login' ? 'Welcome Back' : 'Join the Studio'}
               </h1>
-              <p className="text-sm text-white/40 font-medium">
+              <p className="text-sm text-neutral-500 dark:text-white/40 font-medium">
                 {mode === 'login' ? 'Sign in to access your creative uplink' : 'Create an account to start your narrative journey'}
               </p>
             </div>
           </div>
 
           {/* Mode Tabs */}
-          <div className="flex p-1 bg-white/5 rounded-2xl mb-8 border border-white/10">
+          <div className="flex p-1 bg-black/[0.04] dark:bg-white/5 rounded-2xl mb-8 border border-neutral-200 dark:border-white/10">
             <button
               onClick={() => setMode('login')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'login' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'login' ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white'}`}
             >
               Sign In
             </button>
             <button
               onClick={() => setMode('signup')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'signup' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === 'signup' ? 'bg-white text-black shadow-lg' : 'text-neutral-500 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white'}`}
             >
               Register
             </button>
@@ -151,19 +151,19 @@ function AuthPageContent() {
                   className="space-y-5"
                 >
                   {/* Avatar Section */}
-                  <div className="flex items-center gap-5 p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <div className="w-14 h-14 rounded-xl bg-black border border-white/10 overflow-hidden shadow-inner flex-shrink-0 relative">
+                  <div className="flex items-center gap-5 rounded-2xl border border-neutral-200 bg-neutral-50/90 p-4 dark:border-white/5 dark:bg-white/5">
+                    <div className="w-14 h-14 rounded-xl bg-black border border-neutral-200 dark:border-white/10 overflow-hidden shadow-inner flex-shrink-0 relative">
                       <Image src={avatarUrl} alt="Avatar" fill unoptimized className="object-cover" />
                     </div>
                     <div className="flex-1">
-                       <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Avatar Prototype</p>
+                       <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 mb-2">Avatar Prototype</p>
                        <div className="flex flex-wrap gap-1.5">
                           {AVATAR_STYLES.slice(0, 5).map(style => (
                             <button
                               key={style}
                               type="button"
                               onClick={() => setSelectedAvatarStyle(style)}
-                              className={`px-2 py-1 text-[8px] font-black uppercase rounded-lg border transition-all ${selectedAvatarStyle === style ? 'bg-[#ff5a1f] border-transparent text-white' : 'border-white/10 text-white/60 hover:text-white hover:bg-white/5'}`}
+                              className={`px-2 py-1 text-[8px] font-black uppercase rounded-lg border transition-all ${selectedAvatarStyle === style ? 'bg-[#ff5a1f] border-transparent text-white' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100 dark:border-white/10 dark:text-white/60 dark:hover:bg-white/5 dark:hover:text-white'}`}
                             >
                               {style.split('-')[0]}
                             </button>
@@ -174,23 +174,23 @@ function AuthPageContent() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">First Name</label>
+                       <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 ml-2">First Name</label>
                        <input 
                          type="text" 
                          value={firstName} 
                          onChange={e => setFirstName(e.target.value)} 
                          placeholder="John"
-                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#ff5a1f] outline-none transition-all"
+                         className="w-full bg-neutral-100/90 dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#ff5a1f] outline-none transition-all"
                        />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Last Name</label>
+                       <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 ml-2">Last Name</label>
                        <input 
                          type="text" 
                          value={lastName} 
                          onChange={e => setLastName(e.target.value)} 
                          placeholder="Doe"
-                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#ff5a1f] outline-none transition-all"
+                         className="w-full bg-neutral-100/90 dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:border-[#ff5a1f] outline-none transition-all"
                        />
                     </div>
                   </div>
@@ -200,34 +200,34 @@ function AuthPageContent() {
 
             {/* Username/Alias */}
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Username / Alias</label>
+               <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 ml-2">Username / Alias</label>
                <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#ff5a1f] transition-colors" size={18} />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#ff5a1f] dark:text-white/20" size={18} />
                   <input 
                     type="text" 
                     value={username} 
                     onChange={e => setUsername(e.target.value.toLowerCase())} 
                     placeholder="creative_entity"
                     required
-                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-[#ff5a1f] outline-none transition-all"
+                    className="w-full bg-neutral-100/90 dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-[#ff5a1f] outline-none transition-all"
                   />
                </div>
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Access Key</label>
+               <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 ml-2">Access Key</label>
                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#ff5a1f] transition-colors" size={18} />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors group-focus-within:text-[#ff5a1f] dark:text-white/20" size={18} />
                   <input 
                     type={showPass ? 'text' : 'password'} 
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     placeholder="••••••••"
                     required
-                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm focus:border-[#ff5a1f] outline-none transition-all"
+                    className="w-full bg-neutral-100/90 dark:bg-black/40 border border-neutral-200 dark:border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm focus:border-[#ff5a1f] outline-none transition-all"
                   />
-                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors">
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900 dark:text-white/20 dark:hover:text-white">
                     {showPass ? <EyeOff size={18}/> : <Eye size={18}/>}
                   </button>
                </div>
@@ -248,16 +248,16 @@ function AuthPageContent() {
             </button>
 
             <div className="relative py-4">
-               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
-               <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em] text-white/20">
-                 <span className="bg-[#0b0c10] px-3">Secured connection</span>
+               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-neutral-200 dark:border-white/10"></div></div>
+               <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em] text-neutral-400 dark:text-white/20">
+                 <span className="bg-zinc-100 px-3 dark:bg-[#0b0c10]">Secured connection</span>
                </div>
             </div>
 
             <button
               type="button"
               onClick={() => window.location.assign('/api/auth/google')}
-              className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white text-[11px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50/90 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-neutral-900 transition-all hover:bg-neutral-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -273,7 +273,7 @@ function AuthPageContent() {
             <button
               type="button"
               onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-              className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-[#ff5a1f] transition-all"
+              className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-white/30 hover:text-[#ff5a1f] transition-all"
             >
               {mode === 'login' ? "Don't have an account? Register" : "Already have an account? Sign In"}
             </button>
@@ -293,7 +293,7 @@ function AuthPageContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#05060a]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-100 dark:bg-[#05060a]" />}>
       <AuthPageContent />
     </Suspense>
   );

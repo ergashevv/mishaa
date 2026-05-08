@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export type Lang = 'en' | 'ru' | 'uz';
+export type Lang = 'en' | 'ru';
 export type BubbleType = 'speech' | 'thought' | 'shout' | 'caption' | 'narration' | 'sfx';
 export type BubblePosition = 
   'top-left' | 'top-center' | 'top-right' | 

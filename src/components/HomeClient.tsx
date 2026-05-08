@@ -649,10 +649,10 @@ export default function HomeClient({
   }, [useRichMotion, renderedShelves.length]);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="min-h-screen bg-white text-neutral-900 dark:bg-[#06070b] dark:text-neutral-100">
       <Navbar />
 
-      <main className="relative overflow-hidden pt-14 sm:pt-16 lg:pt-[4.25rem]">
+      <main className="relative overflow-hidden bg-white pt-14 sm:pt-16 lg:pt-[4.25rem] dark:bg-[#06070b]">
         {/* --- DYNAMIC HERO BANNER --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">
@@ -664,16 +664,16 @@ export default function HomeClient({
                 exit={{ opacity: 0 }}
                 className="relative w-full"
               >
-                <div className="bg-neutral-950 pb-12 pt-4">
+                <div className="bg-gradient-to-b from-neutral-100 via-white to-white pb-12 pt-4 dark:from-neutral-950 dark:via-neutral-950 dark:to-[#06070b]">
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="grid gap-8 border border-white/10 bg-black/40 p-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:p-10">
+                    <div className="grid gap-8 border border-neutral-200 bg-neutral-50 p-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:p-10 dark:border-white/10 dark:bg-black/40">
                       <div className="space-y-5">
-                        <div className="h-6 w-36 animate-pulse bg-white/10" />
-                        <div className="h-14 w-full max-w-md animate-pulse bg-white/10" />
-                        <div className="h-10 w-3/4 max-w-sm animate-pulse bg-white/10" />
+                        <div className="h-6 w-36 animate-pulse bg-neutral-200 dark:bg-white/10" />
+                        <div className="h-14 w-full max-w-md animate-pulse bg-neutral-200 dark:bg-white/10" />
+                        <div className="h-10 w-3/4 max-w-sm animate-pulse bg-neutral-200 dark:bg-white/10" />
                         <div className="h-11 w-44 animate-pulse bg-[#ff5a1f]/40" />
                       </div>
-                      <div className="aspect-[3/4] max-h-[22rem] animate-pulse bg-white/10 lg:max-h-none lg:justify-self-end lg:w-full lg:max-w-sm" />
+                      <div className="aspect-[3/4] max-h-[22rem] animate-pulse bg-neutral-200 lg:max-h-none lg:justify-self-end lg:w-full lg:max-w-sm dark:bg-white/10" />
                     </div>
                   </div>
                 </div>
@@ -693,9 +693,9 @@ export default function HomeClient({
                   heroCarouselPausedRef.current = false;
                 }}
               >
-                <div className="bg-neutral-950 pb-10">
+                <div className="bg-gradient-to-b from-neutral-100 via-white to-white pb-10 dark:from-neutral-950 dark:via-neutral-950 dark:to-[#06070b]">
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="relative min-h-[clamp(20rem,48vw,30rem)] overflow-hidden border border-white/10 bg-black lg:min-h-[26rem]">
+                    <div className="relative min-h-[clamp(20rem,48vw,30rem)] overflow-hidden border border-neutral-200 bg-neutral-50 lg:min-h-[26rem] dark:border-white/10 dark:bg-black">
                     <AnimatePresence initial={false} mode="wait">
                       <motion.div
                         key={heroFeaturedKey}
@@ -720,29 +720,29 @@ export default function HomeClient({
                                 sizes="100vw"
                                 className="object-cover object-center opacity-[0.35]"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/88 to-black/55" />
+                              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/92 to-white/70 dark:from-black dark:via-black/88 dark:to-black/55" />
                             </>
                           ) : (
-                            <div className="absolute inset-0 bg-neutral-950" />
+                            <div className="absolute inset-0 bg-neutral-100 dark:bg-neutral-950" />
                           )}
                         </div>
 
                         <div className="relative z-10 grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-12 lg:py-12">
                       <div className="relative z-20 max-w-2xl lg:py-8">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-white/55">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500 dark:text-white/55">
                           {featuredComic.source}
                         </p>
 
-                        <h1 className="mt-4 min-h-[2.4em] text-4xl font-bold uppercase leading-[1.05] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl xl:text-6xl">
+                        <h1 className="mt-4 min-h-[2.4em] text-4xl font-bold uppercase leading-[1.05] tracking-tight text-neutral-900 sm:min-h-[2.2em] sm:text-5xl xl:text-6xl dark:text-white">
                           {featuredComic.title}
                         </h1>
 
                         {heroRating?.showBlock ? (
                           <div className="mt-6 flex min-h-[2.25rem] flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-white/45">
                               {heroRating.label}
                             </span>
-                            <span className="text-lg font-semibold uppercase tracking-wide text-white">
+                            <span className="text-lg font-semibold uppercase tracking-wide text-neutral-900 dark:text-white">
                               {heroRating.value}
                             </span>
                           </div>
@@ -761,7 +761,7 @@ export default function HomeClient({
                       </div>
 
                       <div className="relative z-20 mx-auto w-full max-w-[14rem] sm:max-w-[17rem] lg:mx-0 lg:ml-auto lg:max-w-[18rem]">
-                        <div className="relative aspect-[2/3] overflow-hidden border border-white/15 bg-neutral-900 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
+                        <div className="relative aspect-[2/3] overflow-hidden border border-neutral-200 bg-neutral-100 shadow-lg shadow-neutral-900/10 dark:border-white/15 dark:bg-neutral-900 dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
                           <SafeCoverImage
                             key={featuredPosterSrc}
                             src={featuredPosterSrc}
@@ -771,7 +771,7 @@ export default function HomeClient({
                             className="object-cover object-center"
                           />
                           {heroRating?.badge ? (
-                            <div className="absolute right-3 top-3 border border-white/20 bg-black/70 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/85">
+                            <div className="absolute right-3 top-3 border border-neutral-200 bg-white/90 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-neutral-800 dark:border-white/20 dark:bg-black/70 dark:text-white/85">
                               {heroRating.badge}
                             </div>
                           ) : null}
@@ -791,7 +791,7 @@ export default function HomeClient({
                           aria-label={`Featured slide ${i + 1}`}
                           aria-current={i === heroSlideIndex}
                           className={`h-2 w-2 rounded-full transition-colors ${
-                            i === heroSlideIndex ? 'bg-[#ff5a1f]' : 'bg-white/25 hover:bg-white/40'
+                            i === heroSlideIndex ? 'bg-[#ff5a1f]' : 'bg-neutral-300 hover:bg-neutral-400 dark:bg-white/25 dark:hover:bg-white/40'
                           }`}
                           onClick={() => setHeroSlideIndex(i)}
                         />
@@ -810,11 +810,11 @@ export default function HomeClient({
             {renderedShelves.every(s => shelfState[s.key]?.items.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).length === 0) &&
               searchQuery && (
                 <div className="py-20 text-center">
-                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center border border-neutral-200 bg-neutral-100 text-neutral-400">
+                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center border border-neutral-200 bg-neutral-100 text-neutral-400 dark:border-white/10 dark:bg-white/5 dark:text-neutral-500">
                     <Search size={28} strokeWidth={1.5} />
                   </div>
-                  <h3 className="mb-2 text-xl font-bold uppercase tracking-tight text-neutral-900">No results found</h3>
-                  <p className="text-sm text-neutral-500">We couldn&apos;t find any comics matching &quot;{searchQuery}&quot;</p>
+                  <h3 className="mb-2 text-xl font-bold uppercase tracking-tight text-neutral-900 dark:text-white">No results found</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">We couldn&apos;t find any comics matching &quot;{searchQuery}&quot;</p>
                 </div>
               )}
 
@@ -848,12 +848,12 @@ export default function HomeClient({
                     transition={{ duration: 0.4 }}
                     className="space-y-5"
                   >
-                    <div className="flex items-end justify-between gap-4 border-b border-neutral-200 pb-4">
+                    <div className="flex items-end justify-between gap-4 border-b border-neutral-200 pb-4 dark:border-white/10">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-neutral-400">
                           {shelf.subtitle}
                         </p>
-                        <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl">
+                        <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl dark:text-white">
                           {shelf.title}
                         </h2>
                       </div>
@@ -892,9 +892,9 @@ export default function HomeClient({
                             key={i}
                             className="flex w-[38vw] max-w-[10.5rem] shrink-0 snap-start flex-col gap-3 sm:w-[10.5rem] lg:w-[11rem]"
                           >
-                            <div className="aspect-[2/3] animate-pulse bg-neutral-200" />
-                            <div className="h-3 w-4/5 animate-pulse bg-neutral-200" />
-                            <div className="h-3 w-3/5 animate-pulse bg-neutral-100" />
+                            <div className="aspect-[2/3] animate-pulse bg-neutral-200 dark:bg-white/10" />
+                            <div className="h-3 w-4/5 animate-pulse bg-neutral-200 dark:bg-white/10" />
+                            <div className="h-3 w-3/5 animate-pulse bg-neutral-100 dark:bg-white/5" />
                           </div>
                         ))
                       ) : (
@@ -924,8 +924,8 @@ export default function HomeClient({
                               >
                                 <div className="flex flex-col">
                                   <div
-                                    className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-neutral-100 shadow-sm transition-all duration-300 ${
-                                      useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md' : ''
+                                    className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-neutral-50 shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/20 ${
+                                      useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md dark:group-hover:border-white/25 dark:group-hover:shadow-black/30' : ''
                                     }`}
                                   >
                                     <SafeCoverImage
@@ -949,10 +949,10 @@ export default function HomeClient({
                                   </div>
 
                                   <div className="mt-3 min-h-[3.75rem] space-y-1">
-                                    <h4 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900">
+                                    <h4 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
                                       {shouldBlur ? 'Age restricted' : comic.title}
                                     </h4>
-                                    <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-500">
+                                    <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-500 dark:text-neutral-400">
                                       {shouldBlur
                                         ? isTouchDevice && !isPreviewOpen
                                           ? 'Tap to confirm age'
@@ -975,16 +975,16 @@ export default function HomeClient({
           </div>
         </section>
 
-        <section className="border-t border-neutral-200 bg-neutral-100 py-16 sm:py-20">
+        <section className="border-t border-neutral-200 bg-neutral-100 py-16 sm:py-20 dark:border-white/10 dark:bg-black/25">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="mb-10 border-b border-neutral-300 pb-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
+              <div className="mb-10 border-b border-neutral-200 pb-5 dark:border-white/10">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-neutral-400">
                   Discover
                 </p>
-                <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl">
+                <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl dark:text-white">
                   More titles
                 </h2>
-                <p className="mt-2 max-w-lg text-sm text-neutral-600">
+                <p className="mt-2 max-w-lg text-sm text-neutral-600 dark:text-neutral-400">
                   Scroll to load more — picks refresh as you explore.
                 </p>
               </div>
@@ -1021,8 +1021,8 @@ export default function HomeClient({
                       >
                         <div className="flex flex-col">
                           <div
-                            className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-white shadow-sm transition-all duration-300 ${
-                              useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md' : ''
+                            className={`relative aspect-[2/3] w-full overflow-hidden border border-neutral-200 bg-white shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/20 ${
+                              useRichMotion ? 'group-hover:border-neutral-400 group-hover:shadow-md dark:group-hover:border-white/25 dark:group-hover:shadow-black/30' : ''
                             }`}
                           >
                             <SafeCoverImage
@@ -1045,10 +1045,10 @@ export default function HomeClient({
                           </div>
 
                           <div className="mt-3 min-h-[3.5rem] space-y-1">
-                            <div className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900">
+                            <div className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
                               {shouldBlur ? 'Age restricted' : comic.title}
                             </div>
-                            <div className="line-clamp-2 text-[10px] text-neutral-500">
+                            <div className="line-clamp-2 text-[10px] text-neutral-500 dark:text-neutral-400">
                               {shouldBlur
                                 ? isTouchDevice && !isPreviewOpen
                                   ? 'Tap to confirm age'
@@ -1084,10 +1084,10 @@ export default function HomeClient({
                       ) : prefersReducedMotion ? (
                         <div className="absolute inset-0 rounded-full border-2 border-[#ff5a1f]/35" />
                       ) : (
-                        <div className="absolute inset-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#ff5a1f]" style={{ animationDuration: '1.2s' }} />
+                        <div className="absolute inset-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#ff5a1f] dark:border-white/15" style={{ animationDuration: '1.2s' }} />
                       )}
                     </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500 dark:text-neutral-400">
                       Loading more
                     </div>
                   </>
@@ -1115,38 +1115,38 @@ export default function HomeClient({
         )}
       </AnimatePresence>
 
-      <footer className="border-t border-neutral-800 bg-black text-white">
+      <footer className="border-t border-neutral-200 bg-neutral-100 text-neutral-900 dark:border-white/10 dark:bg-black dark:text-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-8 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
             <div>
               <div className="font-accent text-xl tracking-wide">
-                <span className="text-white">iComics</span>
+                <span className="text-neutral-900 dark:text-white">iComics</span>
                 <span className="mx-px text-[#ffd36b]">·</span>
                 <span className="text-[#ff5a1f]">wiki</span>
               </div>
-              <p className="mt-2 max-w-xs text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-500">
+              <p className="mt-2 max-w-xs text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-600 dark:text-neutral-500">
                 Manga, manhwa & comics
               </p>
             </div>
-            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
-              <Link href="/library" className="transition-colors hover:text-white">
+            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600 dark:text-neutral-400">
+              <Link href="/library" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 Library
               </Link>
-              <Link href="/gallery" className="transition-colors hover:text-white">
+              <Link href="/gallery" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 Gallery
               </Link>
-              <Link href="/about" className="transition-colors hover:text-white">
+              <Link href="/about" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 About
               </Link>
-              <Link href="/privacy" className="transition-colors hover:text-white">
+              <Link href="/privacy" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 Privacy
               </Link>
-              <Link href="/terms" className="transition-colors hover:text-white">
+              <Link href="/terms" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 Terms
               </Link>
             </nav>
           </div>
-          <div className="mt-12 border-t border-white/10 pt-8 text-center text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-600">
+          <div className="mt-12 border-t border-neutral-200 pt-8 text-center text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-500 dark:border-white/10 dark:text-neutral-600">
             © {new Date().getFullYear()} iComics.wiki
           </div>
         </div>

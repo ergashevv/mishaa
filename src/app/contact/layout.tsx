@@ -1,10 +1,14 @@
-import { Metadata } from "next";
+import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
+import { staticPageMetadata } from '@/lib/seo/page-metadata';
 
-export const metadata: Metadata = {
-  title: "Contact Us",
-  description: "Have questions or feedback? Reach out to the iComics.wiki team. We're here to help you create.",
-};
+export const metadata: Metadata = staticPageMetadata({
+  title: 'Contact',
+  description:
+    'Get in touch with iComics.wiki — feedback, partnerships, and general questions about the manga and comics reader.',
+  path: '/contact',
+});
 
-export default function ContactLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default function ContactLayout({ children }: { children: ReactNode }) {
+  return children;
 }
