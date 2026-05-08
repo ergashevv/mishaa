@@ -41,6 +41,7 @@ import {
   readHomePreferenceProfile,
   type HomePreferenceProfile,
 } from '@/lib/home-personalization';
+import type { HomeShelfComic } from '@/lib/home-data';
 
 // --- Types ---
 type ComicSource = 'mangadex' | 'marvel' | 'nhentai';
@@ -246,7 +247,7 @@ import AgeGateOverlay from './AgeGateOverlay';
 import { isAdultComic } from '@/lib/age-verification';
 
 type HomeClientProps = {
-  initialData?: Record<string, LibraryComic[]>;
+  initialData?: Record<string, HomeShelfComic[]>;
   initialAgeVerified?: boolean;
   initialIsTouchDevice?: boolean;
   /** Must match SSR `getHomeData` lang so shelves/hero agree with hydration. */
@@ -652,7 +653,7 @@ export default function HomeClient({
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-[#06070b] dark:text-neutral-100">
       <Navbar />
 
-      <main className="relative overflow-hidden bg-white pt-14 sm:pt-16 lg:pt-[4.25rem] dark:bg-[#06070b]">
+      <main className="relative overflow-hidden bg-white pt-nav-catalog dark:bg-[#06070b]">
         {/* --- DYNAMIC HERO BANNER --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">

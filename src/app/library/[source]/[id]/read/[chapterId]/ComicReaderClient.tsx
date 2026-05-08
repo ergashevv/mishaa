@@ -191,6 +191,8 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const [readerTheme, setReaderTheme] = useState<ReaderTheme>('dark');
   const [readingDirection, setReadingDirection] = useState<'ltr' | 'rtl'>('ltr');
   const [showSettings, setShowSettings] = useState(false);
+  /** False while the chapter canvas is scrolling; FAB reappears after scroll idle. */
+  const [settingsFabIdle, setSettingsFabIdle] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [savedPageIndex, setSavedPageIndex] = useState<number | null>(null);
@@ -202,6 +204,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const chapterPageRequestRef = useRef<Map<string, Promise<string[]>>>(new Map());
   const touchStartRef = useRef({ x: 0, y: 0 });
   const progressSaveAbortRef = useRef<AbortController | null>(null);
+  const settingsFabScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const restrictedSource = isRestrictedLibrarySource(source);
 
@@ -350,7 +353,14 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     const handleScroll = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
+
+      setSettingsFabIdle(false);
+      if (settingsFabScrollEndTimerRef.current) clearTimeout(settingsFabScrollEndTimerRef.current);
+      settingsFabScrollEndTimerRef.current = setTimeout(() => {
+        settingsFabScrollEndTimerRef.current = null;
+        setSettingsFabIdle(true);
+      }, 420);
+
       if (canvas.scrollTop > 100) setScrolled(true);
       else setScrolled(false);
 
@@ -369,9 +379,20 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       }
     };
     const canvas = canvasRef.current;
-    if (canvas) canvas.addEventListener('scroll', handleScroll);
-    return () => canvas?.removeEventListener('scroll', handleScroll);
+    if (canvas) canvas.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      if (settingsFabScrollEndTimerRef.current) {
+        clearTimeout(settingsFabScrollEndTimerRef.current);
+        settingsFabScrollEndTimerRef.current = null;
+      }
+      setSettingsFabIdle(true);
+      canvas?.removeEventListener('scroll', handleScroll);
+    };
   }, [viewMode, uiVisible]);
+
+  useEffect(() => {
+    setSettingsFabIdle(true);
+  }, [chapterId]);
 
   const getChapterCacheKey = useCallback((chapId: string) => {
     return `${String(source)}:${String(id)}:${chapId}`;
@@ -1168,7 +1189,13 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         </AnimatePresence>
 
         {pages.length > 0 && (
-          <div className={`fixed bottom-8 right-8 z-[10040] transition-all duration-300 ${uiVisible ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'}`}>
+          <div
+            className={`fixed bottom-8 right-8 z-[10040] transition-all duration-300 ${
+              uiVisible || showSettings || !settingsFabIdle
+                ? 'opacity-0 scale-50 pointer-events-none'
+                : 'opacity-100 scale-100'
+            }`}
+          >
              <button onClick={() => setShowSettings(true)} className="w-16 h-16 bg-[#ff4d00] text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(255,77,0,0.5)] border border-[#ff4d00]/50 active:scale-90 transition-all">
                <Settings size={28} />
              </button>
@@ -1398,8 +1425,12 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                          initial={{ opacity: 0 }}
                          animate={{ opacity: 1 }}
                          src={pages[currentPage]}
-                         style={{ maxWidth: isMobile ? '100%' : '80vw', maxHeight: '90vh' }}
-                         className="shadow-2xl border border-white/10 rounded-sm object-contain"
+                         style={{
+                           maxWidth: isMobile ? '100%' : '80vw',
+                           maxHeight: '90vh',
+                           border: `1px solid ${READER_THEMES[readerTheme].border}`,
+                         }}
+                         className="shadow-2xl rounded-sm object-contain"
                          alt={`Page ${currentPage + 1} of ${comic.title}`}
                        />
                      )}
@@ -1412,16 +1443,37 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                         </div>
                       ) : currentPage === 0 && isSpreadCover ? (
                         <div className="relative max-h-[90vh] w-full aspect-[2/3] flex justify-center">
-                          <Image src={pages[0]} fill className="object-contain shadow-2xl border border-white/10" alt={`${comic.title} cover`} unoptimized />
+                          <Image
+                            src={pages[0]}
+                            fill
+                            className="object-contain shadow-2xl"
+                            style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
+                            alt={`${comic.title} cover`}
+                            unoptimized
+                          />
                         </div>
                       ) : (
                         <div className="flex items-center justify-center w-full gap-0">
                           <div className="relative flex-1 aspect-[2/3] max-h-[90vh]">
-                            <Image src={pages[currentPage]} fill className="object-contain shadow-2xl" alt={`Page ${currentPage + 1} of ${comic.title}`} unoptimized />
+                            <Image
+                              src={pages[currentPage]}
+                              fill
+                              className="object-contain shadow-2xl"
+                              style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
+                              alt={`Page ${currentPage + 1} of ${comic.title}`}
+                              unoptimized
+                            />
                           </div>
                           {pages[currentPage + 1] && (
                             <div className="relative flex-1 aspect-[2/3] max-h-[90vh]">
-                              <Image src={pages[currentPage + 1]} fill className="object-contain shadow-2xl" alt={`Page ${currentPage + 2} of ${comic.title}`} unoptimized />
+                              <Image
+                                src={pages[currentPage + 1]}
+                                fill
+                                className="object-contain shadow-2xl"
+                                style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
+                                alt={`Page ${currentPage + 2} of ${comic.title}`}
+                                unoptimized
+                              />
                             </div>
                           )}
                         </div>
@@ -1430,14 +1482,30 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                  ) : (
                   <div className="flex flex-col items-center gap-0 w-full" style={{ maxWidth: isMobile ? '100%' : '800px', width: '100%' }}>
                       {pages.map((p, i) => (
-                        <div key={i} className="relative w-full aspect-[2/3] bg-[#050505] border-b border-white/5">
+                        <div
+                          key={i}
+                          className="relative w-full aspect-[2/3] border-b"
+                          style={{
+                            backgroundColor: READER_THEMES[readerTheme].canvasBg,
+                            borderColor: READER_THEMES[readerTheme].border,
+                          }}
+                        >
                           <Image id={`page-${i}`} src={p} fill className="w-full h-auto object-contain relative z-10" alt={`Page ${i + 1}`} loading="lazy" unoptimized />
                         </div>
                       ))}
                       {currentChapterIdx < chapters.length - 1 && (
-                        <button onClick={nextChapter} className="w-full py-40 mt-20 border-2 border-dashed border-white/5 hover:border-[#ff4d00]/50 transition-all flex flex-col items-center gap-4">
-                           <div className="text-[12px] font-black uppercase tracking-[0.5em] text-white/20">Go to next chapter</div>
-                           <ChevronDown size={32} className="text-white/10" />
+                        <button
+                          type="button"
+                          onClick={nextChapter}
+                          className="w-full py-40 mt-20 border-2 border-dashed transition-all flex flex-col items-center gap-4"
+                          style={{
+                            borderColor: READER_THEMES[readerTheme].border,
+                          }}
+                        >
+                           <div className="text-[12px] font-black uppercase tracking-[0.5em]" style={{ color: READER_THEMES[readerTheme].muted }}>
+                             Go to next chapter
+                           </div>
+                           <ChevronDown size={32} style={{ color: READER_THEMES[readerTheme].muted, opacity: 0.5 }} />
                         </button>
                       )}
                   </div>

@@ -96,7 +96,7 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
     <nav
       className={
         isCatalog
-          ? 'fixed left-0 right-0 top-0 z-[1000] border-b border-neutral-200 bg-white dark:border-white/10 dark:bg-black'
+          ? 'fixed left-0 right-0 top-0 z-[1000] border-b border-neutral-200 bg-white pt-[env(safe-area-inset-top,0px)] dark:border-white/10 dark:bg-black'
           : 'fixed top-5 left-1/2 z-[1000] w-[min(96vw,86rem)] -translate-x-1/2 max-md:top-3'
       }
     >

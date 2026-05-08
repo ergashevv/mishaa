@@ -150,6 +150,20 @@ async function loadNHentaiShelf(query: string, limit = 30) {
   } catch { return []; }
 }
 
+/** Home SSR shelf rows — shared shape for `getHomeData` and `HomeClient` initial hydration. */
+export type HomeShelfComic = {
+  id: string;
+  title: string;
+  description: string;
+  coverUrl: string;
+  bannerUrl?: string;
+  source: 'mangadex' | 'nhentai';
+  href: string;
+  meta: string;
+  rating?: string;
+  genres?: string[];
+};
+
 type HomeDataOptions = {
   includeAdultContent?: boolean;
 };
@@ -190,6 +204,52 @@ const dedupeBySourceId = <T extends { source: string; id: string }>(items: T[]) 
     return true;
   });
 };
+
+/** Matches visible shelf order on the home page (see `HomeClient` `SHELVES`); earlier rows keep an item, later rows skip duplicates. */
+const HOME_SHELF_ROW_ORDER = [
+  'romance',
+  'fantasy',
+  'drama',
+  'trending',
+  'manga-hub',
+  'new',
+  'manhwa',
+  'webtoons',
+  'doujinshi',
+  'milf',
+  'ntr',
+] as const;
+
+/**
+ * Stops the same catalog title from appearing in every genre row (MangaDex tag overlap + same offset).
+ * Unknown keys (e.g. `marvel` from `/api/home/data`) are processed last with the same global seen-set.
+ */
+export function dedupeHomeShelvesForRows<T extends { source: string; id: string }>(
+  shelves: Record<string, T[]>,
+  maxPerShelf = 12,
+): Record<string, T[]> {
+  const seen = new Set<string>();
+  const out: Record<string, T[]> = { ...shelves };
+  const tailKeys = Object.keys(shelves).filter(
+    (k) => !(HOME_SHELF_ROW_ORDER as readonly string[]).includes(k),
+  );
+  const keyOrder = [...HOME_SHELF_ROW_ORDER, ...tailKeys];
+
+  for (const key of keyOrder) {
+    const raw = shelves[key];
+    if (!Array.isArray(raw)) continue;
+    const next: T[] = [];
+    for (const item of raw) {
+      if (next.length >= maxPerShelf) break;
+      const k = `${item.source}:${String(item.id)}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      next.push(item);
+    }
+    out[key] = next;
+  }
+  return out;
+}
 
 export async function getHomeFeed(lang: MangaLanguage = 'en', options: HomeFeedOptions = {}) {
   const page = Math.max(0, Number(options.page || 0));
@@ -244,51 +304,58 @@ export async function getHomeFeed(lang: MangaLanguage = 'en', options: HomeFeedO
   ]).slice(0, 28);
 }
 
-export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataOptions = {}) {
+export async function getHomeData(
+  lang: MangaLanguage = 'en',
+  options: HomeDataOptions = {},
+): Promise<Record<string, HomeShelfComic[]>> {
   const includeAdultContent = options.includeAdultContent ?? false;
   const filters = {
     contentRatings: ['safe', 'suggestive'],
     translatedLanguages: getMangaDexTranslatedLanguages(lang),
   };
 
+  /** Fetch a little extra per shelf so after cross-row dedupe we can still fill each row. */
+  const shelfFetchLimit = '20';
+  const shelfCap = 12;
+
   // Reduced limits for initial server load to speed up TTFB
-  const mangaParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const mangaParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '0', 'order[followedCount]': 'desc' });
   mangaParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(mangaParams, { ...filters, originalLanguages: ['ja'] });
   const mangaFallbackParams = new URLSearchParams(mangaParams);
   mangaFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const webtoonsParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const webtoonsParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '12', 'order[followedCount]': 'desc' });
   webtoonsParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(webtoonsParams, { ...filters, includedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] });
   const webtoonsFallbackParams = new URLSearchParams(webtoonsParams);
   webtoonsFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const manhwaParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const manhwaParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '18', 'order[followedCount]': 'desc' });
   manhwaParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(manhwaParams, { ...filters, originalLanguages: ['ko'], excludedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] });
   const manhwaFallbackParams = new URLSearchParams(manhwaParams);
   manhwaFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const latestParams = new URLSearchParams({ limit: '12', offset: '0', 'order[createdAt]': 'desc' });
+  const latestParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '8', 'order[createdAt]': 'desc' });
   latestParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(latestParams, filters);
   const latestFallbackParams = new URLSearchParams(latestParams);
   latestFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const romanceParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const romanceParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '0', 'order[followedCount]': 'desc' });
   romanceParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(romanceParams, { ...filters, includedTagIds: [MANGADEX_ROMANCE_TAG_ID] });
   const romanceFallbackParams = new URLSearchParams(romanceParams);
   romanceFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const fantasyParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const fantasyParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '24', 'order[followedCount]': 'desc' });
   fantasyParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(fantasyParams, { ...filters, includedTagIds: [MANGADEX_FANTASY_TAG_ID] });
   const fantasyFallbackParams = new URLSearchParams(fantasyParams);
   fantasyFallbackParams.delete('availableTranslatedLanguage[]');
 
-  const dramaParams = new URLSearchParams({ limit: '12', offset: '0', 'order[followedCount]': 'desc' });
+  const dramaParams = new URLSearchParams({ limit: shelfFetchLimit, offset: '40', 'order[followedCount]': 'desc' });
   dramaParams.append('includes[]', 'cover_art');
   appendMangaDexFilters(dramaParams, { ...filters, includedTagIds: [MANGADEX_DRAMA_TAG_ID] });
   const dramaFallbackParams = new URLSearchParams(dramaParams);
@@ -340,17 +407,20 @@ export async function getHomeData(lang: MangaLanguage = 'en', options: HomeDataO
     loadMangaDex(latestParams, lang, latestFallbackParams, { exclusiveFetch: true }),
   ]);
 
-  return {
-    'trending': trending,
-    'romance': romance,
-    'fantasy': fantasy,
-    'drama': drama,
-    'manga-hub': manga,
-    'new': latest,
-    'webtoons': webtoons,
-    'manhwa': manhwa,
-    'doujinshi': doujinshi,
-    'milf': milf,
-    'ntr': ntr,
-  };
+  return dedupeHomeShelvesForRows<HomeShelfComic>(
+    {
+      trending,
+      romance,
+      fantasy,
+      drama,
+      'manga-hub': manga,
+      new: latest,
+      webtoons,
+      manhwa,
+      doujinshi,
+      milf,
+      ntr,
+    },
+    shelfCap,
+  );
 }

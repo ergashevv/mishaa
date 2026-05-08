@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -169,6 +169,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
   useEffect(() => {
     let cancelled = false;
 
+    const crLabel = translations[lang].library.continueReading;
+
     const syncLibraryState = async () => {
       const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
       const bookmarked = bookmarks.some((b: any) => b.id === id && b.source === source);
@@ -179,7 +181,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       let nextHistory = localComicHistory
         ? {
             id: localComicHistory.chapterId || localComicHistory.id || id,
-            title: localComicHistory.chapterTitle || localComicHistory.title || 'Continue reading',
+            title: localComicHistory.chapterTitle || localComicHistory.title || crLabel,
             progressPercent: localComicHistory.progressPercent,
             currentPage: localComicHistory.currentPage,
           }
@@ -196,7 +198,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
           if (progress?.chapterId) {
             nextHistory = {
               id: progress.chapterId,
-              title: progress.chapterTitle || 'Continue reading',
+              title: progress.chapterTitle || crLabel,
               progressPercent: progress.progressPercent,
               currentPage: progress.currentPage,
             };
@@ -221,7 +223,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       window.removeEventListener(LIBRARY_ACTIVITY_EVENT, syncLibraryState);
       window.removeEventListener('storage', syncLibraryState);
     };
-  }, [id, source]);
+  }, [id, source, lang]);
 
   const toggleBookmark = () => {
     if (typeof window === 'undefined') return;
@@ -255,12 +257,15 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
   };
 
-  const socialShares = [
-    { name: 'Telegram', url: '#', icon: 'https://cdn.simpleicons.org/telegram/24A1DE' },
-    { name: 'X / Twitter', url: '#', icon: 'https://cdn.simpleicons.org/x/1DA1F2' },
-    { name: 'WhatsApp', url: '#', icon: 'https://cdn.simpleicons.org/whatsapp/25D366' },
-    { name: 'Copy Link', url: '#', icon: 'https://cdn.simpleicons.org/link/FFFFFF' },
-  ];
+  const socialShares = useMemo(
+    () => [
+      { name: 'Telegram', url: '#', icon: 'https://cdn.simpleicons.org/telegram/24A1DE' },
+      { name: t.socialTwitterX, url: '#', icon: 'https://cdn.simpleicons.org/x/1DA1F2' },
+      { name: 'WhatsApp', url: '#', icon: 'https://cdn.simpleicons.org/whatsapp/25D366' },
+      { name: t.socialCopyLink, url: '#', icon: 'https://cdn.simpleicons.org/link/FFFFFF' },
+    ],
+    [t.socialTwitterX, t.socialCopyLink],
+  );
 
   const copyToClipboard = async () => {
     try {
@@ -343,7 +348,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-[#020202]">
       <div className="flex flex-col items-center gap-6">
         <Loader2 className="w-12 h-12 text-[#ff4d00] animate-spin" />
-        <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-400 dark:text-white/20">Loading comic...</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-neutral-400 dark:text-white/20">{t.loadingComic}</div>
       </div>
     </div>
   );
@@ -375,7 +380,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-[#020202]">
         <div className="flex flex-col items-center gap-6">
           <Loader2 className="w-12 h-12 text-[#ff4d00] animate-spin" />
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-400 dark:text-white/20">Loading issue...</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-400 dark:text-white/20">{t.loadingIssue}</div>
         </div>
       </div>
     );
@@ -751,7 +756,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             href="/library"
             className="mb-10 flex items-center gap-3 text-xs font-semibold tracking-wide text-neutral-600 transition-colors hover:text-[#ff4d00] dark:text-zinc-400 dark:hover:text-[#ff4d00] group"
           >
-            <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-0.5" /> Back to library
+            <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-0.5" /> {t.backToLibrary}
           </Link>
         </motion.div>
 
@@ -803,11 +808,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                      href={`/library/${source}/${id}/read/${lastReadChapter.id}`}
                      className="flex w-full flex-col items-center justify-center gap-1 overflow-hidden border border-neutral-200 bg-neutral-100 py-4 font-black uppercase tracking-widest text-[9px] text-neutral-900 transition-all hover:bg-neutral-200/80 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                    >
-                     <span className="text-[#ff4d00]">Continue reading</span>
+                     <span className="text-[#ff4d00]">{t.continueReading}</span>
                      <span className="w-full truncate px-4 text-center text-neutral-600 dark:text-white/50">{lastReadChapter.title}</span>
                      {typeof lastReadChapter.progressPercent === 'number' && (
                        <span className="text-[8px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-white/35">
-                         {lastReadChapter.progressPercent}% complete
+                         {t.progressComplete.replace('{percent}', String(lastReadChapter.progressPercent))}
                        </span>
                      )}
                    </Link>
@@ -823,19 +828,19 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                     }`}
                   >
                     <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} /> 
-                    {isBookmarked ? 'Bookmarked' : 'Bookmark'}
+                    {isBookmarked ? t.bookmarked : t.bookmark}
                   </button>
                   <button 
                     onClick={() => setShowShareModal(true)}
                     className="flex items-center justify-center gap-2 border border-neutral-200 bg-neutral-100 py-4 text-[9px] font-black uppercase tracking-widest text-neutral-800 transition-all hover:bg-neutral-200/80 dark:border-white/15 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/15"
                   >
-                    <Share2 size={14} /> Share
+                    <Share2 size={14} /> {t.share}
                   </button>
                   <button
                     onClick={reportIssue}
                     className="col-span-2 py-4 border border-[#ff4d00]/30 bg-[#ff4d00]/10 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#ff4d00] hover:bg-[#ff4d00] hover:text-white transition-all"
                   >
-                    Report Issue
+                    {t.reportIssue}
                   </button>
                </div>
             </div>
@@ -855,7 +860,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-600 dark:text-white/45"><Clock size={12} /> {comic.year || 'N/A'}</div>
                  {comic.author && (
                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-600 dark:text-white/45">
-                     <span className="text-[#ff4d00]">Author:</span> {comic.author}
+                     <span className="text-[#ff4d00]">{t.authorLabel}</span> {comic.author}
                    </div>
                  )}
                  <div className="rounded-full border border-[#ff4d00]/30 bg-[#ff4d00]/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#ff4d00] dark:border-[#ff4d00]/30">{comic.status}</div>
@@ -881,7 +886,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             <div className="min-w-0 space-y-12 lg:space-y-14">
             <section className="space-y-4">
                   <div className="flex items-center gap-3 border-b border-neutral-200 pb-3 dark:border-white/10">
-                     <h2 className="text-sm font-semibold text-[#ff4d00]">Synopsis</h2>
+                     <h2 className="text-sm font-semibold text-[#ff4d00]">{t.synopsis}</h2>
                      <div className="h-px flex-1 bg-gradient-to-r from-neutral-300 to-transparent dark:from-white/10" />
                   </div>
                   <div 
@@ -903,9 +908,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                    <div className="flex flex-wrap items-end justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Sparkles className="text-[#ff4d00]" size={15} />
-                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">More like this</h2>
+                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">{t.moreLikeThis}</h2>
                       </div>
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-500 dark:text-zinc-400">Similar titles</span>
+                      <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-500 dark:text-zinc-400">{t.similarTitles}</span>
                    </div>
 
                    <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
@@ -1070,8 +1075,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             ) : (
               <div id="chapters-section" className="space-y-8">
                  <div className="flex items-center justify-between border-b border-neutral-200 pb-4 dark:border-white/10">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-neutral-500 dark:text-white/45">Chapters</h3>
-                    <span className="text-[10px] font-black text-[#ff4d00] uppercase tracking-widest">{chapters.length} total</span>
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-neutral-500 dark:text-white/45">{t.chaptersHeading}</h3>
+                    <span className="text-[10px] font-black text-[#ff4d00] uppercase tracking-widest">{t.chaptersTotal.replace('{count}', String(chapters.length))}</span>
                  </div>
                  <div className="grid grid-cols-1 gap-3 max-h-[min(70vh,44rem)] overflow-y-auto custom-scrollbar pr-2 md:pr-4 md:gap-4">
                     {chapters.length > 0 ? (
@@ -1088,12 +1093,12 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                 </div>
                                 {ch.externalUrl && (
                                   <div className="rounded-sm border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[7px] font-black uppercase tracking-widest text-blue-500">
-                                    External
+                                    {t.externalChapter}
                                   </div>
                                 )}
                               </div>
                               <div className="wrap-anywhere line-clamp-2 text-[13px] font-black uppercase leading-snug tracking-tight text-neutral-900 transition-colors group-hover:text-neutral-950 md:text-[15px] dark:text-white/90 dark:group-hover:text-white">
-                                {ch.title || `Chapter ${ch.chapterNum}`}
+                                {ch.title || t.chapterTitleFallback.replace('{num}', String(ch.chapterNum))}
                               </div>
                             </div>
                             {ch.externalUrl ? (
@@ -1140,12 +1145,14 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 dark:bg-white/5">
                             <BookOpen className="text-neutral-400 dark:text-white/35" size={32} />
                          </div>
-                         <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.5em] text-neutral-900 dark:text-white">No chapters for this language</h4>
+                         <h4 className="mb-3 text-[11px] font-black uppercase tracking-[0.5em] text-neutral-900 dark:text-white">{t.noChaptersForLanguage}</h4>
                          <p className="text-sm text-neutral-500 dark:text-white/30 max-w-sm leading-relaxed mb-8">
-                            We didn&apos;t find any <b>{mangaLanguage.toUpperCase()}</b> chapters. This title might only have releases in other languages on MangaDex.
+                            {t.noChaptersHintBefore}
+                            <b>{mangaLanguage.toUpperCase()}</b>
+                            {t.noChaptersHintAfter}
                          </p>
                          <div className="flex flex-wrap justify-center gap-3">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[#ff4d00]">Try another language from the menu in the header</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-[#ff4d00]">{t.tryHeaderLanguage}</span>
                          </div>
                       </div>
                     )}
@@ -1180,8 +1187,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
               
               <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                  <div className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">Share</div>
-                  <div className="text-xl font-black uppercase tracking-tight text-neutral-900 dark:text-white">Share link</div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff4d00]">{t.shareModalKicker}</div>
+                  <div className="text-xl font-black uppercase tracking-tight text-neutral-900 dark:text-white">{t.shareModalTitle}</div>
                 </div>
                 <button 
                   onClick={() => setShowShareModal(false)}
@@ -1222,7 +1229,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
               {/* Copy Field */}
               <div className="space-y-3">
-                 <div className="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-500 dark:text-white/30 ml-1">Page link</div>
+                 <div className="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-500 dark:text-white/30 ml-1">{t.pageLinkLabel}</div>
                  <div className="relative group">
                     <input 
                       type="text" 
@@ -1236,7 +1243,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                         linkCopied ? 'bg-green-500 text-white' : 'bg-[#ff4d00] text-white hover:brightness-110 active:scale-95'
                       }`}
                     >
-                      {linkCopied ? 'Copied' : 'Copy'}
+                      {linkCopied ? t.copiedButton : t.copyButton}
                     </button>
                  </div>
               </div>

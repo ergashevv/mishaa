@@ -18,6 +18,17 @@
   --font-mono: var(--font-mono);
 }
 
+/* Content offset below fixed `Navbar` (surface=catalog): inner bar ~4.75rem mobile, ~5.75rem md+ */
+.pt-nav-catalog {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 4.75rem);
+}
+
+@media (min-width: 768px) {
+  .pt-nav-catalog {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 5.75rem);
+  }
+}
+
 :root {
   --obsidian: #07080c;
   --surface: rgba(18, 20, 28, 0.82);

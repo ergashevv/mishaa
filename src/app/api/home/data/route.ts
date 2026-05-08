@@ -1,6 +1,6 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
-import { getHomeData, getHomeFeed } from "@/lib/home-data";
+import { getHomeData, getHomeFeed, dedupeHomeShelvesForRows } from "@/lib/home-data";
 import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";
 import { fetchTrendingAniListManga } from "@/lib/anilist";
 import type { MangaLanguage } from "@/lib/manga-language";
@@ -60,12 +60,14 @@ export async function GET(req: Request) {
 
     const [marvel, trending] = await Promise.all([marvelPromise, trendingPromise]);
 
+    const shelvesMerged = {
+      ...baseShelves,
+      trending: trending || baseShelves.trending || [],
+      marvel: marvel || [],
+    };
+
     return NextResponse.json({
-      shelves: {
-        ...baseShelves,
-        trending: trending || baseShelves.trending || [],
-        marvel: marvel || [],
-      }
+      shelves: dedupeHomeShelvesForRows(shelvesMerged),
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'

@@ -644,7 +644,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   return (
     <>
     <Navbar />
-    <div className="min-h-screen bg-zinc-50 text-neutral-900 pt-14 sm:pt-16 lg:pt-[4.25rem] dark:bg-[#020202] dark:text-white">
+    <div className="min-h-screen bg-zinc-50 pt-nav-catalog text-neutral-900 dark:bg-[#020202] dark:text-white">
       {/* Unrestricted Access */}
 
       {!selectedComic && (
