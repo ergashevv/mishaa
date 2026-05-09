@@ -65,6 +65,16 @@ export default function AboutPage() {
                 {t.trustBody}
               </p>
             </div>
+            <div className="mx-auto max-w-3xl rounded-xl border border-[#3b82f6]/30 bg-white/95 px-6 py-6 text-left shadow-[8px_8px_0_#000] dark:border-[#3b82f6]/25 dark:bg-white/[0.06] sm:px-10 sm:py-8">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.45em] text-[#3b82f6]">{t.wikiIdentityTitle}</h2>
+              <p className="mt-4 text-sm font-medium leading-relaxed text-neutral-700 dark:text-white/70 sm:text-base">
+                {t.wikiIdentityBody}{' '}
+                <Link href="/icomics-wiki" className="font-semibold text-[#ff5a1f] underline decoration-[#ff5a1f]/40 underline-offset-4">
+                  /icomics-wiki
+                </Link>
+                .
+              </p>
+            </div>
           </div>
 
           {/* Grid Layout for Content */}

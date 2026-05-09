@@ -21,7 +21,7 @@ export async function generateMetadata({
   const title = `${shelf}${queryLabel}`;
   const description = queryTrimmed
     ? `Search “${queryTrimmed.slice(0, 160)}” in the iComics.wiki library (${shelf}). Open any title for chapters, synopsis, and the fullscreen reader.`
-    : `Browse “${shelf}” with covers, genres, chapters, synced reading progress — manga hub, Marvel, NHentai catalogs, galleries, reader-first UX on iComics.wiki.`;
+    : `Browse “${shelf}” on icomics.wiki — manga & adult-friendly wiki-style catalog: covers, genres, chapters, synced progress via MangaDex, NHentai and other shelves; superhero (Marvel) is optional—not the featured pillar.`;
 
   const libraryCanonical =
     tab && !queryTrimmed
@@ -76,7 +76,7 @@ export default async function Page({
     '@type': 'CollectionPage',
     name: `${shelf} · iComics.wiki library`,
     description:
-      'Searchable manga, manhwa, Marvel comics, and saved titles — metadata, chapters, and a fullscreen reader with progress syncing on iComics.wiki.',
+      'Searchable manga, manhwa, webtoons, age-gated/hentai titles, and bookmarks — metadata, chapters, fullscreen reader, progress sync on icomics.wiki. Marvel superhero issues optional.',
     url: `${siteUrl}/library`,
     breadcrumb: {
       '@type': 'BreadcrumbList',

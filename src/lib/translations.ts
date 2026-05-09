@@ -18,7 +18,7 @@ export const translations = {
     },
     hero: {
       title: 'Manga & Manhwa Library',
-      desc: 'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience for collectors.',
+      desc: 'Browse the icomics.wiki online comic wiki–style library: manga, manhwa, and adult titles with a collector-grade reader across devices.',
       cta: 'Explore Library',
       launch: 'Browse All',
       issue: 'Issue',
@@ -120,6 +120,9 @@ export const translations = {
       trustTitle: 'Editorial transparency',
       trustBody:
         'iComics.wiki aggregates public catalogs and APIs so readers can browse metadata and chapters in one reader-focused interface. We do not claim ownership of third-party titles. Content concerns belong on Content Policy; copyright notices on DMCA.',
+      wikiIdentityTitle: 'Official “comic wiki” on this domain',
+      wikiIdentityBody:
+        'People search “icomics wiki” for many reasons. If you landed here via search: this site is icomics.wiki — a structured reader hub (library + guides + FAQ), not Fandom lists for unrelated series, not the DRM iOS comic file app under a similar name, and not Marvel’s old Icon Comics imprint. When in doubt, check that the browser URL is icomics.wiki.',
     },
     faq: {
       badge: 'Library Info',
@@ -144,10 +147,39 @@ export const translations = {
       q8: 'HOW IS READING PROGRESS SAVED?',
       a8:
         'Guests keep progress in this browser (and can clear it under Settings). Signed-in readers can sync progress to the account so it follows you across devices when the feature is available.',
+      q9: 'WHAT DOES “WIKI” MEAN HERE — ARE YOU THE IOS APP OR FANDOM?',
+      a9:
+        '"Wiki" in icomics.wiki refers to our web-based comic and manga library at the domain icomics.wiki — a reader catalog with guides, FAQ, and chapters. We are not the separate iComics DRM reader app for personal CBR/PDF files, and we are not affiliated with the “Hey Kids Comics” Fandom wiki entries that list an unrelated “IComics Vol 1” series. When you search for comic or manga help, our official site is always https://icomics.wiki.',
+      q10: 'IS THIS THE SAME AS WIKIPEDIA OR FANDOM COMICS WIKIS?',
+      a10:
+        'No. iComics.wiki is its own standalone site. We are not Wikipedia or a Wikia/Fandom community wiki. We are not the “Hey Kids Comics” pages about “IComics Vol 1”. The word “wiki” here reflects a browsable catalog and help docs on icomics.wiki — not Wikimedia or Fandom infrastructure.',
+      q11: 'HOW CAN I TELL THIS IS THE REAL ICOMICS.WIKI?',
+      a11:
+        'Check your address bar reads https://icomics.wiki. Our FAQ and the /icomics-wiki explainer restate how we relate (or don’t) to unrelated apps or fan wikis. Official community links appear in the site footer.',
       stillQuestions: 'Still have questions?',
       stillDesc: 'Connect with our support team for any assistance.',
       dept: 'Support',
-      hub: 'Telegram'
+      hub: 'Telegram',
+      wikiExplainerCta: 'Wiki explainer',
+    },
+    wikiLanding: {
+      kicker: 'Search clarity',
+      titleLine1: 'WHAT IS',
+      titleLine2: 'ICOMICS.WIKI?',
+      lead:
+        'A short editorial page for organic search: official domain, positioning, and what we are not — so algorithmic summaries can anchor on one consistent story.',
+      p1:
+        'iComics.wiki operates at the domain icomics.wiki only. We provide a bilingual reader-facing library emphasising MangaDex manga/manhwa/webtoons plus age-gated & hentai-compatible catalogs; guides, FAQ, RSS, and support follow that focus. Marvel superhero issues exist as an optional shelf—not the core identity.',
+      p2:
+        'We are often confused with the standalone “iComics” app for reading local CBR/CBZ/PDF files on iOS. That product is a different company and use case. We are also not affiliated with Fandom’s “Hey Kids Comics” wiki where “IComics Vol 1” appears — that is unrelated metadata about a different publication.',
+      p3:
+        'If your query was “icomics wiki”, “icomics.wiki manga”, or “read comics wiki”, the editorial intent of this project is a web library and explainer hub — not a generic wiki farm and not a mobile store listing.',
+      quickCheckTitle: 'Quick verification',
+      quickLi1: 'Domain should be exactly icomics.wiki (HTTPS).',
+      quickLi2: 'You will see Library, Guides, FAQ, and Reading hub in navigation.',
+      quickLi3: 'Disambiguation questions are answered in /faq and on this page.',
+      ctaFaq: 'Open full FAQ',
+      ctaLibrary: 'Browse library',
     },
     contact: {
       badge: 'Contact Us',
@@ -231,7 +263,7 @@ export const translations = {
       kicker: 'Discovery',
       title: 'Reading hub',
       intro:
-        'One index for guides, RSS, and catalog entry points — the URLs we want readers and search engines to discover together.',
+        'One index for guides, RSS, /icomics-wiki (what our “wiki” branding means), and library entry points — URLs we want indexed with shared context for manga, manhwa, adult/hentai-ready discovery (superhero shelves optional).',
       cardGuidesTitle: 'Guides',
       cardGuidesBody:
         'Explainers for formats, sources, age settings, and first-time reader setup.',
@@ -239,7 +271,7 @@ export const translations = {
       cardRssBody:
         'Subscribe in any reader; updates when guides and hub pages refresh (/feed mirrors the same payload).',
       cardLibraryTitle: 'Library',
-      cardLibraryBody: 'Browse MangaDex titles, Marvel issues, and more in one reader-first grid.',
+      cardLibraryBody: 'MangaDex manga & manhwa, age-gated hentai-style catalogs, NHentai-compatible flows, optional western superhero issues—one reader grid.',
       openCta: 'Open →',
       discoverTitle: 'Internal discovery',
       closingBeforeFaq: 'Pair this hub with the',
@@ -248,6 +280,9 @@ export const translations = {
       supportLinkLabel: 'Support',
       closingAfter:
         'when chapters fail to load. Guides stay evergreen; RSS picks up structural updates automatically.',
+      wikiSearchNote: 'Searching for “icomics wiki”?',
+      wikiExplainerLink: 'Read the official icomics.wiki explainer',
+      wikiSearchNoteEnd: '(domain + disambiguation from fan wikis and the iOS reader app).',
     },
     profile: {
       badge: 'Your account',
@@ -395,6 +430,8 @@ export const translations = {
       taglineLine1: 'Independent reader hub.',
       taglineLine2: 'iComics.wiki collective · 2026',
       taglineLine3: 'icomics.wiki',
+      wikiOfficialLine:
+        'Official web library at icomics.wiki · not the DRM iComics iOS app · not Fandom “Hey Kids Comics” lists',
     },
     settings: {
       eyebrow: 'User controls',
@@ -529,7 +566,7 @@ export const translations = {
     },
     hero: {
       title: 'Библиотека Манги и Манхвы',
-      desc: 'Доступ к огромной коллекции Манги, Манхвы и Взрослых историй. Высокое качество чтения.',
+      desc: 'Онлайн-библиотека icomics.wiki в духе связанного «wiki»-каталога: манга, манхва и adult-тайтлы с удобной читалкой на всех устройствах.',
       cta: 'В Библиотеку',
       launch: 'Смотреть Все',
       issue: 'Выпуск',
@@ -631,6 +668,9 @@ export const translations = {
       trustTitle: 'Редакционная прозрачность',
       trustBody:
         'iComics.wiki собирает метаданные из открытых каталогов и API, чтобы читатели могли пользоваться одним интерфейсом. Мы не заявляем прав на сторонние произведения. Вопросы по контенту — в Content Policy; по авторским правам — в DMCA.',
+      wikiIdentityTitle: 'Официальный «комикс-вики» на этом домене',
+      wikiIdentityBody:
+        'Если вы пришли из поиска по «icomics wiki»: это icomics.wiki — структурированный хаб читателя (библиотека, гайды, FAQ), не списки на Fandom про другие серии, не приложение iComics для своих файлов и не импринт Marvel Icon Comics. Проверьте, что в адресе именно icomics.wiki.',
     },
     faq: {
       badge: 'Инфо Библиотеки',
@@ -655,10 +695,39 @@ export const translations = {
       q8: 'ГДЕ ХРАНИТСЯ ПРОГРЕСС ЧТЕНИЯ?',
       a8:
         'Без входа прогресс хранится в этом браузере (сброс — в Настройках). С аккаунтом прогресс может синхронизироваться между устройствами, когда функция доступна.',
+      q9: 'ЧТО ЗНАЧИТ «WIKI» — ЭТО IOS-ПРИЛОЖЕНИЕ ИЛИ FANDOM?',
+      a9:
+        'В icomics.wiki «wiki» означает наш веб-каталог манги и комиксов на домене icomics.wiki — читалку с гайдами, FAQ и главами. Мы не связаны с отдельным приложением «iComics» для личных файлов CBR/PDF и не связаны с вики Fandom «Hey Kids Comics», где перечислен другой сериал «IComics Vol 1». Официальный сайт проекта — всегда https://icomics.wiki.',
+      q10: 'ЭТО ВИКИПЕДИЯ ИЛИ FANDOM?',
+      a10:
+        'Нет. iComics.wiki — отдельный сайт. Мы не Wikipedia и не вики-сообщества Fandom/Wikia. Не страницы «Hey Kids Comics» про «IComics Vol 1». Слово «wiki» здесь — про обозримый каталог и справку на icomics.wiki, а не про платформу Wikimedia или Fandom.',
+      q11: 'КАК ОТЛИЧИТЬ НАСТОЯЩИЙ ICOMICS.WIKI?',
+      a11:
+        'В адресной строке должно быть https://icomics.wiki. Разъяснения — в FAQ и на странице /icomics-wiki. Официальные ссылки сообщества — в подвале сайта.',
       stillQuestions: 'Остались вопросы?',
       stillDesc: 'Свяжитесь с нашей командой поддержки для любой помощи.',
       dept: 'Поддержка',
-      hub: 'Telegram'
+      hub: 'Telegram',
+      wikiExplainerCta: 'Пояснение «wiki»',
+    },
+    wikiLanding: {
+      kicker: 'Ясность для поиска',
+      titleLine1: 'ЧТО ТАКОЕ',
+      titleLine2: 'ICOMICS.WIKI?',
+      lead:
+        'Короткая редакционная страница для поиска: домен, позиционирование и с чем мы не связаны.',
+      p1:
+        'iComics.wiki работает только на домене icomics.wiki. Основной упор — каталоги уровня MangaDex и возрастные/хентай-сегменты веб-манги; гайды, FAQ, RSS и поддержка под это. Выпуски Marvel — опциональная полка, не ядро продукта.',
+      p2:
+        'Нас путают с приложением «iComics» для чтения локальных CBR/CBZ/PDF на iOS — это другой продукт. Мы не связаны с вики Fandom «Hey Kids Comics» и записями «IComics Vol 1» — это другая публикация.',
+      p3:
+        'Если запрос был «icomics wiki» или «манга icomics wiki», смысл этого проекта — веб-библиотека и справочный хаб, а не «облако вики-хостингов» и не карточка магазина приложений.',
+      quickCheckTitle: 'Быстрая проверка',
+      quickLi1: 'Домен ровно icomics.wiki (HTTPS).',
+      quickLi2: 'В меню — Library, Guides, FAQ, хаб Reading.',
+      quickLi3: 'Различия описаны в /faq и на этой странице.',
+      ctaFaq: 'Полный FAQ',
+      ctaLibrary: 'В библиотеку',
     },
     contact: {
       badge: 'Связаться с нами',
@@ -742,7 +811,7 @@ export const translations = {
       kicker: 'Навигация',
       title: 'Хаб чтения',
       intro:
-        'Единый индекс гайдов, RSS и точек входа в каталог — страницы, которые мы хотим находить и в выдаче, и сами читателям.',
+        'Единый индекс гайдов, RSS, страницы /icomics-wiki (что у нас означает «wiki») и входа в каталог — фокус на манге, манхве и взрослом/хентай-сегменте; супергеройские полки опциональны.',
       cardGuidesTitle: 'Гайды',
       cardGuidesBody:
         'Разбор форматов, источников, возрастных настроек и первого запуска читалки.',
@@ -750,7 +819,7 @@ export const translations = {
       cardRssBody:
         'Подписка в любом агрегаторе; обновления при публикации гайдов и страниц-хабов (/feed — тот же поток).',
       cardLibraryTitle: 'Библиотека',
-      cardLibraryBody: 'MangaDex, Marvel и другие источники в одной читательской сетке.',
+      cardLibraryBody: 'Манга и манхва (MangaDex), возрастной/хентай-сегмент и NHentai-направление, при необходимости западные супергерои — одна сетка читателя.',
       openCta: 'Открыть →',
       discoverTitle: 'Связанные разделы',
       closingBeforeFaq: 'Используйте хаб вместе с',
@@ -759,6 +828,9 @@ export const translations = {
       supportLinkLabel: 'Поддержкой',
       closingAfter:
         ', если главы не грузятся. Гайды обновляются реже; RSS подхватывает структурные изменения.',
+      wikiSearchNote: 'Ищете «icomics wiki»?',
+      wikiExplainerLink: 'Читать официальное пояснение icomics.wiki',
+      wikiSearchNoteEnd: '(домен и отличия от фан-вики и iOS-приложения).',
     },
     profile: {
       badge: 'Ваш аккаунт',
@@ -907,6 +979,8 @@ export const translations = {
       taglineLine1: 'Независимый хаб для читателей.',
       taglineLine2: 'Коллектив iComics.wiki · 2026',
       taglineLine3: 'icomics.wiki',
+      wikiOfficialLine:
+        'Официальная веб-библиотека на icomics.wiki · не iOS-приложение iComics · не списки Fandom Hey Kids Comics',
     },
     settings: {
       eyebrow: 'Панель пользователя',

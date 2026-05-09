@@ -27,8 +27,11 @@ export default function GuidesIndexPage() {
               Reading guides
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-white/45 md:text-base">
-              Practical explainers for using the library, understanding comic formats, and configuring reader safety
-              settings. Written for new readers and search-friendly discovery.
+              Practical explainers for the icomics.wiki manga and comic wiki–style library — formats, reader safety, sources, and first visit. For naming confusion with other “iComics” or Fandom wikis, see{' '}
+              <Link href="/icomics-wiki" className="font-semibold text-[#ff5a1f] underline decoration-[#ff5a1f]/40 underline-offset-4">
+                /icomics-wiki
+              </Link>
+              .
             </p>
           </header>
 

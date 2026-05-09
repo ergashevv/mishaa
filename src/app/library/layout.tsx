@@ -5,30 +5,21 @@ import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
 
 const META_DESC =
-  'Find manga (MangaDex), Marvel comics, and your saved bookmarks in one place. Preview covers, genres, chapters, then read in fullscreen with resume and bookmarks on iComics.wiki.';
+  'Manga, manhwa, webtoons, and adult/hentai-friendly titles (incl. MangaDex)—plus bookmarks and shelves. Covers, genres, chapters, fullscreen reader with progress on iComics.wiki. Optional Marvel superhero issues when you browse that shelf.';
 
 export const metadata: Metadata = {
-  title: 'Library',
+  title: 'Browse manga, manhwa & webtoons — library search',
   description: META_DESC,
-  keywords: [
-    'manga library',
-    'read manga online',
-    'Marvel comics online',
-    'manhwa reader',
-    'webtoon library',
-    'comic catalog',
-    'iComics.wiki',
-  ],
   ...openGraphTwitterFromLogo({
     origin: siteUrl,
     pageAbsoluteUrl: `${siteUrl}/library`,
-    openGraphTitle: 'Comic & manga library | iComics.wiki',
-    twitterTitle: 'iComics.wiki — manga & comics library',
+    openGraphTitle: 'Manga & manhwa library search — chapters & bookmarks',
+    twitterTitle: 'Library search — iComics.wiki manga reader',
     description: META_DESC,
     openGraphDescription:
-      'Browse thousands of manga and manhwa titles, Marvel issues, and personal shelves — chapters, synopsis, ratings, reader with progress.',
+      'Huge manga, manhwa, and adult/hentai-friendly index (MangaDex)—bookmarks & reader progress. Western superhero comics are an extra shelf.',
     twitterDescription:
-      'Search manga, Marvel, bookmarks. Open chapters in a reader-first fullscreen mode with synced progress.',
+      'Search manga, manhwa, age-verified catalogs, bookmarks—fullscreen reader. Superhero shelf optional.',
   }),
   alternates: {
     canonical: `${siteUrl}/library`,

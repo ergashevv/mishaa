@@ -66,20 +66,7 @@ export const metadata: Metadata = {
     template: `%s | ${ICS_SITE_DISPLAY_NAME}`,
   },
   description:
-    "Read manga, manhwa, comics, and adult hentai online. Free library for readers: webtoons, Marvel, indie series, and multi-source chapters. Optional AI comic studio for creators.",
-  keywords: [
-    "read manga online",
-    "manga reader",
-    "manhwa",
-    "webtoon",
-    "comics",
-    "hentai",
-    "adult manga",
-    "digital comic library",
-    "free comic reader",
-    "Marvel comics",
-    "iComics.wiki",
-  ],
+    "Official icomics.wiki reader: manga, manhwa, and vertical webtoons in your browser—with age-gated adult shelves, bookmarks, chapter progress, and guides. Not the DRM-free iOS “iComics” app or unrelated fan wikis. Optional Marvel comics shelf.",
   authors: [{ name: `${ICS_SITE_DISPLAY_NAME} Team`, url: SITE_ORIGIN }],
   creator: ICS_SITE_DISPLAY_NAME,
   publisher: ICS_SITE_DISPLAY_NAME,
@@ -93,7 +80,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: ICS_SITE_DISPLAY_NAME,
     description:
-      "Online manga, manhwa, comic, and hentai reader. Browse and read chapters free. Webtoons, Marvel, and more—plus optional AI tools for creators.",
+      "Browser manga, manhwa, and webtoon reader—progress, bookmarks, age-gated catalogs, and FAQs. Official icomics.wiki site; unrelated iOS/Fandom confusion explained in FAQ.",
     url: SITE_ORIGIN,
     siteName: ICS_SITE_DISPLAY_NAME,
     locale: "en_US",
@@ -109,9 +96,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${ICS_SITE_DISPLAY_NAME} — Manga, Manhwa & Comic Reader`,
+    title: `${ICS_SITE_DISPLAY_NAME} — manga & manhwa browser reader`,
     description:
-      "Read manga, manhwa, comics, and adult titles online. A reader-first library with webtoons, Marvel, and hentai-capable catalog.",
+      "Read manga and manhwa online: library search, fullscreen chapters, bookmarks, RSS, and wiki-style help—not the indie iOS iComics file app.",
     images: [`${SITE_ORIGIN}/logo.png`],
   },
   robots: {

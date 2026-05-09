@@ -48,6 +48,9 @@ export default function Footer() {
                 <br />
                 {t.taglineLine3}
               </p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.28em] leading-relaxed text-neutral-500 dark:text-white/45">
+                {t.wikiOfficialLine}
+              </p>
             </div>
           </div>
           

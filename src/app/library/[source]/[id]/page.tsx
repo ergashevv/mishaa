@@ -15,10 +15,15 @@ import {
 } from '@/lib/mangadex';
 import { buildComicOpenGraphImage, getPublicSiteUrl, toAbsoluteAssetUrl } from '@/lib/og-metadata';
 import { ICS_SITE_DISPLAY_NAME, openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
+import {
+  buildWorkMetaDescription,
+  buildWorkMetadataTitle,
+} from '@/lib/seo/library-work-metadata';
 
 export const runtime = 'nodejs';
 
 const getComicDetails = cache(getComicDetailsAction);
+const getCachedChapters = cache(getChapters);
 
 async function resolveMangaDexRouteId(source: string, id: string) {
   if (source !== 'mangadex' || isMangaDexUuid(id)) {
@@ -108,7 +113,7 @@ function buildAggregateRating(comicData: ComicSeoData): Record<string, unknown> 
 }
 
 const DEFAULT_DESCRIPTION =
-  'Read this series online on iComics.wiki — synopsis, chapter list, community scores, fullscreen reader, synced progress.';
+  'Read this series online on iComics.wiki — synopsis, genre tags, full chapter index, fullscreen reader with synced progress.';
 
 export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
   const { source, id } = await params;
@@ -142,30 +147,65 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   }
 
   const comic = (await getComicDetails(source, resolvedId)) as ComicSeoData | null;
+  const chapters = comic ? await getCachedChapters(source, resolvedId) : [];
+  const chapterCount = chapters.length;
 
   const siteUrl = getPublicSiteUrl();
   const canonicalUrl = `${siteUrl}/library/${source}/${resolvedId}`;
 
-  const type = source === 'mangadex' ? 'Manga' : source === 'marvel' ? 'Comic' : 'Webtoon';
+  const typeLabel =
+    source === 'mangadex'
+      ? 'Manga'
+      : source === 'marvel'
+        ? 'Marvel comic'
+        : source === 'nhentai'
+          ? 'Doujin'
+          : source === 'superhero'
+            ? 'Superhero'
+            : source === 'archive'
+              ? 'Archive comic'
+              : 'Comic';
 
-  // Big Data Enrichment for SEO
   const aniList = comic?.aniListData;
   const jikan = comic?.jikanData;
 
-  const ratingText = aniList?.averageScore
-    ? `Rated ${aniList.averageScore}/100`
-    : jikan?.score
-      ? `Rated ${jikan.score}/10`
-      : '';
-  const title = comic?.title
-    ? `Read ${comic.title} ${type} Online ${ratingText ? `- ${ratingText}` : ''}`
-    : 'Digital Comic Archive';
+  const ratingText =
+    typeof aniList?.averageScore === 'number' && aniList.averageScore > 0
+      ? `AniList ${(aniList.averageScore / 10).toFixed(1)}/10`
+      : typeof jikan?.score === 'number' && jikan.score > 0
+        ? `MAL ${jikan.score}/10`
+        : undefined;
 
-  // Combine descriptions for maximum SEO density
-  const baseDescription = comic?.description || '';
-  const aniDescription = aniList?.description?.replace(/<[^>]*>/g, '') || '';
+  const genreMerged = Array.from(
+    new Set([
+      ...(comic?.genres || []),
+      ...(aniList?.genres || []),
+      ...(comic?.jikanData?.genres?.map((g) => g.name).filter((name): name is string => Boolean(name)) || []),
+    ]),
+  ).filter(Boolean);
+
+  const workTitle = comic?.title?.trim();
+
+  const title = workTitle
+    ? buildWorkMetadataTitle({
+        workTitle,
+        typeLabel,
+        ratingText,
+      })
+    : `Library listing (${source})`;
+
   const finalDescription =
-    `${baseDescription} ${aniDescription}`.slice(0, 160).trim() || DEFAULT_DESCRIPTION;
+    comic && workTitle
+      ? buildWorkMetaDescription({
+          title: workTitle,
+          synopsisHtml: comic.description,
+          aniSynopsisHtml: aniList?.description,
+          genres: genreMerged,
+          typeLabel,
+          chapterCount: chapterCount > 0 ? chapterCount : undefined,
+          siteBrand: ICS_SITE_DISPLAY_NAME,
+        })
+      : DEFAULT_DESCRIPTION;
 
   const ogImage = buildComicOpenGraphImage(comic?.coverUrl, siteUrl, comic?.title);
 
@@ -181,8 +221,8 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
       locale: 'en_US',
       type: 'article',
       images: [ogImage],
-      section: type,
-      tags: comic?.genres || [type, 'Comics', 'Reading'],
+      section: typeLabel,
+      tags: genreMerged.length ? genreMerged : [typeLabel, 'Comics', 'Reading'],
     },
     twitter: {
       card: 'summary_large_image',
@@ -193,6 +233,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
     alternates: {
       canonical: canonicalUrl,
     },
+    robots: comic && workTitle ? { index: true, follow: true, googleBot: { 'max-image-preview': 'large' } } : { index: false, follow: true },
   };
 }
 
@@ -214,7 +255,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
   
   const [initialComic, initialChapters] = await Promise.all([
     getComicDetails(source, resolvedId),
-    getChapters(source, resolvedId)
+    getCachedChapters(source, resolvedId),
   ]);
   const comicData = initialComic as ComicSeoData | null;
   const siteOrigin = getPublicSiteUrl().replace(/\/$/, '');

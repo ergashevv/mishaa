@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import { staticPageMetadata } from '@/lib/seo/page-metadata';
 
 export const metadata: Metadata = staticPageMetadata({
-  title: 'About iComics.wiki',
+  title: 'About iComics.wiki — online comic & manga wiki library',
   description:
-    'Learn what iComics.wiki is: a reader-first manga, manhwa, and comics library with multi-source chapters and optional creator tools.',
+    'What iComics.wiki is: reader-first manga, manhwa, adult/hentai-aware library on icomics.wiki—not the iOS iComics file app or unrelated Fandom wikis. Mission and transparency.',
   path: '/about',
 });
 

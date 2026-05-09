@@ -92,6 +92,13 @@ export default function ReadingHubClient() {
             </Link>{' '}
             {tr.closingAfter}
           </p>
+          <p className="mt-4">
+            {tr.wikiSearchNote}{' '}
+            <Link href="/icomics-wiki" className="font-semibold text-[#ff5a1f] underline decoration-[#ff5a1f]/40 underline-offset-4">
+              {tr.wikiExplainerLink}
+            </Link>{' '}
+            {tr.wikiSearchNoteEnd}
+          </p>
         </section>
       </main>
 

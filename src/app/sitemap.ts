@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     '',
     '/about',
+    '/icomics-wiki',
     '/gallery',
     '/comic',
     '/library',
@@ -62,9 +63,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           ? 1
           : route === '/library'
             ? 0.9
-            : route.startsWith('/guides') || route === '/reading'
-              ? 0.75
-              : 0.6,
+            : route === '/icomics-wiki'
+              ? 0.8
+              : route === '/faq' || route === '/contact'
+              ? 0.72
+              : route.startsWith('/guides') || route === '/reading'
+                ? 0.75
+                : 0.6,
     }),
   );
 

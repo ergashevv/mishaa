@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import { staticPageMetadata } from '@/lib/seo/page-metadata';
 
 export const metadata: Metadata = staticPageMetadata({
-  title: 'Contact',
+  title: 'Contact — iComics.wiki',
   description:
-    'Get in touch with iComics.wiki — feedback, partnerships, and general questions about the manga and comics reader.',
+    'Contact iComics.wiki — feedback, partnerships, and reader support for the online manga, manhwa & comic library at icomics.wiki.',
   path: '/contact',
 });
 

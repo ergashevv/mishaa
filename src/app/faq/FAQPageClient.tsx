@@ -34,6 +34,8 @@ export default function FAQPageClient() {
     { q: t.q6, a: t.a6 },
     { q: t.q7, a: t.a7 },
     { q: t.q8, a: t.a8 },
+    { q: t.q10, a: t.a10 },
+    { q: t.q11, a: t.a11 },
   ];
 
   return (
@@ -90,6 +92,12 @@ export default function FAQPageClient() {
             <h2 className="text-4xl font-display uppercase tracking-tight">{t.stillQuestions}</h2>
             <p className="text-lg opacity-60">{t.stillDesc}</p>
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
+              <Link
+                href="/icomics-wiki"
+                className="ink-stroke text-[10px] font-black uppercase tracking-[0.4em] hover:text-[#3b82f6] transition-colors"
+              >
+                {t.wikiExplainerCta}
+              </Link>
               <Link
                 href="/contact"
                 className="ink-stroke text-[10px] font-black uppercase tracking-[0.4em] hover:text-[#e63946] transition-colors"

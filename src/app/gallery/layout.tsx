@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import { staticPageMetadata } from '@/lib/seo/page-metadata';
 
 export const metadata: Metadata = staticPageMetadata({
-  title: 'Gallery',
+  title: 'Gallery — iComics.wiki visual catalog',
   description:
-    'Browse featured artwork and visuals from the iComics.wiki community and catalog highlights.',
+    'Featured artwork and highlights from the icomics.wiki community and catalog—part of the official icomics.wiki manga and comic reader experience.',
   path: '/gallery',
 });
 

@@ -59,7 +59,6 @@ export function staticPageMetadata(opts: {
   description: string;
   path: string;
   robots?: Metadata['robots'];
-  keywords?: Metadata['keywords'];
 }): Metadata {
   const url = `${normalizedOrigin()}${opts.path.startsWith('/') ? opts.path : `/${opts.path}`}`;
   const base: Metadata = {
@@ -75,9 +74,6 @@ export function staticPageMetadata(opts: {
   };
   if (opts.robots !== undefined) {
     base.robots = opts.robots;
-  }
-  if (opts.keywords !== undefined) {
-    base.keywords = opts.keywords;
   }
   return base;
 }

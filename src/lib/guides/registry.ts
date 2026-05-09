@@ -35,54 +35,22 @@ export const GUIDES_ORDER: GuideDef[] = [
 
 export function guidesIndexMetadata(): Metadata {
   return staticPageMetadata({
-    title: 'Reading guides',
+    title: 'How to read on iComics.wiki — guides for library & chapters',
     description:
-      'Practical guides for using iComics.wiki: getting started, comic formats, library sources, and reader settings.',
+      'Short how‑tos for the icomics.wiki manga reader: first visit setup, manga vs manhwa vs vertical webtoon layouts, catalogs and age‑gated shelves. Focused browser help—not iOS storefront apps.',
     path: '/guides',
-    keywords: [
-      'manga reading guide',
-      'how to read webtoon',
-      'manhwa vs manga',
-      'comic reader tutorial',
-      'iComics.wiki guides',
-      'digital comics help',
-      'library age gate',
-    ],
   });
 }
-
-const GUIDE_KEYWORDS: Record<string, readonly string[]> = {
-  'getting-started': [
-    'iComics.wiki getting started',
-    'manga reader first visit',
-    'open comic chapters',
-    'mobile manga reading',
-  ],
-  'manga-formats': [
-    'manga vs manhwa',
-    'manga vs webtoon',
-    'scroll direction comic',
-    'long strip webtoon',
-    'reading direction',
-  ],
-  'library-sources': [
-    'MangaDex library',
-    'comic catalog sources',
-    'age verification reader',
-    '18+ manga settings',
-    'restricted content manga',
-  ],
-};
 
 export function guideArticleMetadata(slug: string): Metadata {
   const g = GUIDES_ORDER.find((x) => x.slug === slug);
   if (!g) {
     return { title: 'Guide' };
   }
+
   return staticPageMetadata({
     title: g.title,
     description: g.description,
     path: `/guides/${g.slug}`,
-    ...(GUIDE_KEYWORDS[g.slug]?.length ? { keywords: [...GUIDE_KEYWORDS[g.slug]] } : {}),
   });
 }

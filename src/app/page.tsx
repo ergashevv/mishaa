@@ -9,23 +9,21 @@ import type { MangaLanguage } from '@/lib/manga-language';
 const site = getPublicSiteUrl().replace(/\/$/, '');
 
 const HOME_META_DESCRIPTION =
-  'Explore a massive collection of Manga, Manhwa, and Adult stories. Read thousands of chapters online for free on iComics.wiki.';
+  'Search and read manga, manhwa, and webtoons in your browser—MangaDex-scale titles plus age‑verified catalogs, bookmarks, synced progress, guides, and RSS. This is the official icomics.wiki catalog (not the iOS “iComics” comic file app). Marvel superhero issues appear only when you browse that shelf.';
 
 export const metadata: Metadata = {
-  title: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
+  title: 'Read manga & manhwa online — browser library',
   description: HOME_META_DESCRIPTION,
-  keywords:
-    'read manga online, manhwa archive, adult comics, hentai library, manhwa wiki, free comic reader, digital comics library',
   ...openGraphTwitterFromLogo({
     origin: site,
     pageAbsoluteUrl: site,
-    openGraphTitle: 'Ultimate Manga, Manhwa & Hentai Library | iComics.wiki',
-    twitterTitle: 'Manga, Manhwa & Hentai Library | iComics.wiki',
+    openGraphTitle: 'Manga & manhwa reader — browse chapters on iComics.wiki',
+    twitterTitle: 'Manga & manhwa reader | iComics.wiki',
     description: HOME_META_DESCRIPTION,
     openGraphDescription:
-      'Access a massive collection of Manga, Manhwa, and Adult stories. High-fidelity reading experience.',
+      'Official icomics.wiki: search manga, manhwa, and webtoons; save progress and use fullscreen reading. Learn how we differ from the iOS iComics app in FAQ.',
     twitterDescription:
-      'The ultimate destination for Manga, Manhwa, and Adult comic readers.',
+      'Browser manga/manhwa library with bookmarks, RSS, guides—official icomics.wiki (disambiguated in FAQ /icomics-wiki).',
   }),
   alternates: {
     canonical: site,

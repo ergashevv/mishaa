@@ -6,27 +6,19 @@ import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import FAQPageClient from './FAQPageClient';
 
 const faqDesc =
-  'Answers about reading manga, manhwa, and comics free on iComics.wiki — mobile reading, accounts, and how the library works.';
+  'Answers for icomics.wiki readers: browsing the manga library, age gate, bookmarks, RSS, optional account, HTTPS domain check, and how this site differs from the iOS iComics file app and unrelated “iComics wiki” Fandom wikis.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = getPublicSiteUrl().replace(/\/$/, '');
   const canonical = `${site}/faq`;
   return {
-    title: 'FAQ — Manga & comic reader',
+    title: 'FAQ — iComics.wiki reader help & wiki branding explained',
     description: faqDesc,
-    keywords: [
-      'iComics.wiki FAQ',
-      'read manga online help',
-      'comic reader questions',
-      'manhwa reader',
-      'manga accounts',
-      'library how it works',
-    ],
     alternates: { canonical },
     ...openGraphTwitterFromLogo({
       origin: site,
       pageAbsoluteUrl: canonical,
-      openGraphTitle: 'FAQ | iComics.wiki',
+      openGraphTitle: 'FAQ — iComics.wiki help, branding & library topics',
       description: faqDesc,
     }),
   };

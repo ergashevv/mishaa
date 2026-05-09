@@ -77,6 +77,8 @@ export type ComicsSearchPage = {
 
 /** Subset used on detail UI (AniList merge / enrichment). */
 export type ComicDetailAniListData = {
+  description?: string;
+  genres?: string[];
   averageScore?: number;
   popularity?: number;
   trending?: number;

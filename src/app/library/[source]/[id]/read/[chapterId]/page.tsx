@@ -5,6 +5,10 @@ import JsonLd from '@/components/JsonLd';
 import ComicReaderClient from './ComicReaderClient';
 import { getComicDetails, getChapters } from '@/actions/comic';
 import { buildComicOpenGraphImage, getPublicSiteUrl } from '@/lib/og-metadata';
+import {
+  buildChapterMetaDescription,
+  buildChapterMetadataTitle,
+} from '@/lib/seo/library-work-metadata';
 import { ICS_SITE_DISPLAY_NAME } from '@/lib/seo/page-metadata';
 
 /** Node.js runtime avoids Edge bundle limits for heavy comic imports. */
@@ -38,17 +42,29 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   const chapter = (chapters as ChapterRow[] | null)?.find((c) => c.id === chapterId);
   const chLabel = chapter?.chapterNum || chapter?.title;
 
-  const type = source === 'mangadex' ? 'manga' : source === 'marvel' ? 'comic' : 'series';
+  const typeLabel =
+    source === 'mangadex' ? 'Manga' : source === 'marvel' ? 'Marvel comic' : 'Comic';
   const baseTitle = comic?.title || 'Comic';
 
-  const title = chLabel
-    ? `Read ${baseTitle} — Ch. ${chLabel}`
-    : `Read ${baseTitle} online`;
+  const totalChapters = Array.isArray(chapters) ? chapters.length : 0;
 
-  const rawDesc = typeof comic?.description === 'string' ? comic.description : '';
+  const title = buildChapterMetadataTitle({
+    workTitle: baseTitle,
+    chapterLabel: chLabel,
+    typeLabel,
+  });
+
   const description =
-    rawDesc.replace(/<[^>]*>/g, '').trim().slice(0, 160) ||
-    `Read ${baseTitle} (${type}) online on ${ICS_SITE_DISPLAY_NAME} — full-page reader.`;
+    comic && baseTitle !== 'Comic'
+      ? buildChapterMetaDescription({
+          workTitle: baseTitle,
+          chapterLabel: chLabel,
+          typeLabel,
+          synopsisHtml: comic.description,
+          siteBrand: ICS_SITE_DISPLAY_NAME,
+          totalChapters: totalChapters > 0 ? totalChapters : undefined,
+        })
+      : `${baseTitle}${chLabel ? ` — chapter ${chLabel}` : ''}: read online on ${ICS_SITE_DISPLAY_NAME} in the fullscreen browser reader.`;
 
   const ogImage = buildComicOpenGraphImage(comic?.coverUrl, siteUrl, comic?.title);
 
@@ -74,6 +90,10 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
     alternates: {
       canonical: canonicalUrl,
     },
+    robots:
+      comic && baseTitle !== 'Comic'
+        ? { index: true, follow: true, googleBot: { 'max-image-preview': 'large' } }
+        : { index: false, follow: true },
   };
 }
 
