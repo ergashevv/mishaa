@@ -4,7 +4,6 @@ import { getHomeData, getHomeFeed, dedupeHomeShelvesForRows } from "@/lib/home-d
 import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";
 import { fetchTrendingAniListManga } from "@/lib/anilist";
 import type { MangaLanguage } from "@/lib/manga-language";
-import { fetchMarvelShelfItems } from "@/lib/marvel/shelf";
 import { isTruthyCookieFromHeader } from "@/lib/http/cookie-header";
 
 const normalizeLanguage = (value: string | null): MangaLanguage => {
@@ -43,8 +42,6 @@ export async function GET(req: Request) {
   const baseShelves = await getHomeData(lang, { includeAdultContent });
 
   try {
-    const marvelPromise = fetchMarvelShelfItems({ limit: 12, offset: 0 }).catch(() => []);
-
     const trendingPromise = fetchTrendingAniListManga(12)
       .then((items) => items.map((item, index) => ({
         id: item.id.toString(),
@@ -58,12 +55,11 @@ export async function GET(req: Request) {
       })))
       .catch(() => []);
 
-    const [marvel, trending] = await Promise.all([marvelPromise, trendingPromise]);
+    const trending = await trendingPromise;
 
     const shelvesMerged = {
       ...baseShelves,
       trending: trending || baseShelves.trending || [],
-      marvel: marvel || [],
     };
 
     return NextResponse.json({

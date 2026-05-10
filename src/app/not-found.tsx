@@ -9,7 +9,7 @@ const quickLinks = [
   {
     href: "/library",
     label: "Browse library",
-    description: "Explore manga, manhwa, Marvel, and webtoon archives.",
+    description: "Explore manga, manhwa, adult‑gated catalogs, and webtoon archives.",
   },
   {
     href: "/reading",

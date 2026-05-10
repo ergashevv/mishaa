@@ -6,9 +6,6 @@ import { GUIDES_ORDER } from '@/lib/guides/registry';
 /** MangaDex listing pages merged into sitemap (36 titles per page via SEARCH_PAGE_LIMIT). */
 const MANGA_SITEMAP_MAX_PAGES = 55;
 
-/** Marvel API pagination (issues list). */
-const MARVEL_SITEMAP_MAX_PAGES = 45;
-
 /** Sample chapter URLs for long-tail discovery (first listing page → subset of titles × capped chapters). */
 const CHAPTER_SITEMAP_TITLE_CAP = 12;
 
@@ -111,24 +108,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.7,
           });
         }
-      }
-    }
-
-    for (let page = 0; page < MARVEL_SITEMAP_MAX_PAGES; page++) {
-      const marvelPage = await searchComics({ source: 'marvel', page, query: '' });
-      for (const item of marvelPage.items) {
-        const url = `${baseUrl}/library/marvel/${item.id}`;
-        if (!byUrl.has(url)) {
-          byUrl.set(url, {
-            url,
-            lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 0.65,
-          });
-        }
-      }
-      if (!marvelPage.hasMore || marvelPage.items.length === 0) {
-        break;
       }
     }
 

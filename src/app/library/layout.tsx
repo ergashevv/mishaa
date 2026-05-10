@@ -5,7 +5,7 @@ import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
 
 const META_DESC =
-  'Manga, manhwa, webtoons, and adult/hentai-friendly titles (incl. MangaDex)—plus bookmarks and shelves. Covers, genres, chapters, fullscreen reader with progress on iComics.wiki. Optional Marvel superhero issues when you browse that shelf.';
+  'Manga, manhwa, webtoons, and adult/hentai-friendly titles (incl. MangaDex)—bookmarks, genres, chapters, fullscreen reader with progress on iComics.wiki.';
 
 export const metadata: Metadata = {
   title: 'Browse manga, manhwa & webtoons — library search',
@@ -17,9 +17,9 @@ export const metadata: Metadata = {
     twitterTitle: 'Library search — iComics.wiki manga reader',
     description: META_DESC,
     openGraphDescription:
-      'Huge manga, manhwa, and adult/hentai-friendly index (MangaDex)—bookmarks & reader progress. Western superhero comics are an extra shelf.',
+      'Huge manga, manhwa, and adult/hentai-friendly index—bookmarks, chapters, synced reader progress.',
     twitterDescription:
-      'Search manga, manhwa, age-verified catalogs, bookmarks—fullscreen reader. Superhero shelf optional.',
+      'Search manga, manhwa, age‑gated catalogs, bookmarks—fullscreen wiki reader.',
   }),
   alternates: {
     canonical: `${siteUrl}/library`,

@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     template: `%s | ${ICS_SITE_DISPLAY_NAME}`,
   },
   description:
-    "Official icomics.wiki reader: manga, manhwa, and vertical webtoons in your browser—with age-gated adult shelves, bookmarks, chapter progress, and guides. Not the DRM-free iOS “iComics” app or unrelated fan wikis. Optional Marvel comics shelf.",
+    "Official icomics.wiki reader: manga, manhwa, vertical webtoons, and age‑gated (incl. hentai‑style) shelves in your browser—bookmarks, chapter progress, guides, and RSS. Not the DRM‑free iOS “iComics” app or unrelated fan wikis.",
   authors: [{ name: `${ICS_SITE_DISPLAY_NAME} Team`, url: SITE_ORIGIN }],
   creator: ICS_SITE_DISPLAY_NAME,
   publisher: ICS_SITE_DISPLAY_NAME,

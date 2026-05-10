@@ -27,7 +27,7 @@ export default function GettingStartedGuidePage() {
           title: 'Start from the library, not random URLs',
           body:
             'Open Library from the top navigation. Use tabs or filters to narrow sources before searching.\n\n' +
-            'Why this matters: the catalog merges multiple backends (for example MangaDex listings or Marvel issues). Starting inside Library keeps IDs and chapter feeds aligned so links resolve reliably.',
+            'Why this matters: the catalog merges multiple backends (primarily MangaDex and age-gated shelves). Starting inside Library keeps IDs and chapter feeds aligned so links resolve reliably.',
         },
         {
           eyebrow: 'Reader',

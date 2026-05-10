@@ -222,7 +222,7 @@ const HOME_SHELF_ROW_ORDER = [
 
 /**
  * Stops the same catalog title from appearing in every genre row (MangaDex tag overlap + same offset).
- * Unknown keys (e.g. `marvel` from `/api/home/data`) are processed last with the same global seen-set.
+ * Unknown shelf keys not listed in HOME_SHELF_ROW_ORDER are processed last with the same global seen-set.
  */
 export function dedupeHomeShelvesForRows<T extends { source: string; id: string }>(
   shelves: Record<string, T[]>,

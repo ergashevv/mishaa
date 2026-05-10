@@ -27,7 +27,7 @@ export function OnboardingWizard({ isOpen, onClose, onStartCharacter, onStartPag
     {
       title: '1. Characters',
       subtitle: 'QAHRAMONLAR / ПЕРСОНАЖИ',
-      desc: 'Add heroes and villains from the character library—or import legends from Marvel and other catalogs—so panels always star the same cast.',
+      desc: 'Add heroes and villains from the character library—or import looks from public reference catalogs—so panels always star the same cast.',
       icon: UserPlus,
       action: () => {
         onStartCharacter();

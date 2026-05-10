@@ -62,7 +62,6 @@ const CATEGORIES: Category[] = [
   { label: 'Manga Hub', source: 'mangadex', originalLanguages: ['ja'] },
   { label: 'Webtoons', source: 'mangadex', includedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
   { label: 'Manhwa', source: 'mangadex', originalLanguages: ['ko'], excludedTagIds: [MANGADEX_LONG_STRIP_TAG_ID] },
-  { label: 'Superheroes', source: 'superhero' },
   { label: 'Trending 18+', query: '', nsfw: true, source: 'nhentai' },
   { label: 'Doujinshi', query: '', nsfw: true, source: 'nhentai' },
   { label: 'New 18+', query: 'english', nsfw: true, source: 'nhentai' },
@@ -77,6 +76,7 @@ const CATEGORIES: Category[] = [
   { label: 'e621', source: 'e621', nsfw: true, query: getBooruDefaultQuery('e621') },
   { label: 'Danbooru', source: 'danbooru', nsfw: true, query: getBooruDefaultQuery('danbooru') },
   { label: 'Gelbooru', source: 'gelbooru', nsfw: true, query: getBooruDefaultQuery('gelbooru') },
+  { label: 'Superheroes', source: 'superhero' },
 ];
 
 const LIMIT = 36;

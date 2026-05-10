@@ -567,7 +567,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   {comic.title}
                 </h1>
                 <p className="max-w-3xl text-neutral-600 dark:text-white/45 text-sm md:text-base leading-relaxed">
-                  {t.titlePageSeoIntro.replace(/\{\{title\}\}/g, comic.title)}
+                  {t.titlePageSeoIntroLegacyIssue.replace(/\{\{title\}\}/g, comic.title)}
                 </p>
                 <p className="max-w-3xl text-neutral-600 dark:text-white/55 text-base md:text-lg leading-relaxed">
                   {comic.description}

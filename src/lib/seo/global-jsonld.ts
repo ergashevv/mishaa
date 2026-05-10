@@ -16,9 +16,9 @@ export function buildOrganizationJsonLd() {
     url: u,
     logo: `${u}/logo.png`,
     description:
-      'Manga, manhwa, and vertical webtoon reader on icomics.wiki—library discovery, bookmarks & progress, multilingual UI, Telegram, guides & FAQ, RSS—not the discontinued iOS “iComics” comic file reader and not unrelated wiki hosts.',
+      'Browser library for manga, manhwa, and web — catalog search, fullscreen reader, bookmarks, bilingual UI, Telegram, guides & RSS.',
     disambiguatingDescription:
-      'Official web library at icomics.wiki — not the DRM-free iOS “iComics” file reader app (icomics.net), not the Hey Kids Comics Fandom wiki, and not Marvel’s defunct Icon Comics imprint.',
+      'This domain hosts the icomics.wiki reader — not the iOS “iComics” comic file app, not Hey Kids Comics on Fandom, and not Marvel’s discontinued Icon Comics line.',
     sameAs: ['https://t.me/icomicsuz'],
   };
 }
@@ -35,7 +35,7 @@ export function buildWebSiteJsonLd() {
     alternateName: ['icomics wiki', 'iComics wiki online library'],
     url: u,
     description:
-      'Manga and manhwa reader on icomics.wiki—browse mixed catalogs with age gates, fullscreen chapters, progress & bookmarks, guides, FAQ, RSS (/feed maps from /feed.xml), and Telegram (sameAs link). Not the discontinued iOS iComics file reader or unrelated fan wikis.',
+      'Official icomics.wiki — browse catalogs with age gates, read chapters fullscreen, resume where you stopped. FAQs & feed explain how we differ from the old iOS iComics app.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${u}/library?q={search_term_string}`,

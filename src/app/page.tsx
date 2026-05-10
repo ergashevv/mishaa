@@ -9,7 +9,7 @@ import type { MangaLanguage } from '@/lib/manga-language';
 const site = getPublicSiteUrl().replace(/\/$/, '');
 
 const HOME_META_DESCRIPTION =
-  'Search and read manga, manhwa, and webtoons in your browser—MangaDex-scale titles plus age‑verified catalogs, bookmarks, synced progress, guides, and RSS. This is the official icomics.wiki catalog (not the iOS “iComics” comic file app). Marvel superhero issues appear only when you browse that shelf.';
+  'Search and read manga, manhwa, and webtoons in your browser—MangaDex-scale titles plus age‑verified & hentai‑style catalogs, bookmarks, synced progress, guides, and RSS. Official icomics.wiki (not the iOS “iComics” comic file app).';
 
 export const metadata: Metadata = {
   title: 'Read manga & manhwa online — browser library',

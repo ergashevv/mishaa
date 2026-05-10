@@ -12,7 +12,7 @@ export type MarvelShelfCard = {
 };
 
 /**
- * Aggregated Marvel “shelf” for home and `/api/marvel/shelf` — no self-HTTP to the app.
+ * Aggregated Marvel “shelf” for `/api/marvel/shelf` and tooling — not wired into the primary home feed (manga/hentai focus).
  */
 export async function fetchMarvelShelfItems(options: {
   limit: number;

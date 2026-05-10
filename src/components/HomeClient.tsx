@@ -48,7 +48,7 @@ import { useLibraryAgeDescription } from '@/hooks/useLibraryAgeDescription';
 
 // --- Types ---
 type ComicSource = 'mangadex' | 'marvel' | 'nhentai';
-type ShelfKey = 'all' | 'featured' | 'romance' | 'fantasy' | 'drama' | 'manga-hub' | 'webtoons' | 'manhwa' | 'marvel' | 'trending' | 'for-you' | 'new' | 'doujinshi' | 'milf' | 'ntr';
+type ShelfKey = 'all' | 'featured' | 'romance' | 'fantasy' | 'drama' | 'manga-hub' | 'webtoons' | 'manhwa' | 'trending' | 'for-you' | 'new' | 'doujinshi' | 'milf' | 'ntr';
 
 interface LibraryComic {
   id: string;
@@ -272,7 +272,7 @@ export default function HomeClient({
   const [previewCardKey, setPreviewCardKey] = useState<string | null>(null);
   const [preferenceProfile, setPreferenceProfile] = useState<HomePreferenceProfile>(() => createDefaultHomeProfile('initial'));
   const hasCompleteInitialData = SHELVES
-    .filter((shelf) => shelf.key !== 'for-you' && !['doujinshi', 'milf', 'ntr', 'marvel'].includes(shelf.key))
+    .filter((shelf) => shelf.key !== 'for-you' && !['doujinshi', 'milf', 'ntr'].includes(shelf.key))
     .every((shelf) => (initialData?.[shelf.key]?.length ?? 0) > 0);
   const visibleShelves = isAgeVerified
     ? SHELVES
@@ -524,7 +524,6 @@ export default function HomeClient({
           'new': { items: data.shelves['new'] || [], loading: false },
           webtoons: { items: data.shelves['webtoons'] || [], loading: false },
           manhwa: { items: data.shelves['manhwa'] || [], loading: false },
-          marvel: { items: data.shelves['marvel'] || [], loading: false },
           'doujinshi': { items: data.shelves['doujinshi'] || [], loading: false },
           'milf': { items: data.shelves['milf'] || [], loading: false },
           'ntr': { items: data.shelves['ntr'] || [], loading: false },
