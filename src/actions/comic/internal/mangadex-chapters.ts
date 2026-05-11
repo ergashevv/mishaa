@@ -124,7 +124,28 @@ export function dedupeMangaDexFeedChapters(
     }
   }
 
-  const out = [...grouped.values()].map((g) => g.row);
+  /** Preserve official reader links lost when dedupe prefers another upload */
+  const externalUrlFallbackByVk = new Map<string, string>();
+  for (const row of sortedInput) {
+    const vk = mangaDexChapterKey(row.attributes.volume, row.attributes.chapter);
+    const u = typeof row.attributes.externalUrl === 'string' ? row.attributes.externalUrl.trim() : '';
+    if (!u || externalUrlFallbackByVk.has(vk)) continue;
+    externalUrlFallbackByVk.set(vk, u);
+  }
+
+  const out = [...grouped.values()].map(({ row }) => {
+    const vk = mangaDexChapterKey(row.attributes.volume, row.attributes.chapter);
+    const winUrl =
+      typeof row.attributes.externalUrl === 'string' ? row.attributes.externalUrl.trim() : '';
+    const fb = externalUrlFallbackByVk.get(vk)?.trim();
+    if (!winUrl && fb) {
+      return {
+        ...row,
+        attributes: { ...row.attributes, externalUrl: fb },
+      };
+    }
+    return row;
+  });
 
   const volSortKey = (v: string | null | undefined) => {
     if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'none') {

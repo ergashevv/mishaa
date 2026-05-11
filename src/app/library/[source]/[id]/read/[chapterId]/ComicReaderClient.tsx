@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -232,6 +232,17 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const twoFingerGestureRef = useRef(false);
 
   const restrictedSource = isRestrictedLibrarySource(source);
+
+  /** Route/progress can diverge from `currentChapterIdx`; empty pages must still expose official links. */
+  const officialReaderOutboundUrl = useMemo(() => {
+    const loaded = chapters[currentChapterIdx];
+    const targetId = loaded?.id ?? chapterId;
+    return (
+      loaded?.externalUrl ??
+      chapters.find((c) => c.id === chapterId)?.externalUrl ??
+      (initialChapters ?? []).find((c) => c.id === targetId)?.externalUrl
+    );
+  }, [chapterId, chapters, currentChapterIdx, initialChapters]);
 
   const setReaderZoom = useCallback((value: number | ((z: number) => number)) => {
     setReaderZoomState((prev) => {
@@ -1859,9 +1870,9 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                       Images are not available here so that publisher rights stay protected.
                    </p>
                 </div>
-                {chapters[currentChapterIdx]?.externalUrl && (
+                {officialReaderOutboundUrl && (
                   <a
-                    href={chapters[currentChapterIdx].externalUrl} 
+                    href={officialReaderOutboundUrl} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="inline-flex items-center gap-4 px-10 py-5 text-[12px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-105 active:scale-95 transition-all"

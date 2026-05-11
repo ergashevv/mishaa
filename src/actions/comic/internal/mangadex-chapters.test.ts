@@ -81,4 +81,66 @@ describe('dedupeMangaDexFeedChapters', () => {
     const out = dedupeMangaDexFeedChapters(rows, aggregate, ['en']);
     expect(out[0]?.id).toBe('beta');
   });
+
+  it('carries externalUrl onto the winning upload when a sibling is official-only', () => {
+    const rows = [
+      {
+        id: 'hosted',
+        attributes: {
+          chapter: '1',
+          volume: null,
+          translatedLanguage: 'en',
+          readableAt: '2023-01-01T00:00:00+00:00',
+          externalUrl: null,
+        },
+      },
+      {
+        id: 'official',
+        attributes: {
+          chapter: '1',
+          volume: null,
+          translatedLanguage: 'en',
+          readableAt: '2025-07-01T00:00:00+00:00',
+          externalUrl: 'https://example.com/read',
+        },
+      },
+    ];
+
+    const out = dedupeMangaDexFeedChapters(rows, null, ['en']);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.id).toBe('official');
+    expect(out[0]?.attributes.externalUrl).toBe('https://example.com/read');
+  });
+
+  it('fills missing externalUrl on winner from another duplicate when winner is hosted', () => {
+    const rows = [
+      {
+        id: 'hosted',
+        attributes: {
+          chapter: '1',
+          volume: null,
+          translatedLanguage: 'en',
+          readableAt: '2025-12-01T00:00:00+00:00',
+          pages: 10,
+          externalUrl: null,
+        },
+      },
+      {
+        id: 'official',
+        attributes: {
+          chapter: '1',
+          volume: null,
+          translatedLanguage: 'en',
+          readableAt: '2023-01-01T00:00:00+00:00',
+          pages: 0,
+          externalUrl: 'https://publisher.example/ch/1',
+        },
+      },
+    ];
+
+    const out = dedupeMangaDexFeedChapters(rows, null, ['en']);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.id).toBe('hosted');
+    expect(out[0]?.attributes.externalUrl).toBe('https://publisher.example/ch/1');
+  });
 });
