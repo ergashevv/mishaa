@@ -233,6 +233,25 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
   const restrictedSource = isRestrictedLibrarySource(source);
 
+  const comicWorkHref = useMemo(() => `/library/${source}/${id}`, [source, id]);
+
+  /** Exit fullscreen without blocking navigation; prefetch makes return to detail feel instant. */
+  const exitToComicDetail = useCallback(() => {
+    try {
+      if (typeof document !== 'undefined' && document.fullscreenElement) {
+        writeStorageItem('reader_fullscreen', 'false');
+        void document.exitFullscreen();
+      }
+    } catch {
+      /* noop */
+    }
+    router.push(comicWorkHref);
+  }, [router, comicWorkHref]);
+
+  useEffect(() => {
+    router.prefetch(comicWorkHref);
+  }, [router, comicWorkHref]);
+
   /** Route/progress can diverge from `currentChapterIdx`; empty pages must still expose official links. */
   const officialReaderOutboundUrl = useMemo(() => {
     const loaded = chapters[currentChapterIdx];
@@ -1034,7 +1053,9 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         setCurrentPage(pages.length - 1);
         canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      if (e.key === 'Escape') router.push(`/library/${source}/${id}`);
+      if (e.key === 'Escape') {
+        exitToComicDetail();
+      }
       if (e.key === 'f' || e.key === 'F') {
         if (!document.fullscreenElement) readerRef.current?.requestFullscreen();
         else document.exitFullscreen();
@@ -1048,9 +1069,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     readingDirection,
     handleNextPage,
     handlePrevPage,
-    router,
-    source,
-    id,
+    exitToComicDetail,
     setReaderZoom,
   ]);
 
@@ -1335,7 +1354,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                     <div className="text-[14px] md:text-[18px] font-black uppercase tracking-tight truncate text-white">{comic.title}</div>
                   </div>
                   <button 
-                    onClick={() => router.push(`/library/${source}/${id}`)} 
+                    onClick={exitToComicDetail} 
                     className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl"
                   >
                     <X size={24}/>
@@ -1821,7 +1840,8 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         >
            <button
              aria-label="Close reader"
-             onClick={() => router.push(`/library/${source}/${id}`)}
+             type="button"
+             onClick={exitToComicDetail}
              className="flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md transition-all sm:h-12 sm:w-12"
              style={{
                backgroundColor: READER_THEMES[readerTheme].panelBg,
