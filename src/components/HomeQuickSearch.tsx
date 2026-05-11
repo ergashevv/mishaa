@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
+import { imageUnoptimizedForSrc } from '@/lib/next-image-unoptimized';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Loader2, Search, X } from 'lucide-react';
@@ -208,6 +209,7 @@ export default function HomeQuickSearch({
                       fill
                       sizes="48px"
                       quality={65}
+                      unoptimized={imageUnoptimizedForSrc(comic.coverUrl || '/logo.png')}
                       className="object-cover"
                     />
                   </div>

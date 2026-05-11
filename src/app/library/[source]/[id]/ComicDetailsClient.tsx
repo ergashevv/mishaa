@@ -30,6 +30,7 @@ import type {
 } from '@/lib/marvel/types';
 import { normalizeMarvelImageToProxyUrl } from '@/lib/marvel/image';
 import Image from 'next/image';
+import { imageUnoptimizedForSrc } from '@/lib/next-image-unoptimized';
 import Link from 'next/link';
 import { useDominantColor } from '@/hooks/use-dominant-color';
 
@@ -428,6 +429,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             priority
             sizes="100vw"
             quality={65}
+            unoptimized={imageUnoptimizedForSrc(comic.bannerUrl || comic.coverUrl)}
           />
         </div>
 
@@ -457,6 +459,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   sizes="360px"
                   quality={76}
                   priority
+                  unoptimized={imageUnoptimizedForSrc(comic.coverUrl)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-[0.35em]">
@@ -676,6 +679,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                         fill
                         sizes="220px"
                         quality={72}
+                        unoptimized={imageUnoptimizedForSrc(
+                          normalizeMarvelImageToProxyUrl(marvelSeries.thumbnail) || comic.coverUrl,
+                        )}
                         className="object-cover"
                       />
                     </div>
@@ -813,6 +819,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  sizes="(max-width: 1024px) 256px, 288px"
                  quality={78}
                  priority
+                 unoptimized={imageUnoptimizedForSrc(comic.coverUrl)}
                />
             </div>
             
@@ -987,6 +994,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                fill
                                sizes="116px"
                                quality={68}
+                               unoptimized={imageUnoptimizedForSrc(item.coverUrl)}
                                className="object-cover"
                                alt={`${item.title} — cover`}
                              />
@@ -1267,7 +1275,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
               {/* Comic Preview Card */}
               <div className="mb-8 flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-white/5 dark:bg-white/5">
                  <div className="relative w-16 aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg">
-                    <Image src={comic.coverUrl} fill sizes="64px" quality={62} className="object-cover" alt={`${comic.title} — cover`} />
+                    <Image src={comic.coverUrl} fill sizes="64px" quality={62} unoptimized={imageUnoptimizedForSrc(comic.coverUrl)} className="object-cover" alt={`${comic.title} — cover`} />
                  </div>
                  <div className="min-w-0 flex-1">
                     <div className="mb-1 text-xs font-black uppercase tracking-tight text-neutral-500 dark:text-white/40">{comic.source}</div>

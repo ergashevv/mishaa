@@ -44,6 +44,7 @@ import {
   type HomePreferenceProfile,
 } from '@/lib/home-personalization';
 import type { HomeShelfComic } from '@/lib/home-data';
+import { imageUnoptimizedForSrc } from '@/lib/next-image-unoptimized';
 import { useLibraryAgeDescription } from '@/hooks/useLibraryAgeDescription';
 
 // --- Types ---
@@ -167,6 +168,7 @@ function SafeCoverImage({
       sizes={sizes}
       priority={priority}
       quality={effectiveQuality}
+      unoptimized={imageUnoptimizedForSrc(currentSrc)}
       onError={() => {
         if (currentSrc !== DEFAULT_IMAGE_SRC) {
           setCurrentSrc(DEFAULT_IMAGE_SRC);
