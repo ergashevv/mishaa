@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, Play, Star, Clock, Globe, BookOpen, Share2, 
-  Bookmark, ChevronRight, Loader2, Sparkles, X, Send, Copy, Check, ExternalLink
+  Bookmark, ChevronRight, Loader2, Sparkles, X, Send, Copy, Check, ExternalLink,
+  Users, BarChart2,
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -925,6 +926,38 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  )}
                  <div className="rounded-full border border-[#ff4d00]/30 bg-[#ff4d00]/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#ff4d00] dark:border-[#ff4d00]/30">{comic.status}</div>
               </div>
+
+              {comic.source === 'mangadex' && comic.mangaDexStats && (
+                <div className="-mt-1 flex flex-wrap items-center gap-2">
+                  {comic.mangaDexStats.follows != null && comic.mangaDexStats.follows > 0 ? (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-neutral-700 dark:border-white/12 dark:bg-white/5 dark:text-white/65">
+                      <Users size={12} className="text-[#ff4d00]" aria-hidden />
+                      <span>MangaDex {comic.mangaDexStats.follows.toLocaleString()} follows</span>
+                    </div>
+                  ) : null}
+                  {(comic.mangaDexStats.ratingBayesian != null || comic.mangaDexStats.ratingAverage != null) ? (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-neutral-700 dark:border-white/12 dark:bg-white/5 dark:text-white/65">
+                      <BarChart2 size={12} className="text-[#ff4d00]" aria-hidden />
+                      <span>
+                        {comic.mangaDexStats.ratingAverage != null
+                          ? `Avg ${comic.mangaDexStats.ratingAverage.toFixed(2)}`
+                          : null}
+                        {comic.mangaDexStats.ratingAverage != null && comic.mangaDexStats.ratingBayesian != null
+                          ? ' · '
+                          : null}
+                        {comic.mangaDexStats.ratingBayesian != null
+                          ? `Bayesian ${comic.mangaDexStats.ratingBayesian.toFixed(2)}`
+                          : null}
+                      </span>
+                    </div>
+                  ) : null}
+                  {(comic.mangaDexStats.unavailableChaptersCount ?? 0) > 0 ? (
+                    <div className="inline-flex rounded-full border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-amber-900 dark:border-amber-400/35 dark:bg-amber-500/15 dark:text-amber-100">
+                      Some chapters unavailable ({comic.mangaDexStats.unavailableChaptersCount})
+                    </div>
+                  ) : null}
+                </div>
+              )}
               
                 <h1 
                   itemProp="name"
@@ -1166,6 +1199,11 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                               <div className="wrap-anywhere line-clamp-2 text-[13px] font-black uppercase leading-snug tracking-tight text-neutral-900 transition-colors group-hover:text-neutral-950 md:text-[15px] dark:text-white/90 dark:group-hover:text-white">
                                 {ch.title || t.chapterTitleFallback.replace('{num}', String(ch.chapterNum))}
                               </div>
+                              {ch.scanlationGroup ? (
+                                <div className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 dark:text-white/35">
+                                  Group: <span className="text-neutral-600 dark:text-white/55">{ch.scanlationGroup}</span>
+                                </div>
+                              ) : null}
                             </div>
                             {ch.externalUrl ? (
                               <ExternalLink

@@ -13,6 +13,8 @@ export type ComicChapter = {
   chapterNum: string;
   volume?: string;
   externalUrl?: string;
+  /** MangaDex feed `scanlation_group` name when requested. */
+  scanlationGroup?: string;
 };
 
 /** Small related entry (e.g. MangaDex rails, nHentai related). */
@@ -68,6 +70,13 @@ export type ComicDetail = {
   marvelSeries?: MarvelSeries;
   marvelSeriesIssues?: MarvelSeriesIssue[];
   marvelCharacters?: MarvelCharacter[];
+  /** Present for `source === 'mangadex'` when `/statistics/manga/{id}` returns data. */
+  mangaDexStats?: {
+    follows: number | null;
+    ratingBayesian: number | null;
+    ratingAverage: number | null;
+    unavailableChaptersCount?: number | null;
+  };
 };
 
 export type ComicsSearchPage = {

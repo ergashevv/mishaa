@@ -34,6 +34,7 @@ import {
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { searchComicsWithClientCache as searchComics } from '@/lib/comic-search-client-cache';
 import type { ComicListItem } from '@/lib/comic-types';
+import { getRandomMangaDexManga } from '@/actions/comic';
 import Image from 'next/image';
 import { imageUnoptimizedForSrc } from '@/lib/next-image-unoptimized';
 import Link from 'next/link';
@@ -44,7 +45,8 @@ import type { LibrarySource } from '@/lib/comic-sources';
 type Category = {
   label: string;
   query?: string;
-  source: LibrarySource;
+  /** `all` runs parallel catalog search (`loadData` global branch). */
+  source: LibrarySource | 'all';
   nsfw?: boolean;
   ratings?: string[];
   originalLanguages?: string[];
@@ -58,6 +60,7 @@ type LoadResult = {
 };
 
 const CATEGORIES: Category[] = [
+  { label: 'All sources', source: 'all' },
   { label: 'Romance', source: 'mangadex', includedTagIds: ['423e2eae-a7a2-4a8b-ac03-a8351462d71d'] },
   { label: 'Fantasy', source: 'mangadex', includedTagIds: ['cdc58593-87dd-415e-bbc0-2ec27bf404cc'] },
   { label: 'Manga Hub', source: 'mangadex', originalLanguages: ['ja'] },
@@ -120,8 +123,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const searchParams = useSearchParams();
   const initialCategory = (() => {
     const requestedCategory = getCategoryByLabel(searchParams.get('tab'));
-    if (requestedCategory?.nsfw && !initialAgeVerified) return 'Manga Hub';
-    return requestedCategory?.label ?? 'Manga Hub';
+    if (requestedCategory?.nsfw && !initialAgeVerified) return 'All sources';
+    return requestedCategory?.label ?? 'All sources';
   })();
   const initialCategoryQueries = createCategoryQueryMap();
   initialCategoryQueries[initialCategory] = searchParams.get('q') ?? initialCategoryQueries[initialCategory] ?? '';
@@ -149,7 +152,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const [sourceFilter, setSourceFilter] = useState<'all' | LibrarySource>('all');
   const [savedOnly, setSavedOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<'featured' | 'recent' | 'saved' | 'title-asc' | 'title-desc'>('featured');
-  
+  const [randomMangaBusy, setRandomMangaBusy] = useState(false);
+
   const [mangaLanguage, setMangaLanguage] = useState<MangaLanguage>(readStoredMangaLanguage);
   const isMounted = useSyncExternalStore(
     () => () => {},
@@ -346,8 +350,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     setNsfwEnabled((value) => {
       const nextValue = !value;
       if (!nextValue && getCategoryByLabel(activeCategory)?.nsfw) {
-        setActiveCategory('Manga Hub');
-        updateLibraryUrl('Manga Hub', categoryQueries['Manga Hub'] || '', 'replace');
+        setActiveCategory('All sources');
+        updateLibraryUrl('All sources', categoryQueries['All sources'] || '', 'replace');
       }
       if (!nextValue) setSourceFilter('all');
       return nextValue;
@@ -459,14 +463,65 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       const defaultRatings = canAccessAdultContent ? ['safe', 'suggestive', 'erotica', 'pornographic'] : ['safe', 'suggestive'];
       let result: LoadResult = { items: [], hasMore: false };
 
+      const runGlobalSearch = async (): Promise<LoadResult> => {
+        const nhentaiSearch = canAccessAdultContent
+          ? searchComics({ source: 'nhentai', query, page: pageIndex })
+          : Promise.resolve<LoadResult>({ items: [], hasMore: false });
+        const rule34Search = canAccessAdultContent
+          ? fetchBooru('rule34', query, pageIndex)
+          : Promise.resolve<LoadResult>({ items: [], hasMore: false });
+        const booruSearches = canAccessAdultContent
+          ? [
+              fetchBooru('e621', query, pageIndex),
+              fetchBooru('danbooru', query, pageIndex),
+              fetchBooru('gelbooru', query, pageIndex),
+            ]
+          : [];
+
+        const [mdResults, arcResults, nhResults, marvelResults, heroResults, rule34Results, ...booruResults] =
+          await Promise.all([
+            fetchMangaDex(query, pageIndex, defaultRatings, undefined, undefined, undefined, mangaLanguage),
+            fetchArchive(query, pageIndex),
+            nhentaiSearch,
+            fetchMarvelIssues(query, pageIndex),
+            fetchSuperheroes(query, pageIndex),
+            rule34Search,
+            ...booruSearches,
+          ]);
+
+        const combinedItems = [
+          ...mdResults.items,
+          ...arcResults.items,
+          ...nhResults.items,
+          ...marvelResults.items,
+          ...heroResults.items,
+          ...rule34Results.items,
+          ...booruResults.flatMap((r) => r.items),
+        ].sort((a, b) => a.title.localeCompare(b.title));
+
+        return {
+          items: combinedItems,
+          hasMore:
+            mdResults.hasMore ||
+            arcResults.hasMore ||
+            nhResults.hasMore ||
+            marvelResults.hasMore ||
+            heroResults.hasMore ||
+            rule34Results.hasMore ||
+            booruResults.some((r) => r.hasMore),
+        };
+      };
+
       if (query) {
-        if (cat?.source === 'marvel') {
+        if (!cat || cat.source === 'all') {
+          result = await runGlobalSearch();
+        } else if (cat.source === 'marvel') {
           result = await fetchMarvelIssues(safeMarvelQuery, pageIndex);
-        } else if (cat?.source === 'superhero') {
+        } else if (cat.source === 'superhero') {
           result = await fetchSuperheroes(query, pageIndex);
-        } else if (cat?.source === 'mangadex') {
+        } else if (cat.source === 'mangadex') {
           result = await fetchMangaDex(query, pageIndex, cat.ratings || defaultRatings, cat.originalLanguages, cat.includedTagIds, cat.excludedTagIds, mangaLanguage);
-        } else if (cat?.source === 'nhentai') {
+        } else if (cat.source === 'nhentai') {
           if (!canAccessAdultContent) {
             setShowAgeGate(true);
             if (requestId === requestIdRef.current) {
@@ -476,7 +531,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             return;
           }
           result = await searchComics({ source: 'nhentai', query, page: pageIndex });
-        } else if (cat?.source === 'e621' || cat?.source === 'danbooru' || cat?.source === 'gelbooru') {
+        } else if (cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru') {
           if (!canAccessAdultContent) {
             setShowAgeGate(true);
             if (requestId === requestIdRef.current) {
@@ -486,40 +541,34 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             return;
           }
           result = await fetchBooru(cat.source, query, pageIndex);
+        } else if (cat.source === 'rule34') {
+          if (!canAccessAdultContent) {
+            setShowAgeGate(true);
+            if (requestId === requestIdRef.current) {
+              setLoading(false);
+              setLoadingMore(false);
+            }
+            return;
+          }
+          result = await fetchBooru('rule34', query, pageIndex);
         } else {
-          // Global search: search all sources
-          const nhentaiSearch = canAccessAdultContent ? searchComics({ source: 'nhentai', query, page: pageIndex }) : Promise.resolve<LoadResult>({ items: [], hasMore: false });
-          const booruSearches = canAccessAdultContent
-            ? [
-                fetchBooru('e621', query, pageIndex),
-                fetchBooru('danbooru', query, pageIndex),
-                fetchBooru('gelbooru', query, pageIndex),
-              ]
-            : [];
-
-          const [mdResults, arcResults, nhResults, ...booruResults] = await Promise.all([
-            fetchMangaDex(query, pageIndex, defaultRatings, undefined, undefined, undefined, mangaLanguage),
-            fetchArchive(query, pageIndex),
-            nhentaiSearch,
-            ...booruSearches,
-          ]);
-
-          const combinedItems = [
-            ...mdResults.items,
-            ...arcResults.items,
-            ...nhResults.items,
-            ...booruResults.flatMap((result) => result.items),
-          ].sort((a, b) => a.title.localeCompare(b.title));
-          result = {
-            items: combinedItems,
-            hasMore: mdResults.hasMore || arcResults.hasMore || nhResults.hasMore || booruResults.some((r) => r.hasMore),
-          };
+          result = await runGlobalSearch();
         }
       } else {
-        const source = cat?.source || 'mangadex';
+        const source = cat?.source ?? 'all';
         const catQuery = cat?.query || '';
-        
-        if (source === 'mangadex') {
+
+        if (source === 'all') {
+          result = await fetchMangaDex(
+            catQuery,
+            pageIndex,
+            defaultRatings,
+            undefined,
+            undefined,
+            undefined,
+            mangaLanguage,
+          );
+        } else if (source === 'mangadex') {
           result = await fetchMangaDex(
             catQuery,
             pageIndex,
@@ -549,6 +598,16 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             return;
           }
           result = await fetchBooru(source, catQuery, pageIndex);
+        } else if (source === 'rule34') {
+          if (!canAccessAdultContent) {
+            setShowAgeGate(true);
+            if (requestId === requestIdRef.current) {
+              setLoading(false);
+              setLoadingMore(false);
+            }
+            return;
+          }
+          result = await fetchBooru('rule34', catQuery, pageIndex);
         } else if (source === 'marvel') {
           result = await fetchMarvelIssues(safeMarvelQuery, pageIndex);
         } else if (source === 'superhero') {
@@ -724,13 +783,37 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
               </nav>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <button onClick={() => {
-                  const randomOffset = Math.floor(Math.random() * 10);
-                  skipNextOffsetFetchRef.current = true;
-                  setOffset(randomOffset);
-                  loadData(randomOffset, false);
-                }} className="h-12 w-full flex items-center justify-center border border-neutral-200 dark:border-white/10 text-neutral-400 transition-all hover:bg-[#ff4d00] hover:text-white dark:text-white/20 md:h-16 md:w-16">
+                <button
+                  type="button"
+                  title="Shuffle this shelf offset"
+                  onClick={() => {
+                    const randomOffset = Math.floor(Math.random() * 10);
+                    skipNextOffsetFetchRef.current = true;
+                    setOffset(randomOffset);
+                    loadData(randomOffset, false);
+                  }}
+                  className="h-12 w-full flex items-center justify-center border border-neutral-200 dark:border-white/10 text-neutral-400 transition-all hover:bg-[#ff4d00] hover:text-white dark:text-white/20 md:h-16 md:w-16 shrink-0"
+                >
                   <Shuffle size={20} />
+                </button>
+                <button
+                  type="button"
+                  title="Random manga from MangaDex (API)"
+                  aria-busy={randomMangaBusy}
+                  disabled={randomMangaBusy}
+                  onClick={async () => {
+                    setRandomMangaBusy(true);
+                    try {
+                      const picked = await getRandomMangaDexManga();
+                      if (picked?.id) router.push(`/library/mangadex/${picked.id}`);
+                    } finally {
+                      setRandomMangaBusy(false);
+                    }
+                  }}
+                  className="h-12 w-full flex items-center justify-center gap-2 border border-neutral-200 px-4 text-neutral-600 transition-all hover:border-[#ff4d00]/55 hover:bg-[#ff4d00]/10 hover:text-[#ff4d00] dark:border-white/10 dark:text-white/45 md:h-16 md:w-auto shrink-0 disabled:opacity-40"
+                >
+                  {randomMangaBusy ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em]">MD random</span>
                 </button>
                 <div ref={searchBoxRef} className="relative flex-1 md:w-96">
                   <input 
@@ -879,9 +962,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   onClick={() => handleCategoryChange(cat)} 
                   className={`shrink-0 whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase tracking-widest border transition-all md:px-6 md:py-3 ${activeCategory === cat.label ? 'bg-[#ff4d00] border-[#ff4d00] text-white' : 'border-neutral-200 text-neutral-500 hover:border-neutral-400 dark:border-white/10 dark:text-white/30 dark:hover:border-white/80'}`}
                 >
+                  {cat.source === 'all' && <Globe size={10} className="inline mr-2" />}
                   {cat.source === 'archive' && <Flag size={10} className="inline mr-2" />}
                   {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={10} className="inline mr-2" />}
-                  {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru') && <Sparkles size={10} className="inline mr-2" />}
+                  {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru' || cat.source === 'rule34') && (
+                    <Sparkles size={10} className="inline mr-2" />
+                  )}
                   {cat.label}
                 </button>
               ))}
@@ -903,6 +989,13 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       ? `Nothing matches "${searchQuery}". Try a broader title or switch the source filter.`
                       : 'This section is currently empty. Pick a different category or come back after the next sync.'}
                 </p>
+                {searchQuery.trim().length >= 2 && !(isAgeVerified && nsfwEnabled) ? (
+                  <p className="mt-4 max-w-xl mx-auto text-xs text-neutral-600 dark:text-white/45 leading-relaxed">
+                    MangaDex titles marked <span className="font-bold text-neutral-800 dark:text-white/70">erotica</span> or{' '}
+                    <span className="font-bold text-neutral-800 dark:text-white/70">pornographic</span> are excluded from search
+                    until age verification is on and adult shelves are enabled (library NSFW toggle).
+                  </p>
+                ) : null}
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                   <button
                     onClick={() => {

@@ -32,6 +32,12 @@ import { fetchJsonThroughProxy, resolveMangaDexLookupId } from './internal/manga
 import { buildMangaDexRelatedRails } from './internal/mangadex-related';
 import { searchMangaDexComicsPage } from './internal/mangadex-search';
 import {
+  dedupeMangaDexFeedChapters,
+  parseMangaDexStatistics,
+  rowsToComicChapters,
+  type AggVolume,
+} from './internal/mangadex-chapters';
+import {
   fetchNHentaiRaw,
   getNHentaiPageEntries,
   NHENTAI_CACHE_KEY_REV,
@@ -147,11 +153,15 @@ export async function getComicDetails(
 
     if (source === 'mangadex') {
       const mangaDexId = await resolveMangaDexLookupId(source, id);
-      const data = await fetchJsonThroughProxy(
-        `manga/${mangaDexId}?includes[]=cover_art&includes[]=author&includes[]=artist`,
-        `https://api.mangadex.org/manga/${mangaDexId}?includes[]=cover_art&includes[]=author&includes[]=artist`,
-      );
+      const mangaPath = `manga/${mangaDexId}?includes[]=cover_art&includes[]=author&includes[]=artist`;
+      const statsPath = `statistics/manga/${mangaDexId}`;
+      const [data, statsPayload] = await Promise.all([
+        fetchJsonThroughProxy(mangaPath, `https://api.mangadex.org/${mangaPath}`),
+        fetchJsonThroughProxy(statsPath, `https://api.mangadex.org/${statsPath}`).catch(() => null),
+      ]);
+
       const manga = data.data;
+      const mangaDexStats = statsPayload ? parseMangaDexStatistics(statsPayload, mangaDexId) : undefined;
 
       const coverFileName = pickMangaDexCoverFileName(manga.relationships);
       const author = (manga.relationships as MangaDexRelationship[]).find(
@@ -188,6 +198,7 @@ export async function getComicDetails(
         aniListData,
         jikanData: manga.attributes.links?.mal ? await fetchJikanManga(manga.attributes.links.mal) : null,
         related,
+        mangaDexStats,
       };
     }
 
@@ -301,12 +312,37 @@ export async function getChapters(
     if (source === 'mangadex') {
       const mangaDexId = await resolveMangaDexLookupId(source, id);
       const translatedLanguages = getMangaDexTranslatedLanguages(mangaLanguage);
-      const params = new URLSearchParams({
-        limit: '500',
-        'order[chapter]': 'asc',
-      });
-      translatedLanguages?.forEach((lang) => params.append('translatedLanguage[]', lang));
 
+      let aggregatePayload: { volumes?: Record<string, AggVolume> } | null = null;
+      try {
+        aggregatePayload = (await fetchJsonThroughProxy(
+          `manga/${mangaDexId}/aggregate`,
+          `https://api.mangadex.org/manga/${mangaDexId}/aggregate`,
+        )) as { volumes?: Record<string, AggVolume> };
+      } catch {
+        aggregatePayload = null;
+      }
+
+      const aggVolumes =
+        aggregatePayload && typeof aggregatePayload.volumes === 'object' ? aggregatePayload.volumes : undefined;
+
+      const appendFeedIncludes = (params: URLSearchParams) => {
+        params.append('includes[]', 'scanlation_group');
+      };
+
+      const buildFeedParams = (langs?: string[]) => {
+        const params = new URLSearchParams({
+          limit: '500',
+          'order[chapter]': 'asc',
+        });
+        appendFeedIncludes(params);
+        langs?.forEach((langCode) => params.append('translatedLanguage[]', langCode));
+        return params;
+      };
+
+      let langsForDedupe = translatedLanguages ?? [];
+
+      let params = buildFeedParams(translatedLanguages ?? undefined);
       console.log(`[MangaDex] Fetching chapters for ${id}, lang: ${mangaLanguage}`);
       let data = await fetchJsonThroughProxy(
         `manga/${mangaDexId}/feed?${params.toString()}`,
@@ -315,11 +351,8 @@ export async function getChapters(
 
       if ((!data.data || data.data.length === 0) && mangaLanguage !== 'en') {
         console.log(`[MangaDex] No chapters in ${mangaLanguage}, falling back to EN`);
-        const fallbackParams = new URLSearchParams({
-          limit: '500',
-          'order[chapter]': 'asc',
-          'translatedLanguage[]': 'en',
-        });
+        langsForDedupe = ['en'];
+        const fallbackParams = buildFeedParams(['en']);
         data = await fetchJsonThroughProxy(
           `manga/${mangaDexId}/feed?${fallbackParams.toString()}`,
           `https://api.mangadex.org/manga/${mangaDexId}/feed?${fallbackParams.toString()}`,
@@ -328,10 +361,8 @@ export async function getChapters(
 
       if (!data.data || data.data.length === 0) {
         console.log(`[MangaDex] Still empty, aggressive fallback to ALL languages`);
-        const aggrParams = new URLSearchParams({
-          limit: '500',
-          'order[chapter]': 'asc',
-        });
+        langsForDedupe = [];
+        const aggrParams = buildFeedParams(undefined);
         data = await fetchJsonThroughProxy(
           `manga/${mangaDexId}/feed?${aggrParams.toString()}`,
           `https://api.mangadex.org/manga/${mangaDexId}/feed?${aggrParams.toString()}`,
@@ -340,25 +371,9 @@ export async function getChapters(
 
       console.log(`[MangaDex] Total chapters found: ${data.data?.length || 0}`);
 
-      return (
-        data.data?.map(
-          (ch: {
-            id: string;
-            attributes: {
-              title?: string;
-              chapter: string;
-              volume?: string;
-              externalUrl?: string;
-            };
-          }) => ({
-            id: ch.id,
-            title: ch.attributes.title || `Chapter ${ch.attributes.chapter}`,
-            chapterNum: ch.attributes.chapter,
-            volume: ch.attributes.volume,
-            externalUrl: ch.attributes.externalUrl,
-          }),
-        ) || []
-      );
+      const rawRows = Array.isArray(data.data) ? data.data : [];
+      const deduped = dedupeMangaDexFeedChapters(rawRows, aggVolumes, langsForDedupe);
+      return rowsToComicChapters(deduped);
     }
 
     if (source === 'nhentai') {
@@ -639,5 +654,20 @@ export async function searchComics(params: {
   } catch (error) {
     console.error('searchComics error:', error);
     return { items: [], hasMore: false };
+  }
+}
+
+/** Opens a globally random title from `GET /manga/random`. */
+export async function getRandomMangaDexManga(): Promise<{ id: string } | null> {
+  try {
+    const data = await fetchJsonThroughProxy(
+      'manga/random',
+      'https://api.mangadex.org/manga/random',
+    );
+    const nid = data?.data?.id;
+    return typeof nid === 'string' ? { id: nid } : null;
+  } catch (error) {
+    console.warn('[MangaDex] manga/random:', error);
+    return null;
   }
 }

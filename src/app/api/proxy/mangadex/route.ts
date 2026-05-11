@@ -5,9 +5,19 @@ export const dynamic = 'force-dynamic';
 
 const ALLOWED_PREFIXES = ['manga', 'at-home/server'];
 
+const MD_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isAllowedStatisticsManga(path: string) {
+  if (!path.startsWith('statistics/manga/')) return false;
+  const rest = path.slice('statistics/manga/'.length);
+  return rest.length > 0 && !rest.includes('/') && MD_UUID.test(rest);
+}
+
 function isAllowedPath(path: string) {
+  if (path.includes('://') || path.includes('..')) return false;
+  if (isAllowedStatisticsManga(path)) return true;
   return ALLOWED_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`)
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`),
   );
 }
 
@@ -19,7 +29,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Path is required' }, { status: 400 });
   }
 
-  if (!isAllowedPath(path) || path.includes('://') || path.includes('..')) {
+  if (!isAllowedPath(path)) {
     return NextResponse.json({ error: 'Invalid MangaDex path' }, { status: 400 });
   }
 
