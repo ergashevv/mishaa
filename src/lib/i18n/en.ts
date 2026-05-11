@@ -600,5 +600,7 @@ export const en = {
       titleAsc: 'Title A-Z',
       titleDesc: 'Title Z-A',
       savedOnly: 'Saved Only',
+      nsfwToggleOn: 'Adult source tabs are on — click to hide NSFW shelves',
+      nsfwToggleOff: 'Adult source tabs are off — click to show NSFW shelves',
     }
 }

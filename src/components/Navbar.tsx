@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, domMax, m, AnimatePresence } from 'framer-motion';
 import { X, Menu, UserCircle2, Settings2 } from 'lucide-react';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
@@ -95,17 +95,18 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
     window.dispatchEvent(new CustomEvent('langChange', { detail: nextLang }));
   };
 
-  const langSwitcher: { short: string; code: Lang }[] = [
-    { short: 'EN', code: 'en' },
-    { short: 'JA', code: 'ja' },
-    { short: 'KO', code: 'ko' },
-    { short: 'ZH', code: 'zh' },
-    { short: 'RU', code: 'ru' },
+  const langSwitcher: { short: string; code: Lang; ariaName: string }[] = [
+    { short: 'EN', code: 'en', ariaName: 'English' },
+    { short: 'JA', code: 'ja', ariaName: 'Japanese' },
+    { short: 'KO', code: 'ko', ariaName: 'Korean' },
+    { short: 'ZH', code: 'zh', ariaName: 'Chinese' },
+    { short: 'RU', code: 'ru', ariaName: 'Russian' },
   ];
 
   const isCatalog = surface === 'catalog';
 
   return (
+    <LazyMotion features={domMax} strict>
     <nav
       className={
         isCatalog
@@ -157,7 +158,7 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
                 >
                   {link.name}
                   {isActive && (
-                    <motion.div
+                    <m.div
                       layoutId="nav-active"
                       className="absolute inset-0 rounded-full border border-black/5 dark:border-black/5"
                     />
@@ -171,10 +172,13 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
 
           {/* New Language Switcher */}
           <div className="flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-100/90 p-1 backdrop-blur-md dark:border-white/5 dark:bg-white/[0.025]">
-            {langSwitcher.map(({ short, code }) => (
+            {langSwitcher.map(({ short, code, ariaName }) => (
               <button
                 key={code}
+                type="button"
                 onClick={() => handleLangChange(code)}
+                aria-label={`Switch interface language to ${ariaName}`}
+                aria-current={lang === code ? 'true' : undefined}
                 className={`rounded-full px-2.5 py-2 text-[8px] font-black tracking-widest transition-all ${lang === code
                   ? 'bg-[#ff5a1f] text-white shadow-lg'
                   : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/80 dark:text-white/30 dark:hover:text-white dark:hover:bg-white/5'
@@ -220,6 +224,7 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
                     </Link>
                     <div className="my-2 h-px bg-neutral-100 dark:bg-white/5" />
                     <button
+                      type="button"
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
                     >
@@ -241,6 +246,10 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
 
         {/* Mobile toggle */}
         <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls="navbar-mobile-menu"
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           className="mr-0 shrink-0 rounded-2xl border border-neutral-200 bg-neutral-100/80 p-2.5 text-neutral-800 transition-colors hover:text-[#ff5a1f] dark:border-white/10 dark:bg-white/5 dark:text-white lg:hidden sm:p-3"
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -251,7 +260,8 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
       {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
+            id="navbar-mobile-menu"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -270,10 +280,13 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
               ))}
 
               <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-1 dark:border-white/10 dark:bg-white/5">
-                {langSwitcher.map(({ short, code }) => (
+                {langSwitcher.map(({ short, code, ariaName }) => (
                   <button
                     key={code}
+                    type="button"
                     onClick={() => { handleLangChange(code); setIsOpen(false); }}
+                    aria-label={`Switch interface language to ${ariaName}`}
+                    aria-current={lang === code ? 'true' : undefined}
                     className={`flex-1 rounded-xl py-3 text-[9px] font-black tracking-widest transition-all ${lang === code
                       ? 'bg-[#ff5a1f] text-white'
                       : 'text-neutral-500 hover:bg-neutral-200/80 hover:text-neutral-900 dark:text-white/35 dark:hover:bg-white/5 dark:hover:text-white'
@@ -295,6 +308,7 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
               {user && (
                 <>
                   <button
+                    type="button"
                     onClick={() => { handleLogout(); setIsOpen(false); }}
                     className="w-full rounded-2xl border border-red-500/20 bg-red-500/5 py-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-red-500 transition-colors hover:bg-red-500 hover:text-white"
                   >
@@ -303,9 +317,10 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
                 </>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </nav>
+    </LazyMotion>
   );
 }

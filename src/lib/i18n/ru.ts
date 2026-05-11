@@ -603,5 +603,7 @@ export const ru = {
       titleAsc: 'Название A-Z',
       titleDesc: 'Название Z-A',
       savedOnly: 'Только сохранённые',
+      nsfwToggleOn: 'Вкладки 18+ видны — нажмите, чтобы скрыть',
+      nsfwToggleOff: 'Вкладки 18+ скрыты — нажмите, чтобы показать',
     }
 }

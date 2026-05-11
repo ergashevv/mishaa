@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useSyncExternalStore, useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, domMax, m, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, Search, X, ChevronLeft, ChevronRight, 
   Eye, EyeOff,
@@ -649,6 +649,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   }, [selectedComic, viewMode, pages.length]);
 
   return (
+    <LazyMotion features={domMax} strict>
     <>
     <Navbar />
     <div className="min-h-screen bg-zinc-50 pt-nav-catalog text-neutral-900 dark:bg-[#020202] dark:text-white">
@@ -738,7 +739,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   {/* Professional Search Dropdown */}
                   <AnimatePresence>
                     {showDropdown && (
-                      <motion.div 
+                      <m.div 
                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -797,12 +798,18 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                             ))
                           )}
                         </div>
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
                 </div>
-                <button onClick={handleNsfwToggle} className={`h-12 w-full flex items-center justify-center border transition-all md:h-16 md:w-16 ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-neutral-200 dark:border-white/10 text-neutral-400 dark:text-white/20'}`}>
-                  {isMounted && nsfwEnabled ? <Eye /> : <EyeOff />}
+                <button
+                  type="button"
+                  onClick={handleNsfwToggle}
+                  aria-pressed={nsfwEnabled}
+                  aria-label={nsfwEnabled ? t_cat.nsfwToggleOn : t_cat.nsfwToggleOff}
+                  className={`h-12 w-full flex items-center justify-center border transition-all md:h-16 md:w-16 ${nsfwEnabled ? 'bg-red-600 border-red-600' : 'border-neutral-200 dark:border-white/10 text-neutral-400 dark:text-white/20'}`}
+                >
+                  {isMounted && nsfwEnabled ? <Eye aria-hidden /> : <EyeOff aria-hidden />}
                 </button>
               </div>
 
@@ -921,7 +928,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   : { filter: 'none' };
 
                 return (
-                  <motion.div 
+                  <m.div 
                     ref={visibleComics.length === index + 1 ? lastComicRef : null}
                     key={`${comic.source}:${comic.id}`} 
                     whileHover={{ 
@@ -1023,7 +1030,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                         <span className="px-2 py-1 border border-neutral-200 dark:border-white/10 text-[7px] font-black uppercase tracking-[0.25em] text-neutral-600 dark:text-white/45">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
                       </div>
                     )}
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
@@ -1040,7 +1047,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       {/* PRO READER */}
       <AnimatePresence>
         {selectedComic && (
-          <motion.div ref={readerRef} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-[5000] bg-black flex flex-col">
+          <m.div ref={readerRef} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-[5000] bg-black flex flex-col">
              <div className="h-20 bg-black border-b border-white/10 flex items-center justify-between px-8 max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
                 <div className="flex items-center gap-4 max-md:justify-between max-md:gap-3">
                   <button onClick={() => setSelectedComic(null)} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-red-600 max-md:w-9 max-md:h-9"><X /></button>
@@ -1105,11 +1112,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                              </div>
                           </div>
 
-                          <motion.img 
+                          <m.img 
                             key={currentPage}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             src={pages[currentPage]} 
+                            alt={`${selectedComic.title} — page ${currentPage + 1}`}
                             style={{ transform: `scale(${zoom})`, maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
                             className="shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5" 
                           />
@@ -1136,11 +1144,12 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
                           <div className="flex items-center justify-center h-full w-full max-w-7xl mx-auto">
                              {currentPage === 0 ? (
-                               <motion.img 
+                               <m.img 
                                  key="cover"
                                  initial={{ opacity: 0 }}
                                  animate={{ opacity: 1 }}
                                  src={pages[0]} 
+                                 alt={`${selectedComic.title} — cover`}
                                  style={{ transform: `scale(${zoom})`, maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
                                  className="shadow-2xl border border-white/5 ring-1 ring-white/10" 
                                />
@@ -1149,20 +1158,22 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                                  {/* Spine shadow */}
                                  <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 bg-gradient-to-r from-black/40 via-black/10 to-black/40 z-20 pointer-events-none" />
                                  
-                                 <motion.img 
+                                 <m.img 
                                    key={currentPage}
                                    initial={{ opacity: 0, x: -10 }}
                                    animate={{ opacity: 1, x: 0 }}
                                    src={pages[currentPage]} 
+                                   alt={`${selectedComic.title} — page ${currentPage + 1} (left)`}
                                    style={{ transform: `scale(${zoom})`, height: '100%', width: '50%', objectFit: 'contain', objectPosition: 'right' }} 
                                    className="border-r border-black/20" 
                                  />
                                  {pages[currentPage + 1] && (
-                                   <motion.img 
+                                   <m.img 
                                      key={currentPage + 1}
                                      initial={{ opacity: 0, x: 10 }}
                                      animate={{ opacity: 1, x: 0 }}
                                      src={pages[currentPage + 1]} 
+                                     alt={`${selectedComic.title} — page ${currentPage + 2} (right)`}
                                      style={{ transform: `scale(${zoom})`, height: '100%', width: '50%', objectFit: 'contain', objectPosition: 'left' }} 
                                    />
                                  )}
@@ -1173,9 +1184,10 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     ) : (
                       <div className="flex flex-col gap-4 items-center">
                          {pages.map((p, i) => (
-                           <motion.img 
+                           <m.img 
                             key={i} 
                             src={p} 
+                            alt={`${selectedComic.title} — page ${i + 1}`}
                             className="w-full h-auto mb-4 shadow-2xl" 
                             loading="lazy"
                             onViewportEnter={() => {
@@ -1189,7 +1201,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   </div>
                 )}
              </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -1223,6 +1235,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       `}</style>
     </div>
     </>
+    </LazyMotion>
   );
 }
 

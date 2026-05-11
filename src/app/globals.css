@@ -13,8 +13,8 @@
 @theme {
   --font-sans: var(--font-outfit);
   --font-display: var(--font-bricolage);
-  --font-comic: var(--font-staatliches);
-  --font-accent: var(--font-bangers);
+  --font-comic: var(--font-bricolage);
+  --font-accent: var(--font-bricolage);
   --font-mono: var(--font-mono);
 }
 

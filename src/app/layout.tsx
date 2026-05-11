@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { cookies, headers } from "next/headers";
-import { Syne, Outfit, Bricolage_Grotesque, JetBrains_Mono, Staatliches, Bangers } from "next/font/google";
+import { Outfit, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getPublicSiteUrl } from "@/lib/og-metadata";
 import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
@@ -26,12 +26,6 @@ function htmlLangFromUiCookie(value: string | undefined): string {
 
 const SITE_ORIGIN = getPublicSiteUrl().replace(/\/$/, "");
 
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
@@ -47,20 +41,6 @@ const bricolage = Bricolage_Grotesque({
 const jetBrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const staatliches = Staatliches({
-  variable: "--font-staatliches",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const bangers = Bangers({
-  variable: "--font-bangers",
-  subsets: ["latin"],
-  weight: "400",
   display: "swap",
 });
 
@@ -172,7 +152,7 @@ export default async function RootLayout({
   return (
     <html
       lang={htmlLang}
-      className={`${syne.variable} ${outfit.variable} ${bricolage.variable} ${jetBrainsMono.variable} ${staatliches.variable} ${bangers.variable} h-full min-h-dvh antialiased`}
+      className={`${outfit.variable} ${bricolage.variable} ${jetBrainsMono.variable} h-full min-h-dvh antialiased`}
     >
       <body className="min-h-dvh flex flex-col bg-transparent pb-[env(safe-area-inset-bottom)]">
         <RegionalShell

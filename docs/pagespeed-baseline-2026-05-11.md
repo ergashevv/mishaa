@@ -41,3 +41,22 @@ After deploy, re-run PSI for mobile + desktop on `/` and note scores + LCP + tot
 ## Code changes (after baseline, same day)
 
 Enabled **Next.js `Image` optimization** (removed `unoptimized`) for home covers, library grid, comic detail rails, plus `sizes` / `quality` tuning. Added `archive.org` to `remotePatterns` for Archive covers. Comic reader pages unchanged (still `unoptimized` for sequential full-page artwork).
+
+## Post-fix snapshot — desktop (2026-05-11 ~16:41, after deploy / re-run)
+
+Rough numbers from a fresh PSI run on `/` (Lighthouse 13, desktop):
+
+| Bo‘lim | Bal |
+|--------|-----|
+| Performance | **65** |
+| Accessibility | **90–96** (run-to-run / viewport) |
+| Best Practices | **96** |
+| SEO | **100** |
+
+**Lab:** FCP **0.3 s** (yaxshi); **LCP ~1.3 s** (sariq zona); **CLS 0** (yaxshi); **TBT ~810 ms**, **Speed Index ~2.3 s** (qizil/sariq — asosan JS / render).
+
+**Rasmlar auditi:** endi taxminan **~79 KiB** “tejash” (oldingi million baytlar emas) — optimizatsiya ishlayapti.
+
+**Qolgan ustuvorlar:** hujjat/so‘rov kechikishi (**~640 ms**), **blocking** resurslar (**~150 ms**), **asosiy oqim / JS bajarilishi** (~2.5 s + ~1.3 s), **ishlatilmagan JS**, **layout thrashing** (forced layout). Accessibility: **kontrast**, **tap target**, ba’zi aylanmalarda **sarlavha tartibi**.
+
+**Xulosa:** yuk kamaygan; umumiy **Performance ~65** hali **JS + server javobi** bilan cheklanadi — keyingi bosqich shular.

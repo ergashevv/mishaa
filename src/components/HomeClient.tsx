@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState, useRef, useCallback, useLayoutEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   Clock,
@@ -680,6 +680,7 @@ export default function HomeClient({
   }, [useRichMotion, renderedShelves.length]);
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <div className="min-h-screen bg-white text-neutral-900 dark:bg-[#06070b] dark:text-neutral-100">
       <Navbar />
 
@@ -688,7 +689,7 @@ export default function HomeClient({
         <section className="relative w-full">
           <AnimatePresence mode="wait">
             {showHeroSkeleton ? (
-              <motion.div
+              <m.div
                 key="skeleton"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -708,9 +709,9 @@ export default function HomeClient({
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ) : featuredComic ? (
-              <motion.div
+              <m.div
                 key="home-hero"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -728,7 +729,7 @@ export default function HomeClient({
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="relative min-h-[clamp(20rem,48vw,30rem)] overflow-hidden border border-neutral-200 bg-neutral-50 lg:min-h-[26rem] dark:border-white/10 dark:bg-black">
                     <AnimatePresence initial={false} mode="wait">
-                      <motion.div
+                      <m.div
                         key={heroFeaturedKey}
                         initial={
                           prefersReducedMotion ? false : { opacity: 0 }
@@ -767,7 +768,7 @@ export default function HomeClient({
                         <p className="mt-3 max-w-xl text-sm font-medium leading-relaxed text-neutral-600 dark:text-white/65 sm:text-[0.95rem]">
                           {shelfCopy.desc}
                         </p>
-                        <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500 dark:text-white/55">
+                        <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-600 dark:text-white/55">
                           {shelfCopy.featuredSeries} · {featuredComic.source}
                         </p>
 
@@ -777,7 +778,7 @@ export default function HomeClient({
 
                         {heroRating?.showBlock ? (
                           <div className="mt-6 flex min-h-[2.25rem] flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-white/45">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-600 dark:text-white/45">
                               {heroRating.label}
                             </span>
                             <span className="text-lg font-semibold uppercase tracking-wide text-neutral-900 dark:text-white">
@@ -817,7 +818,7 @@ export default function HomeClient({
                         </div>
                       </div>
                         </div>
-                      </motion.div>
+                      </m.div>
                     </AnimatePresence>
                   </div>
 
@@ -829,19 +830,21 @@ export default function HomeClient({
                           type="button"
                           aria-label={`Featured slide ${i + 1}`}
                           aria-current={i === heroSlideIndex}
-                          className={`h-2 w-2 rounded-full transition-colors ${
-                            i === heroSlideIndex ? 'bg-[#ff5a1f]' : 'bg-neutral-300 hover:bg-neutral-400 dark:bg-white/25 dark:hover:bg-white/40'
+                          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors ${
+                            i === heroSlideIndex ? '[&>span]:bg-[#ff5a1f]' : '[&>span]:bg-neutral-300 hover:[&>span]:bg-neutral-400 dark:[&>span]:bg-white/25 dark:hover:[&>span]:bg-white/40'
                           }`}
                           onClick={() => setHeroSlideIndex(i)}
-                        />
+                        >
+                          <span className="block h-2 w-2 rounded-full" aria-hidden />
+                        </button>
                       ))}
                     </div>
                   ) : null}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key="home-hero-fallback"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -869,7 +872,7 @@ export default function HomeClient({
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -893,10 +896,10 @@ export default function HomeClient({
                   <div className="mb-6 inline-flex h-16 w-16 items-center justify-center border border-neutral-200 bg-neutral-100 text-neutral-400 dark:border-white/10 dark:bg-white/5 dark:text-neutral-500">
                     <Search size={28} strokeWidth={1.5} />
                   </div>
-                  <h3 className="mb-2 text-xl font-bold uppercase tracking-tight text-neutral-900 dark:text-white">
+                  <h2 className="mb-2 text-xl font-bold uppercase tracking-tight text-neutral-900 dark:text-white">
                     {shelfCopy.shelfNoMatchesTitle}
-                  </h3>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">{shelfCopy.shelfNoMatchesBody}</p>
+                  </h2>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{shelfCopy.shelfNoMatchesBody}</p>
                 </div>
               )}
 
@@ -922,7 +925,7 @@ export default function HomeClient({
                 if (shelfSearchNorm && filteredItems.length === 0) return null;
 
                 return (
-                  <motion.div
+                  <m.div
                     key={shelf.key}
                     id={shelf.key}
                     initial={{ opacity: 0, y: 20 }}
@@ -933,7 +936,7 @@ export default function HomeClient({
                   >
                     <div className="flex items-end justify-between gap-4 border-b border-neutral-200 pb-4 dark:border-white/10">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-neutral-400">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-600 dark:text-neutral-400">
                           {shelf.subtitle}
                         </p>
                         <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl dark:text-white">
@@ -988,7 +991,7 @@ export default function HomeClient({
                           const shouldBlur = adultContent && !isAgeVerified;
 
                           return (
-                            <motion.article
+                            <m.article
                               key={`${shelf.key}:${comicKey(comic)}`}
                               initial={false}
                               whileHover={useRichMotion ? { y: -4 } : undefined}
@@ -1032,10 +1035,10 @@ export default function HomeClient({
                                   </div>
 
                                   <div className="mt-3 min-h-[3.75rem] space-y-1">
-                                    <h4 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
+                                    <h3 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
                                       {shouldBlur ? 'Age restricted' : comic.title}
-                                    </h4>
-                                    <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-500 dark:text-neutral-400">
+                                    </h3>
+                                    <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                                       {shouldBlur
                                         ? isTouchDevice && !isPreviewOpen
                                           ? 'Tap to confirm age'
@@ -1045,13 +1048,13 @@ export default function HomeClient({
                                   </div>
                                 </div>
                               </Link>
-                            </motion.article>
+                            </m.article>
 
                           );
                         })
                       )}
                     </div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </AnimatePresence>
@@ -1061,7 +1064,7 @@ export default function HomeClient({
         <section className="border-t border-neutral-200 bg-neutral-100 py-16 sm:py-20 dark:border-white/10 dark:bg-black/25">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mb-10 border-b border-neutral-200 pb-5 dark:border-white/10">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-neutral-400">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-neutral-600 dark:text-neutral-400">
                   Discover
                 </p>
                 <h2 className="mt-1 text-xl font-bold uppercase tracking-tight text-neutral-900 sm:text-2xl dark:text-white">
@@ -1080,7 +1083,7 @@ export default function HomeClient({
                   const shouldBlur = adultContent && !isAgeVerified;
 
                   return (
-                    <motion.div
+                    <m.div
                       key={`${comicKey(comic)}:${idx}`}
                       initial={useRichMotion ? { opacity: 0, scale: 0.97 } : false}
                       whileInView={{ opacity: 1, scale: 1 }}
@@ -1131,7 +1134,7 @@ export default function HomeClient({
                             <div className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
                               {shouldBlur ? 'Age restricted' : comic.title}
                             </div>
-                            <div className="line-clamp-2 text-[10px] text-neutral-500 dark:text-neutral-400">
+                            <div className="line-clamp-2 text-[10px] text-neutral-600 dark:text-neutral-400">
                               {shouldBlur
                                 ? isTouchDevice && !isPreviewOpen
                                   ? 'Tap to confirm age'
@@ -1141,7 +1144,7 @@ export default function HomeClient({
                           </div>
                         </div>
                       </Link>
-                    </motion.div>
+                    </m.div>
 
                   );
                 })}
@@ -1153,12 +1156,12 @@ export default function HomeClient({
                     <div className="relative h-12 w-12">
                       {useRichMotion ? (
                         <>
-                          <motion.div
+                          <m.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                             className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#ff5a1f]"
                           />
-                          <motion.div
+                          <m.div
                             animate={{ scale: [1, 1.15, 1] }}
                             transition={{ duration: 1, repeat: Infinity }}
                             className="absolute inset-4 rounded-full bg-[#ff5a1f]/15"
@@ -1170,7 +1173,7 @@ export default function HomeClient({
                         <div className="absolute inset-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#ff5a1f] dark:border-white/15" style={{ animationDuration: '1.2s' }} />
                       )}
                     </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500 dark:text-neutral-400">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-600 dark:text-neutral-400">
                       Loading more
                     </div>
                   </>
@@ -1238,11 +1241,12 @@ export default function HomeClient({
               </Link>
             </nav>
           </div>
-          <div className="mt-12 border-t border-neutral-200 pt-8 text-center text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-500 dark:border-white/10 dark:text-neutral-600">
+          <div className="mt-12 border-t border-neutral-200 pt-8 text-center text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-600 dark:border-white/10 dark:text-neutral-500">
             © {new Date().getFullYear()} iComics.wiki
           </div>
         </div>
       </footer>
     </div>
+    </LazyMotion>
   );
 }
