@@ -284,8 +284,9 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     persistStoredMangaLanguage(mangaLanguage);
   }, [mangaLanguage]);
 
+  const librarySearchParamsKey = searchParams.toString();
   const updateLibraryUrl = useCallback((tab: string, query: string, mode: 'push' | 'replace') => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(librarySearchParamsKey);
     params.set('tab', tab);
     if (query.trim()) params.set('q', query.trim());
     else params.delete('q');
@@ -296,7 +297,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     } else {
       router.replace(nextUrl, { scroll: false });
     }
-  }, [pathname, router, searchParams]);
+  }, [pathname, router, librarySearchParamsKey]);
 
   const handleAgeVerify = () => {
     persistAgeVerification();
@@ -590,10 +591,15 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(librarySearchParamsKey);
+      const tabInUrl = params.get('tab');
+      const qInUrl = (params.get('q') ?? '').trim();
+      const qWant = fetchSearchQueryTrimmed.trim();
+      if (tabInUrl === activeCategory && qInUrl === qWant) return;
       updateLibraryUrl(activeCategory, fetchSearchQueryTrimmed, 'replace');
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [activeCategory, fetchSearchQueryTrimmed, updateLibraryUrl]);
+  }, [activeCategory, fetchSearchQueryTrimmed, librarySearchParamsKey, updateLibraryUrl]);
 
   useEffect(() => {
     if (searchQuery.length >= 3) return;

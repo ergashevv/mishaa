@@ -257,6 +257,53 @@ const SHELVES: ShelfDefinition[] = [
 import AgeGateOverlay from './AgeGateOverlay';
 import { isAdultComic } from '@/lib/age-verification';
 
+type HomeAdultCoverUi = {
+  imageClass: string;
+  showRestrictedOverlay: boolean;
+  useRestrictedAlt: boolean;
+  maskText: boolean;
+};
+
+/** Age-blocked: always blurred + overlay. Verified adults: blurred until hover, focus, or active (touch peek). */
+function homeAdultCoverUi(
+  comic: LibraryComic,
+  isAgeVerified: boolean,
+  useRichMotion: boolean,
+): HomeAdultCoverUi {
+  const adultContent = isAdultComic(comic);
+  const ageBlocked = adultContent && !isAgeVerified;
+  const politeBlur = adultContent && isAgeVerified;
+
+  const motion = useRichMotion
+    ? 'transition-all duration-500 motion-safe:duration-300'
+    : 'transition-all duration-500';
+
+  if (ageBlocked) {
+    return {
+      imageClass: `object-cover object-center ${motion} scale-105 blur-md`,
+      showRestrictedOverlay: true,
+      useRestrictedAlt: true,
+      maskText: true,
+    };
+  }
+
+  if (politeBlur) {
+    return {
+      imageClass: `object-cover object-center ${motion} scale-105 blur-md group-hover:blur-none group-hover:scale-[1.03] group-focus-within:blur-none group-focus-within:scale-[1.03] group-active:blur-none group-active:scale-100`,
+      showRestrictedOverlay: false,
+      useRestrictedAlt: false,
+      maskText: false,
+    };
+  }
+
+  return {
+    imageClass: `object-cover object-center ${motion} scale-100${useRichMotion ? ' group-hover:scale-[1.03]' : ''}`,
+    showRestrictedOverlay: false,
+    useRestrictedAlt: false,
+    maskText: false,
+  };
+}
+
 type HomeClientProps = {
   initialData?: Record<string, HomeShelfComic[]>;
   initialAgeVerified?: boolean;
@@ -636,6 +683,9 @@ export default function HomeClient({
     heroCarouselSlides[heroSlideIndex] || heroCarouselSlides[0] || null;
 
   const heroRating = featuredComic ? getHeroRatingPresentation(featuredComic) : null;
+  const heroAdultContent = Boolean(featuredComic && isAdultComic(featuredComic));
+  const heroAgeBlocked = heroAdultContent && !isAgeVerified;
+  const heroPoliteBlur = heroAdultContent && isAgeVerified;
 
   const featuredBackgroundSrc = featuredComic?.bannerUrl || featuredComic?.coverUrl || DEFAULT_IMAGE_SRC;
   const featuredPosterSrc = featuredComic?.coverUrl || featuredComic?.bannerUrl || DEFAULT_IMAGE_SRC;
@@ -719,7 +769,7 @@ export default function HomeClient({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                className="relative w-full"
+                className="group relative w-full"
                 onPointerEnter={() => {
                   heroCarouselPausedRef.current = true;
                 }}
@@ -753,7 +803,15 @@ export default function HomeClient({
                                 priority
                                 quality={72}
                                 sizes="(max-width: 1280px) 100vw, 1400px"
-                                className="object-cover object-center opacity-[0.35]"
+                                className={
+                                  heroAdultContent
+                                    ? `object-cover object-center opacity-[0.35] transition-[filter,transform] duration-300 motion-safe:duration-300 scale-105 blur-md ${
+                                        heroPoliteBlur
+                                          ? 'group-hover:blur-none group-hover:scale-100 group-focus-within:blur-none group-focus-within:scale-100 group-active:blur-none group-active:scale-100'
+                                          : ''
+                                      }`
+                                    : 'object-cover object-center opacity-[0.35]'
+                                }
                               />
                               <div className="absolute inset-0 bg-gradient-to-r from-white via-white/92 to-white/70 dark:from-black dark:via-black/88 dark:to-black/55" />
                             </>
@@ -806,12 +864,27 @@ export default function HomeClient({
                           <SafeCoverImage
                             key={featuredPosterSrc}
                             src={featuredPosterSrc}
-                            alt={featuredComic.title}
+                            alt={heroAgeBlocked ? 'Restricted' : featuredComic.title}
                             priority
                             quality={82}
                             sizes="(max-width: 1024px) 55vw, 320px"
-                            className="object-cover object-center"
+                            className={
+                              heroAdultContent
+                                ? `object-cover object-center transition-[filter,transform] duration-300 motion-safe:duration-300 scale-105 blur-md ${
+                                    heroPoliteBlur
+                                      ? 'group-hover:blur-none group-hover:scale-100 group-focus-within:blur-none group-focus-within:scale-100 group-active:blur-none group-active:scale-100'
+                                      : ''
+                                  }`
+                                : 'object-cover object-center'
+                            }
                           />
+                          {heroAgeBlocked ? (
+                            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-neutral-950/20 backdrop-blur-[2px]">
+                              <span className="border border-white/40 bg-black/70 px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-white">
+                                Restricted
+                              </span>
+                            </div>
+                          ) : null}
                           {heroRating?.badge ? (
                             <div className="absolute right-3 top-3 border border-neutral-200 bg-white/90 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-neutral-800 dark:border-white/20 dark:bg-black/70 dark:text-white/85">
                               {heroRating.badge}
@@ -990,7 +1063,7 @@ export default function HomeClient({
                           const cardKey = `${shelf.key}:${comic.source}:${comic.id}`;
                           const adultContent = isAdultComic(comic);
                           const isPreviewOpen = adultContent && previewCardKey === cardKey;
-                          const shouldBlur = adultContent && !isAgeVerified;
+                          const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion);
 
                           return (
                             <m.article
@@ -1003,7 +1076,7 @@ export default function HomeClient({
                               <Link
                                 href={resolveComicHref(comic)}
                                 onClickCapture={(event) => {
-                                  if (!isTouchDevice || !adultContent) return;
+                                  if (!isTouchDevice || !adultContent || isAgeVerified) return;
                                   if (!isPreviewOpen) {
                                     event.preventDefault();
                                     setPreviewCardKey(cardKey);
@@ -1019,14 +1092,12 @@ export default function HomeClient({
                                     <SafeCoverImage
                                       key={`${shelf.key}:${comicKey(comic)}`}
                                       src={comic.coverUrl}
-                                      alt={shouldBlur ? 'Restricted' : comic.title}
+                                      alt={coverUi.useRestrictedAlt ? 'Restricted' : comic.title}
                                       sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 200px"
-                                      className={`object-cover object-center transition-transform duration-500 ${
-                                        shouldBlur ? 'scale-105 blur-md' : 'scale-100'
-                                      } ${useRichMotion && !shouldBlur ? 'group-hover:scale-[1.03]' : ''}`}
+                                      className={coverUi.imageClass}
                                     />
 
-                                    {shouldBlur ? (
+                                    {coverUi.showRestrictedOverlay ? (
                                       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-neutral-950/25 backdrop-blur-[2px]">
                                         <Zap size={20} className="mb-2 text-[#ff5a1f]" />
                                         <span className="border border-white/40 bg-black/70 px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.2em] text-white">
@@ -1038,10 +1109,10 @@ export default function HomeClient({
 
                                   <div className="mt-3 min-h-[3.75rem] space-y-1">
                                     <h3 className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
-                                      {shouldBlur ? 'Age restricted' : comic.title}
+                                      {coverUi.maskText ? 'Age restricted' : comic.title}
                                     </h3>
                                     <p className="line-clamp-2 text-[10px] leading-relaxed text-neutral-600 dark:text-neutral-400">
-                                      {shouldBlur
+                                      {coverUi.maskText
                                         ? isTouchDevice && !isPreviewOpen
                                           ? 'Tap to confirm age'
                                           : 'Verify age to view details'
@@ -1082,7 +1153,7 @@ export default function HomeClient({
                   const cardKey = `discover:${comic.source}:${comic.id}`;
                   const adultContent = isAdultComic(comic);
                   const isPreviewOpen = adultContent && previewCardKey === cardKey;
-                  const shouldBlur = adultContent && !isAgeVerified;
+                  const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion);
 
                   return (
                     <m.div
@@ -1100,7 +1171,7 @@ export default function HomeClient({
                         href={comic.href || `/library/${comic.source}/${comic.id}`}
                         className="group block"
                         onClickCapture={(event) => {
-                          if (!isTouchDevice || !adultContent) return;
+                          if (!isTouchDevice || !adultContent || isAgeVerified) return;
                           if (!isPreviewOpen) {
                             event.preventDefault();
                             setPreviewCardKey(cardKey);
@@ -1116,14 +1187,12 @@ export default function HomeClient({
                             <SafeCoverImage
                               key={comic.coverUrl || '/logo.png'}
                               src={comic.coverUrl || '/logo.png'}
-                              alt={shouldBlur ? 'Restricted' : comic.title}
+                              alt={coverUi.useRestrictedAlt ? 'Restricted' : comic.title}
                               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
-                              className={`object-cover transition-transform duration-500 ${
-                                shouldBlur ? 'scale-105 blur-md' : 'scale-100'
-                              } ${useRichMotion && !shouldBlur ? 'group-hover:scale-[1.03]' : ''}`}
+                              className={coverUi.imageClass}
                             />
 
-                            {shouldBlur ? (
+                            {coverUi.showRestrictedOverlay ? (
                               <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-950/25 backdrop-blur-[2px]">
                                 <span className="border border-white/40 bg-black/70 px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.2em] text-white">
                                   Restricted
@@ -1134,10 +1203,10 @@ export default function HomeClient({
 
                           <div className="mt-3 min-h-[3.5rem] space-y-1">
                             <div className="line-clamp-3 text-[11px] font-bold uppercase leading-snug tracking-tight text-neutral-900 dark:text-white">
-                              {shouldBlur ? 'Age restricted' : comic.title}
+                              {coverUi.maskText ? 'Age restricted' : comic.title}
                             </div>
                             <div className="line-clamp-2 text-[10px] text-neutral-600 dark:text-neutral-400">
-                              {shouldBlur
+                              {coverUi.maskText
                                 ? isTouchDevice && !isPreviewOpen
                                   ? 'Tap to confirm age'
                                   : 'Verify age to view details'

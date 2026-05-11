@@ -8,20 +8,21 @@ import { subscribeAnalyticsConsentChange } from '@/lib/analytics-consent';
 export default function AnalyticsBridge() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     const flush = () => {
       if (!shouldSendAnalyticsEvents()) return;
-      const search = searchParams.toString();
+      const search = searchKey || null;
       trackPageView({
         pathname,
-        search: search || null,
+        search,
       });
     };
 
     flush();
     return subscribeAnalyticsConsentChange(flush);
-  }, [pathname, searchParams]);
+  }, [pathname, searchKey]);
 
   return null;
 }
