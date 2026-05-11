@@ -137,6 +137,8 @@ type SafeCoverImageProps = {
   alt: string;
   sizes?: string;
   priority?: boolean;
+  /** Next image optimizer quality (1–100); lower = fewer bytes. */
+  quality?: number;
   className?: string;
 };
 
@@ -145,6 +147,7 @@ function SafeCoverImage({
   alt,
   sizes,
   priority = false,
+  quality,
   className,
 }: SafeCoverImageProps) {
   const [currentSrc, setCurrentSrc] = useState(() => resolveImageSrc(src));
@@ -153,6 +156,9 @@ function SafeCoverImage({
     setCurrentSrc(resolveImageSrc(src));
   }, [src]);
 
+  const effectiveQuality =
+    quality ?? (priority ? 78 : 68);
+
   return (
     <Image
       src={currentSrc}
@@ -160,7 +166,7 @@ function SafeCoverImage({
       fill
       sizes={sizes}
       priority={priority}
-      unoptimized
+      quality={effectiveQuality}
       onError={() => {
         if (currentSrc !== DEFAULT_IMAGE_SRC) {
           setCurrentSrc(DEFAULT_IMAGE_SRC);
@@ -742,7 +748,8 @@ export default function HomeClient({
                                 src={featuredBackgroundSrc}
                                 alt={`${featuredComic.title} — featured series background`}
                                 priority
-                                sizes="100vw"
+                                quality={72}
+                                sizes="(max-width: 1280px) 100vw, 1400px"
                                 className="object-cover object-center opacity-[0.35]"
                               />
                               <div className="absolute inset-0 bg-gradient-to-r from-white via-white/92 to-white/70 dark:from-black dark:via-black/88 dark:to-black/55" />
@@ -798,6 +805,7 @@ export default function HomeClient({
                             src={featuredPosterSrc}
                             alt={featuredComic.title}
                             priority
+                            quality={82}
                             sizes="(max-width: 1024px) 55vw, 320px"
                             className="object-cover object-center"
                           />

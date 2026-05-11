@@ -776,7 +776,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                                 className="w-full p-3 flex items-center gap-4 hover:bg-black/[0.05] dark:hover:bg-black/[0.04] dark:bg-white/5 border-b border-neutral-100 dark:border-white/5 transition-all text-left group"
                               >
                                 <div className="relative w-10 aspect-[2/3] bg-black border border-neutral-200 dark:border-white/10 shrink-0">
-                                  <Image src={comic.coverUrl || '/logo.png'} fill className="object-cover" alt={`${comic.title} — cover`} unoptimized />
+                                  <Image src={comic.coverUrl || '/logo.png'} fill sizes="40px" quality={65} className="object-cover" alt={`${comic.title} — cover`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="text-[10px] font-black uppercase tracking-widest text-neutral-800 dark:text-white/80 group-hover:text-[#ff4d00] transition-colors truncate">{comic.title}</div>
@@ -950,7 +950,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                             <Image
                               src={comic.coverUrl}
                               fill
-                              unoptimized
+                              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                              quality={72}
                               className={coverClassName}
                               style={coverStyle}
                               alt={`${comic.title} — cover`}
@@ -977,7 +978,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                           <Image
                             src={comic.coverUrl || '/logo.png'}
                             fill
-                            unoptimized
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                            quality={72}
                             className={coverClassName}
                             style={coverStyle}
                             alt={`${comic.title} — cover`}
@@ -988,7 +990,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                           <Image
                             src={comic.coverUrl || '/logo.png'}
                             fill
-                            unoptimized
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                            quality={72}
                             className={coverClassName}
                             style={coverStyle}
                             alt={`${comic.title} — cover`}

@@ -426,7 +426,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             className="object-cover opacity-20 grayscale blur-3xl scale-110"
             alt={`${comic.title} — backdrop`}
             priority
-            unoptimized
+            sizes="100vw"
+            quality={65}
           />
         </div>
 
@@ -453,7 +454,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   fill
                   className="object-cover"
                   alt={`${comic.title} — cover`}
-                  unoptimized
+                  sizes="360px"
+                  quality={76}
+                  priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#ff4d00] text-white text-[9px] font-black uppercase tracking-[0.35em]">
@@ -671,8 +674,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                         src={normalizeMarvelImageToProxyUrl(marvelSeries.thumbnail) || comic.coverUrl}
                         alt={`${marvelSeries.title || marvelIssue.seriesName || 'Series'} — cover`}
                         fill
+                        sizes="220px"
+                        quality={72}
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                     <div className="space-y-4">
@@ -807,7 +811,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  alt={`${comic.title} — cover`} 
                  itemProp="image"
                  sizes="(max-width: 1024px) 256px, 288px"
-                 unoptimized
+                 quality={78}
+                 priority
                />
             </div>
             
@@ -981,9 +986,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                                src={item.coverUrl}
                                fill
                                sizes="116px"
+                               quality={68}
                                className="object-cover"
                                alt={`${item.title} — cover`}
-                               unoptimized
                              />
                            </div>
                          </div>
@@ -1015,8 +1020,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                               alt={edge.node?.name?.full ? `${edge.node.name.full} — character` : 'Character'}
                               fill
                               sizes="80px"
+                              quality={62}
                               className="object-cover object-top"
-                              unoptimized
                             />
                             <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md text-[6px] font-black uppercase tracking-widest text-white/90 border border-white/15">
                               {edge.role}
@@ -1262,7 +1267,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
               {/* Comic Preview Card */}
               <div className="mb-8 flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-white/5 dark:bg-white/5">
                  <div className="relative w-16 aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg">
-                    <Image src={comic.coverUrl} fill className="object-cover" alt={`${comic.title} — cover`} unoptimized />
+                    <Image src={comic.coverUrl} fill sizes="64px" quality={62} className="object-cover" alt={`${comic.title} — cover`} />
                  </div>
                  <div className="min-w-0 flex-1">
                     <div className="mb-1 text-xs font-black uppercase tracking-tight text-neutral-500 dark:text-white/40">{comic.source}</div>

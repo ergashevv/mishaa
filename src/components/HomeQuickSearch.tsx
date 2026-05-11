@@ -206,8 +206,9 @@ export default function HomeQuickSearch({
                       src={comic.coverUrl || '/logo.png'}
                       alt={`${comic.title} — cover`}
                       fill
+                      sizes="48px"
+                      quality={65}
                       className="object-cover"
-                      unoptimized
                     />
                   </div>
                   <div className="min-w-0 flex-1">
