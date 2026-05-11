@@ -14,14 +14,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tab, q } = await searchParams;
   const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
-  const shelf = typeof tab === 'string' && tab.trim() ? tab.trim() : 'All shelves';
+  const tabTrimmed = typeof tab === 'string' ? tab.trim() : '';
+  const shelf = tabTrimmed || '';
   const queryTrimmed = typeof q === 'string' ? q.trim() : '';
   const queryLabel = queryTrimmed ? ` · ${queryTrimmed.slice(0, 80)}` : '';
 
-  const title = `${shelf}${queryLabel}`;
+  const baseLibraryTitle = 'Manga, hentai & manhwa — MangaDex-style library (browser)';
+  const title = shelf
+    ? `${shelf} · manga, hentai & manhwa shelf${queryLabel}`
+    : `${baseLibraryTitle}${queryLabel}`;
+
   const description = queryTrimmed
-    ? `Search “${queryTrimmed.slice(0, 160)}” in the iComics.wiki manga, manhwa & vertical webtoon library (${shelf}). Open any title for chapters, synopsis, and the fullscreen browser reader.`
-    : `Browse “${shelf}” on icomics.wiki — manga, manhwa, webtoons & age‑gated catalogs (including hentai‑style shelves): covers, genres, chapters, synced progress via MangaDex, NHentai, and allied sources — one wiki‑style reader.`;
+    ? `Search “${queryTrimmed.slice(0, 160)}” in this manga & hentai browser library (${shelf || 'all shelves'}). MangaDex-style matches, chapters, fullscreen reader on icomics.wiki.`
+    : `Browse manga, hentai & manhwa online—MangaDex-style discovery, vertical webtoons, age‑verified adult / hentai‑oriented shelves, NHentai & allied sources: covers, genres, chapter list, bookmarks. Independent reader at icomics.wiki—not MangaDex.org.`;
 
   /** One hub URL for indexing — shelf tabs are UI facets, not separate landing pages (avoids thin-index dilution). */
   const libraryHubUrl = `${siteUrl}/library`;
@@ -74,7 +79,7 @@ export default async function Page({
     '@type': 'CollectionPage',
     name: `${shelf} · iComics.wiki library`,
     description:
-      'Searchable manga, manhwa, webtoons, age‑gated & hentai‑style catalogs, and bookmarks — metadata, chapters, fullscreen reader, progress sync on icomics.wiki.',
+      'Online manga, manhwa & webtoon library hub (MangaDex-style discovery, NHentai & allied sources): searchable titles, age‑verified shelves, chapters, fullscreen browser reader, bookmarks — icomics.wiki.',
     url: `${siteUrl}/library`,
     breadcrumb: {
       '@type': 'BreadcrumbList',

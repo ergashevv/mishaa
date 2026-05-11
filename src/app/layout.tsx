@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     default: ICS_SITE_DISPLAY_NAME,
     template: `%s | ${ICS_SITE_DISPLAY_NAME}`,
   },
-  description:
-    "Official icomics.wiki reader: manga, manhwa, vertical webtoons, and age‑gated (incl. hentai‑style) shelves in your browser—bookmarks, chapter progress, guides, and RSS. Not the DRM‑free iOS “iComics” app or unrelated fan wikis.",
+    description:
+      'Manga, hentai & manhwa online—search Japanese, Korean, Chinese, English & Russian (romanization OK). MangaDex-style browser library. icomics.wiki; not MangaDex.org.',
   authors: [{ name: `${ICS_SITE_DISPLAY_NAME} Team`, url: SITE_ORIGIN }],
   creator: ICS_SITE_DISPLAY_NAME,
   publisher: ICS_SITE_DISPLAY_NAME,
@@ -77,9 +77,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: ICS_SITE_DISPLAY_NAME,
+    title: `Manga, hentai & manhwa online — ${ICS_SITE_DISPLAY_NAME}`,
     description:
-      "Browser manga, manhwa, and webtoon reader—progress, bookmarks, age-gated catalogs, and FAQs. Official icomics.wiki site; unrelated iOS/Fandom confusion explained in FAQ.",
+      "Read manga, hentai & manhwa in-browser—MangaDex-style library, age‑gated shelves, FAQs. icomics.wiki (independent site; not MangaDex.org).",
     url: SITE_ORIGIN,
     siteName: ICS_SITE_DISPLAY_NAME,
     locale: "en_US",
@@ -95,9 +95,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${ICS_SITE_DISPLAY_NAME} — manga, manhwa & webtoons in browser`,
+    title: "Manga, hentai & manhwa — MangaDex-style online reader",
     description:
-      "Read manga, manhwa & webtoons online: searchable library, fullscreen reader, bookmarks, multilingual UI, RSS & FAQ—not the unrelated iOS iComics file app.",
+      "Manga, hentai & manhwa in your browser; MangaDex-style search & chapters. Age‑verified adult content. icomics.wiki—not MangaDex official.",
     images: [`${SITE_ORIGIN}/logo.png`],
   },
   robots: {

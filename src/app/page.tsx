@@ -9,21 +9,33 @@ import type { MangaLanguage } from '@/lib/manga-language';
 const site = getPublicSiteUrl().replace(/\/$/, '');
 
 const HOME_META_DESCRIPTION =
-  'Browse manga, manhwa, vertical webtoons, and optional age‑gated catalogs in one browser reader—quick search (e.g. MangaDex‑style IDs), fullscreen chapters, bookmarks, progress where syncing is on, English/Russian UI, guides & RSS on icomics.wiki. Official site—not the DRM iOS “iComics” comic file app.';
+  'Read manga, hentai & doujin, manhwa & webtoons in your browser—search Japanese, Korean & Chinese titles (native script or romanization), plus English & Russian. MangaDex-style catalog metadata, fullscreen chapters, bookmarks. Age‑verified 18+ shelves. UI: EN, RU, JA, KO, ZH. icomics.wiki—independent reader, not MangaDex.org.';
 
 export const metadata: Metadata = {
-  title: 'Manga, manhwa & webtoons online — icomics.wiki reader',
+  title: 'Manga, hentai & manhwa online — MangaDex-style browser reader',
   description: HOME_META_DESCRIPTION,
+  keywords: [
+    'manga online',
+    'hentai manga',
+    'read manga browser',
+    'MangaDex',
+    'manhwa',
+    'webtoon',
+    'adult manga',
+    'doujinshi online',
+    'manga hentai',
+    'icomics.wiki',
+  ],
   ...openGraphTwitterFromLogo({
     origin: site,
     pageAbsoluteUrl: site,
-    openGraphTitle: 'Read manga, manhwa & webtoons in your browser',
-    twitterTitle: 'Online manga, manhwa & webtoons | icomics.wiki',
+    openGraphTitle: 'Manga, hentai & manhwa — read online (MangaDex-style catalog, browser)',
+    twitterTitle: 'Manga, hentai & manhwa online · MangaDex-style reader',
     description: HOME_META_DESCRIPTION,
     openGraphDescription:
-      'One reader for manga, manhwa, webtoons, and verified adult shelves: search titles, fullscreen chapters, bookmarks, multilingual UI. Brand disambiguation: FAQ & /icomics-wiki—not the unrelated iOS iComics app.',
+      'Manga, hentai & manhwa—search JP/KR/CN/EN/RU titles (romanization OK). MangaDex-style browser library, chapters, bookmarks. 18+ after age check. Not MangaDex.org.',
     twitterDescription:
-      'Manga / manhwa / webtoon browser library—bookmarks, progress, RSS, guides. Official icomics.wiki.',
+      'Manga, hentai & manhwa online—Japanese, Korean, Chinese & romanized search. MangaDex-style reader. Age‑gated adult shelves. Not the MangaDex app.',
   }),
   alternates: {
     canonical: site,
@@ -33,6 +45,7 @@ export const metadata: Metadata = {
 import { UI_LANG_COOKIE } from '@/lib/i18n/cookies';
 import { isUiLang } from '@/lib/i18n/lang';
 import { uiLangToPreferredMangaLanguage } from '@/lib/i18n/ui-lang-to-manga';
+import { translations, type Lang } from '@/lib/translations';
 
 const MANGA_QUERY_LANGS: MangaLanguage[] = [
   'en',
@@ -71,13 +84,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const uiCookie = cookieStore.get(UI_LANG_COOKIE)?.value;
   const initialMangaLanguage = normalizeLanguage(lang, uiCookie);
   const initialData = await getHomeData(initialMangaLanguage, { includeAdultContent });
+  const copyLang: Lang = isUiLang(uiCookie) ? uiCookie : 'en';
+  const homePrimaryHeading = translations[copyLang].hero.pageH1;
 
   return (
-    <HomeClient
-      initialData={initialData}
-      initialAgeVerified={includeAdultContent}
-      initialIsTouchDevice={initialIsTouchDevice}
-      initialMangaLanguage={initialMangaLanguage}
-    />
+    <>
+      {/* One H1 in initial HTML for crawlers (Bing/Google); visible hero title is h2 in HomeClient. */}
+      <h1 className="sr-only">{homePrimaryHeading}</h1>
+      <HomeClient
+        initialData={initialData}
+        initialAgeVerified={includeAdultContent}
+        initialIsTouchDevice={initialIsTouchDevice}
+        initialMangaLanguage={initialMangaLanguage}
+      />
+    </>
   );
 }

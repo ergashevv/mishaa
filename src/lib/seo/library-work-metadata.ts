@@ -32,10 +32,16 @@ export function buildWorkMetadataTitle(opts: {
   /** e.g. "Manga", "Comic". */
   typeLabel: string;
   ratingText?: string;
+  /** Aligns with MangaDex-intent queries when listing is from that catalog. */
+  source?: string;
 }): string {
   const suffix = opts.ratingText ? ` (${opts.ratingText})` : '';
   const type = opts.typeLabel.trim();
-  return `${opts.workTitle} — ${type}: synopsis & chapters${suffix}`;
+  const mdHub =
+    opts.source === 'mangadex'
+      ? ` — ${type} (MangaDex-style catalog): synopsis, chapters & read online`
+      : ` — ${type}: synopsis & chapters`;
+  return `${opts.workTitle}${mdHub}${suffix}`;
 }
 
 /**
@@ -51,6 +57,8 @@ export function buildWorkMetaDescription(opts: {
   siteBrand: string;
   /** Typical display cap ~155–320; we target the upper range for richer matching. */
   maxLen?: number;
+  /** Long-tail / hub queries (romanized JP titles, “mangadex + series”). */
+  source?: string;
 }): string {
   const maxLen = opts.maxLen ?? 305;
   const title = opts.title.trim();
@@ -70,6 +78,9 @@ export function buildWorkMetaDescription(opts: {
   let tail = genreShort ? ` Categories: ${genreShort}.` : '';
   if (typeof opts.chapterCount === 'number' && opts.chapterCount > 0) {
     tail += ` ${opts.chapterCount} chapters in the catalog.`;
+  }
+  if (opts.source === 'mangadex') {
+    tail += ` Search-friendly listing (romanized / English titles like on MangaDex).`;
   }
   tail += ` Fullscreen browser reader — manga, manhwa & vertical webtoons on ${opts.siteBrand}.`;
 

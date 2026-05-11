@@ -115,7 +115,7 @@ function buildAggregateRating(comicData: ComicSeoData): Record<string, unknown> 
 }
 
 const DEFAULT_DESCRIPTION =
-  'Read this series on iComics.wiki — synopsis, genre tags, full chapter index, and a fullscreen browser reader with synced progress. Catalog spans manga, manhwa & vertical webtoons.';
+  'Read this series on icomics.wiki — synopsis, genre tags, full chapter index, and a fullscreen browser reader with synced progress. Catalog spans manga, manhwa & vertical webtoons; MangaDex listings include romanized title search.';
 
 export async function generateMetadata({ params }: MetadataProps): Promise<Metadata> {
   const { source, id } = await params;
@@ -182,6 +182,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
         workTitle,
         typeLabel,
         ratingText,
+        source,
       })
     : `Library listing (${source})`;
 
@@ -195,6 +196,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
           typeLabel,
           chapterCount: chapterCount > 0 ? chapterCount : undefined,
           siteBrand: ICS_SITE_DISPLAY_NAME,
+          source,
         })
       : DEFAULT_DESCRIPTION;
 
