@@ -1,8 +1,6 @@
 export const runtime = "edge";
 import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 const ALLOWED_HOSTS = [
   'mangadex.org',
   'mangadex.network',

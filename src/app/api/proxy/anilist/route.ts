@@ -1,8 +1,6 @@
 export const runtime = "edge";
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 function parseId(value: string | null) {
   const id = Number.parseInt(value || '', 10);
   return Number.isFinite(id) && id > 0 ? id : null;

@@ -185,7 +185,7 @@ export async function getComicDetails(
         id: manga.id,
         title: title || (Object.values(manga.attributes.title || {})[0] as string),
         description: description || 'No description available.',
-        coverUrl: coverFileName ? buildMangaDexCoverUrl(manga.id, coverFileName, 'original') : '/logo.png',
+        coverUrl: coverFileName ? buildMangaDexCoverUrl(manga.id, coverFileName, 'medium') : '/logo.png',
         rating: manga.attributes.contentRating,
         genres:
           genres.length > 0 ? genres : manga.attributes.tags.map((t: MangaDexTag) => t.attributes.name.en),

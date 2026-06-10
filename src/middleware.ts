@@ -49,6 +49,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/feed.xml',
-    '/((?!_next/static|_next/image|favicon.ico|icon.png|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|api|favicon.ico|icon.png|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

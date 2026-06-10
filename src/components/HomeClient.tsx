@@ -167,6 +167,7 @@ function SafeCoverImage({
       fill
       sizes={sizes}
       priority={priority}
+      loading={priority ? 'eager' : 'lazy'}
       quality={effectiveQuality}
       unoptimized={imageUnoptimizedForSrc(currentSrc)}
       onError={() => {
@@ -1093,7 +1094,7 @@ export default function HomeClient({
                                       key={`${shelf.key}:${comicKey(comic)}`}
                                       src={comic.coverUrl}
                                       alt={coverUi.useRestrictedAlt ? 'Restricted' : comic.title}
-                                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 200px"
+                                      sizes="(max-width: 640px) 150px, (max-width: 1024px) 168px, 176px"
                                       className={coverUi.imageClass}
                                     />
 
@@ -1188,7 +1189,7 @@ export default function HomeClient({
                               key={comic.coverUrl || '/logo.png'}
                               src={comic.coverUrl || '/logo.png'}
                               alt={coverUi.useRestrictedAlt ? 'Restricted' : comic.title}
-                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+                              sizes="(max-width: 640px) 187px, (max-width: 768px) 180px, (max-width: 1024px) 160px, 200px"
                               className={coverUi.imageClass}
                             />
 

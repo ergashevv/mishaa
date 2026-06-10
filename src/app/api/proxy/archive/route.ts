@@ -1,8 +1,6 @@
 export const runtime = "edge";
 import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 function isSafeId(value: string) {
   return /^[A-Za-z0-9._-]+$/.test(value);
 }

@@ -1,8 +1,6 @@
 export const runtime = "edge";
 import { NextRequest, NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 const ALLOWED_PREFIXES = ['manga', 'at-home/server'];
 
 const MD_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
