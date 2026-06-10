@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -175,7 +175,18 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     }
   }, [id, source, mangaLanguage, isAgeVerified, restrictedSource]);
 
+  // SSR already provided this comic + chapters, and the component is keyed per
+  // comic so this ref is fresh on every navigation. Skip the redundant initial
+  // client refetch — it set loading=true (a flash) and re-hit the server on every
+  // comic→comic navigation, which read as "freezes / stale text". Later runs
+  // (language switch, age-unlock changing fetchComicDetails identity) still fetch.
+  const skipInitialFetch = useRef(Boolean(initialComic) && (initialChapters?.length ?? 0) > 0);
+
   useEffect(() => {
+    if (skipInitialFetch.current) {
+      skipInitialFetch.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       void fetchComicDetails();
     }, 0);

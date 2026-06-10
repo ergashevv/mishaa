@@ -355,11 +355,12 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
   return (
     <article>
       <JsonLd data={workGraphLd} />
-      <ComicDetailsClient 
-      initialComic={initialComic} 
+      <ComicDetailsClient
+      key={`${source}:${id}`}
+      initialComic={initialComic}
       initialChapters={initialChapters}
-      source={source} 
-      id={id} 
+      source={source}
+      id={id}
       initialAgeVerified={initialAgeVerified}
     />
   </article>
