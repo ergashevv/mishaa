@@ -10,9 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "smoke:prod": "node scripts/smoke-prod.mjs",
-    "telegram:campaign-init": "npx tsx scripts/telegram-campaign-init.ts",
-    "telegram:campaign-init:dry": "npx tsx scripts/telegram-campaign-init.ts --dry-run"
+    "smoke:prod": "node scripts/smoke-prod.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

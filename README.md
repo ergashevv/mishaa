@@ -34,24 +34,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Telegram Bot
-
-This repo includes a Telegram bot that posts a random comic to your channel three times per day.
-
-Environment variables:
-
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHANNEL_ID`
-- `TELEGRAM_BOT_NAME`
-- `TELEGRAM_BOT_SHORT_DESCRIPTION`
-- `TELEGRAM_BOT_DESCRIPTION`
-- `TELEGRAM_BOT_PHOTO_URL`
-- `TELEGRAM_SETUP_SECRET`
-- `CRON_SECRET`
-
-Notes:
-
-- Vercel cron schedules run in UTC.
-- Vercel Hobby currently limits cron jobs to once per day, so three daily posts require a plan that supports multiple cron invocations.
-- After setting the environment variables, run `node scripts/telegram-setup.mjs` once to sync the bot name, bio, commands, and profile photo.
