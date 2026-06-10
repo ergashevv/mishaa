@@ -42,10 +42,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "framer-motion",
-      "@azure/openai",
-      "@google/generative-ai",
-      "openai",
-      "replicate",
     ],
   },
   serverExternalPackages: ["@prisma/client", "bcryptjs"],

@@ -78,7 +78,6 @@ export default function Navbar({ surface = 'catalog' }: NavbarProps) {
   };
 
   const navLinks = [
-    { name: t.gallery, href: '/gallery' },
     { name: t.library, href: '/library' },
     { name: t.guides, href: '/guides' },
     { name: t.readingHub, href: '/reading' },

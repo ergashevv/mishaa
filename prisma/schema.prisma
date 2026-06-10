@@ -19,47 +19,7 @@ model User {
   authProvider String   @default("local")
   authProviderId String? @unique
   createdAt    DateTime @default(now())
-  stories      Story[]
-  characters   Character[]
   readingProgress ReadingProgress[]
-}
-
-model Story {
-  id            String   @id @default(cuid())
-  title         String?
-  globalContext String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  content       Json?    // Universal Studio State (Pages, Drafts, Settings)
-  status        String   @default("draft")
-  frames        Frame[]
-}
-
-model Frame {
-  id          String   @id @default(cuid())
-  storyId     String
-  prompt      String
-  imageUrl    String?
-  shotType    String   @default("medium")
-  characters  String[] @default([])
-  dialogue    String?
-  soundEffect String?
-  position    Int
-  createdAt   DateTime @default(now())
-  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
-}
-
-model Character {
-  id          String   @id @default(cuid())
-  name        String
-  role        String
-  description String
-  imageUrl    String
-  createdAt   DateTime @default(now())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 model ReadingProgress {

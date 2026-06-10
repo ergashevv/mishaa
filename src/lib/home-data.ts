@@ -7,6 +7,7 @@ import {
   buildMangaDexCoverUrl, 
   MANGADEX_LONG_STRIP_TAG_ID 
 } from "@/lib/mangadex";
+import { unstable_cache } from "next/cache";
 import { fetchTrendingAniListManga } from "@/lib/anilist";
 import { 
   getMangaDexTranslatedLanguages, 
@@ -304,7 +305,7 @@ export async function getHomeFeed(lang: MangaLanguage = 'en', options: HomeFeedO
   ]).slice(0, 28);
 }
 
-export async function getHomeData(
+async function getHomeDataUncached(
   lang: MangaLanguage = 'en',
   options: HomeDataOptions = {},
 ): Promise<Record<string, HomeShelfComic[]>> {
@@ -424,3 +425,14 @@ export async function getHomeData(
     shelfCap,
   );
 }
+
+/**
+ * SSR homepage shelves are identical for everyone sharing a (lang, adult) pair,
+ * so cache the assembled result for 1h instead of hitting MangaDex on every request.
+ * Caches the final value — inner shelf fetches only run on a cache miss.
+ */
+export const getHomeData = unstable_cache(
+  getHomeDataUncached,
+  ['home-shelves-v1'],
+  { revalidate: 3600 },
+);

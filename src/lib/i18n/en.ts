@@ -332,6 +332,8 @@ export const en = {
       yourLibrary: 'Your library',
       stories: 'Stories',
       characters: 'Characters',
+      reading: 'Reading',
+      completed: 'Completed',
       backHome: 'Back home',
       logOut: 'Log out',
     },

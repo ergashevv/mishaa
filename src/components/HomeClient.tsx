@@ -1298,9 +1298,6 @@ export default function HomeClient({
               <Link href="/library" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 Library
               </Link>
-              <Link href="/gallery" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
-                Gallery
-              </Link>
               <Link href="/about" className="transition-colors hover:text-[#ff5a1f] dark:hover:text-white">
                 About
               </Link>

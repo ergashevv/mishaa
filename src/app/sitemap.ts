@@ -65,8 +65,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '',
     '/about',
     '/icomics-wiki',
-    '/gallery',
-    '/comic',
     '/library',
     '/contact',
     '/link-to-us',

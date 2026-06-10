@@ -15,12 +15,6 @@ const PROFILE_SELECT = {
   authProvider: true,
   authProviderId: true,
   createdAt: true,
-  _count: {
-    select: {
-      stories: true,
-      characters: true,
-    },
-  },
 } as const;
 
 export async function GET() {
@@ -30,7 +24,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [user, storiesCount, charactersCount] = await Promise.all([
+    const [user, readingCount, completedCount] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.id },
         select: {
@@ -46,8 +40,8 @@ export async function GET() {
           createdAt: true,
         },
       }),
-      prisma.story.count({ where: { userId: session.id } }),
-      prisma.character.count({ where: { userId: session.id } }),
+      prisma.readingProgress.count({ where: { userId: session.id } }),
+      prisma.readingProgress.count({ where: { userId: session.id, progressStatus: 'completed' } }),
     ]);
 
     if (!user) {
@@ -62,8 +56,8 @@ export async function GET() {
         ...safeUser,
         hasPassword: Boolean(user.password),
         _count: {
-          stories: storiesCount,
-          characters: charactersCount,
+          reading: readingCount,
+          completed: completedCount,
         }
       },
     });
@@ -125,17 +119,21 @@ export async function PUT(req: NextRequest) {
 
     const passwordHash = nextPassword ? await bcrypt.hash(nextPassword, 12) : undefined;
 
-    const updated = await prisma.user.update({
-      where: { id: session.id },
-      data: {
-        firstName: nextFirstName || undefined,
-        lastName: nextLastName || undefined,
-        username: nextUsername || undefined,
-        email: nextEmail || undefined,
-        password: passwordHash,
-      },
-      select: PROFILE_SELECT,
-    });
+    const [updated, readingCount, completedCount] = await Promise.all([
+      prisma.user.update({
+        where: { id: session.id },
+        data: {
+          firstName: nextFirstName || undefined,
+          lastName: nextLastName || undefined,
+          username: nextUsername || undefined,
+          email: nextEmail || undefined,
+          password: passwordHash,
+        },
+        select: PROFILE_SELECT,
+      }),
+      prisma.readingProgress.count({ where: { userId: session.id } }),
+      prisma.readingProgress.count({ where: { userId: session.id, progressStatus: 'completed' } }),
+    ]);
 
     await createSession({
       id: updated.id,
@@ -152,6 +150,10 @@ export async function PUT(req: NextRequest) {
       user: {
         ...safeUpdatedUser,
         hasPassword: Boolean(updated.password),
+        _count: {
+          reading: readingCount,
+          completed: completedCount,
+        },
       },
     });
   } catch (error: unknown) {

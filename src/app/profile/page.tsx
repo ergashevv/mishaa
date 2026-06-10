@@ -20,8 +20,8 @@ type ProfileUser = {
   createdAt: string;
   hasPassword: boolean;
   _count: {
-    stories: number;
-    characters: number;
+    reading: number;
+    completed: number;
   };
 };
 
@@ -293,12 +293,12 @@ export default function ProfilePage() {
               <p className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-500 dark:text-white/30 italic">{t.yourLibrary}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-5 bg-black border border-neutral-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center space-y-1">
-                  <div className="text-3xl font-black italic text-[#ff4d00]">{user?._count.stories ?? 0}</div>
-                  <div className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40">{t.stories}</div>
+                  <div className="text-3xl font-black italic text-[#ff4d00]">{user?._count?.reading ?? 0}</div>
+                  <div className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40">{t.reading}</div>
                 </div>
                 <div className="p-5 bg-black border border-neutral-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center space-y-1">
-                  <div className="text-3xl font-black italic text-white">{user?._count.characters ?? 0}</div>
-                  <div className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40">{t.characters}</div>
+                  <div className="text-3xl font-black italic text-white">{user?._count?.completed ?? 0}</div>
+                  <div className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40">{t.completed}</div>
                 </div>
               </div>
             </div>

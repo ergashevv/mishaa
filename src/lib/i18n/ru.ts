@@ -335,6 +335,8 @@ export const ru = {
       yourLibrary: 'Ваша коллекция',
       stories: 'Истории',
       characters: 'Персонажи',
+      reading: 'Читаю',
+      completed: 'Прочитано',
       backHome: 'На главную',
       logOut: 'Выйти',
     },
