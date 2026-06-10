@@ -1063,31 +1063,34 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
                    <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
                      {comic.related.map((item) => (
-                       <motion.button
-                         type="button"
+                       <motion.div
                          key={item.id}
                          whileHover={{ y: -3 }}
                          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-                         onClick={() => router.push(`/library/${item.source}/${item.id}`)}
-                         className="group/rail w-[6.75rem] shrink-0 snap-start text-left sm:w-[7.25rem]"
+                         className="w-[6.75rem] shrink-0 snap-start sm:w-[7.25rem]"
                        >
-                         <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-md transition-colors group-hover/rail:border-[#ff4d00]/40 dark:border-white/10 dark:bg-zinc-900">
-                           <div className="relative h-[7.5rem] w-full sm:h-[8rem]">
-                             <Image
-                               src={item.coverUrl}
-                               fill
-                               sizes="116px"
-                               quality={68}
-                               unoptimized={imageUnoptimizedForSrc(item.coverUrl)}
-                               className="object-cover"
-                               alt={`${item.title} — cover`}
-                             />
+                         <Link
+                           href={`/library/${item.source}/${item.id}`}
+                           className="group/rail block text-left"
+                         >
+                           <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-md transition-colors group-hover/rail:border-[#ff4d00]/40 dark:border-white/10 dark:bg-zinc-900">
+                             <div className="relative h-[7.5rem] w-full sm:h-[8rem]">
+                               <Image
+                                 src={item.coverUrl}
+                                 fill
+                                 sizes="116px"
+                                 quality={68}
+                                 unoptimized={imageUnoptimizedForSrc(item.coverUrl)}
+                                 className="object-cover"
+                                 alt={`${item.title} — cover`}
+                               />
+                             </div>
                            </div>
-                         </div>
-                         <p className="mt-2 line-clamp-2 px-0.5 text-[9px] font-medium uppercase leading-snug tracking-tight text-neutral-600 group-hover/rail:text-neutral-900 dark:text-zinc-400 dark:group-hover/rail:text-zinc-200">
+                           <p className="mt-2 line-clamp-2 px-0.5 text-[9px] font-medium uppercase leading-snug tracking-tight text-neutral-600 group-hover/rail:text-neutral-900 dark:text-zinc-400 dark:group-hover/rail:text-zinc-200">
                              {item.title}
-                         </p>
-                       </motion.button>
+                           </p>
+                         </Link>
+                       </motion.div>
                      ))}
                    </div>
                  </section>

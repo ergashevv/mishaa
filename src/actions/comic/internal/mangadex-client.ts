@@ -7,13 +7,27 @@ import {
 import { fetchAniListManga } from '@/lib/anilist';
 import { getSiteUrl } from '@/lib/site-url';
 
+/**
+ * MangaDex metadata changes slowly, so cache successful responses in the Next
+ * Data Cache. Uncached (`no-store`) fetches made every SSR slow and fragile — a
+ * slow/rate-limited upstream left detail pages thin and `noindex`. The per-attempt
+ * timeout fails fast to the fallback endpoint instead of hanging the render.
+ */
+const MANGADEX_REVALIDATE_SECONDS = 3600;
+const MANGADEX_FETCH_TIMEOUT_MS = 8000;
+
 export async function fetchJsonThroughProxy(path: string, fallbackUrl?: string) {
   const proxyUrl = `${getSiteUrl()}/api/proxy/mangadex?path=${encodeURIComponent(path)}`;
   const endpoints = fallbackUrl ? [proxyUrl, fallbackUrl] : [proxyUrl];
 
   for (const url of endpoints) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), MANGADEX_FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, {
+        signal: controller.signal,
+        next: { revalidate: MANGADEX_REVALIDATE_SECONDS },
+      });
       const text = await res.text();
       if (!res.ok) {
         continue;
@@ -26,6 +40,8 @@ export async function fetchJsonThroughProxy(path: string, fallbackUrl?: string) 
       }
     } catch {
       continue;
+    } finally {
+      clearTimeout(timer);
     }
   }
 

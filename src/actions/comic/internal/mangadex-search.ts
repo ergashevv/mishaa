@@ -82,6 +82,8 @@ export async function searchMangaDexComicsPage(input: {
         title: Record<string, string>;
         description: Record<string, string>;
         contentRating: string;
+        updatedAt?: string;
+        latestUploadedChapter?: string | null;
       };
       relationships: { type: string; attributes?: { fileName?: string; volume?: string | null; createdAt?: string } }[];
     }) => {
@@ -95,6 +97,7 @@ export async function searchMangaDexComicsPage(input: {
         coverUrl: coverFileName ? buildMangaDexCoverUrl(item.id, coverFileName) : '/logo.png',
         source: 'mangadex',
         rating: item.attributes.contentRating,
+        updatedAt: item.attributes.updatedAt,
       };
     },
   );

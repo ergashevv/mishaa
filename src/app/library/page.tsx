@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import ComicLibraryClient from '@/components/ComicLibraryClient';
 import LibraryRouteLoading from '@/components/LibraryRouteLoading';
 import JsonLd from '@/components/JsonLd';
+import { searchComics } from '@/actions/comic';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
 import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import { Suspense } from 'react';
@@ -81,6 +83,37 @@ export async function generateMetadata({
   return base;
 }
 
+/** Catalog listing pages pulled server-side for the crawlable browse index. */
+const BROWSE_INDEX_PAGES = 3;
+
+/**
+ * Server-rendered, crawlable index of popular titles. The interactive library
+ * grid ({@link ComicLibraryClient}) fetches client-side, so without this Google
+ * sees the hub as a dead end with zero links into the catalog. This passes link
+ * equity down to detail pages (safe/suggestive only — searchComics default).
+ */
+async function loadBrowseTitles(): Promise<{ id: string; title: string }[]> {
+  try {
+    const pages = await Promise.allSettled(
+      Array.from({ length: BROWSE_INDEX_PAGES }, (_, page) =>
+        searchComics({ source: 'mangadex', page, query: '' }),
+      ),
+    );
+    const byId = new Map<string, string>();
+    for (const result of pages) {
+      if (result.status !== 'fulfilled') continue;
+      for (const item of result.value.items) {
+        if (item.title && !byId.has(item.id)) {
+          byId.set(item.id, item.title);
+        }
+      }
+    }
+    return [...byId].map(([id, title]) => ({ id, title }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function Page({
   searchParams,
 }: {
@@ -118,12 +151,38 @@ export default async function Page({
     },
   };
 
+  const browseTitles = await loadBrowseTitles();
+
   return (
-    <Suspense
-      fallback={<LibraryRouteLoading />}
-    >
-      <JsonLd data={collectionSchema} />
-      <ComicLibraryClient initialAgeVerified={initialAgeVerified} />
-    </Suspense>
+    <>
+      <Suspense
+        fallback={<LibraryRouteLoading />}
+      >
+        <JsonLd data={collectionSchema} />
+        <ComicLibraryClient initialAgeVerified={initialAgeVerified} />
+      </Suspense>
+      {browseTitles.length > 0 && (
+        <nav
+          aria-label="Browse popular series"
+          className="mx-auto max-w-6xl border-t border-neutral-200 px-4 py-10 dark:border-white/10"
+        >
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-neutral-500 dark:text-zinc-400">
+            Popular series
+          </h2>
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
+            {browseTitles.map((item) => (
+              <li key={item.id} className="truncate">
+                <Link
+                  href={`/library/mangadex/${item.id}`}
+                  className="text-neutral-600 transition-colors hover:text-[#ff4d00] dark:text-zinc-400 dark:hover:text-[#ff4d00]"
+                >
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </>
   );
 }

@@ -43,6 +43,8 @@ export type ComicListItem = {
   detailUrl?: string;
   pageCount?: number;
   creators?: { id: number; name: string; role: string }[];
+  /** Source's last-updated timestamp (ISO 8601) — used for honest sitemap `lastmod`. */
+  updatedAt?: string;
 };
 
 /**
