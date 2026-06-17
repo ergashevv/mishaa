@@ -65,6 +65,23 @@ export async function fetchJsonThroughProxy(path: string, fallbackUrl?: string) 
     }
   }
 
+  // Fresh fetches failed (e.g. Cloudflare block in dev). Fall back to whatever
+  // the Next.js Data Cache has for this URL, regardless of revalidation age.
+  // Non-cacheable paths (at-home tokens) skip this — stale tokens 404 the reader.
+  if (revalidate > 0) {
+    for (const url of endpoints) {
+      try {
+        const staleRes = await fetch(url, { headers: MANGADEX_HEADERS, cache: 'force-cache' });
+        if (staleRes.ok) {
+          const text = await staleRes.text();
+          return JSON.parse(text);
+        }
+      } catch {
+        // Cache miss — nothing cached for this URL
+      }
+    }
+  }
+
   throw new Error('MangaDex fetch failed');
 }
 

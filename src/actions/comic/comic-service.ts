@@ -582,7 +582,7 @@ export async function searchComics(params: {
     }
 
     if (source === 'mangadex') {
-      return searchMangaDexComicsPage({
+      return await searchMangaDexComicsPage({
         page,
         query,
         mangaLanguage,

@@ -559,15 +559,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         const catQuery = cat?.query || '';
 
         if (source === 'all') {
-          result = await fetchMangaDex(
-            catQuery,
-            pageIndex,
-            defaultRatings,
-            undefined,
-            undefined,
-            undefined,
-            mangaLanguage,
-          );
+          result = await runGlobalSearch();
         } else if (source === 'mangadex') {
           result = await fetchMangaDex(
             catQuery,

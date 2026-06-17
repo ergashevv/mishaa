@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import {
   appendMangaDexFilters,
   buildMangaDexCoverUrl,
@@ -14,7 +15,7 @@ import { SEARCH_PAGE_LIMIT } from './constants';
 import { fetchJsonThroughProxy } from './mangadex-client';
 
 /** MangaDex search page — shared by `/searchComics` and related-rails tag fallback (no circular import). */
-export async function searchMangaDexComicsPage(input: {
+async function searchMangaDexComicsPageUncached(input: {
   page: number;
   query: string;
   mangaLanguage: MangaLanguage;
@@ -107,3 +108,9 @@ export async function searchMangaDexComicsPage(input: {
     hasMore: (page + 1) * SEARCH_PAGE_LIMIT < total,
   };
 }
+
+export const searchMangaDexComicsPage = unstable_cache(
+  searchMangaDexComicsPageUncached,
+  ['mangadex-search'],
+  { revalidate: 3600 },
+);
