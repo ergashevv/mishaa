@@ -386,29 +386,30 @@ async function getHomeDataUncached(
           cacheMangaDexIdResolution(item.id.toString(), mangaDexId);
         }
 
+        // Skip items where MangaDex UUID resolution failed — AniList numeric IDs
+        // produce a "This title cannot be opened from this URL" error on the detail page.
+        if (!mangaDexId) return null;
+
         return {
-          id: mangaDexId || item.id.toString(),
+          id: mangaDexId,
           title,
           description: item.description?.replace(/<[^>]*>?/gm, '').substring(0, 150) || 'Global trending pick',
-          // Medium first: extraLarge spikes LCP/time-to-paint on mobile (Telegram-style slow hero loads).
           coverUrl:
             item.coverImage.medium || item.coverImage.large || item.coverImage.extraLarge || '/logo.png',
           bannerUrl: item.bannerImage || undefined,
           source: 'mangadex' as const,
-          // Detail route resolves non-UUID ids via AniList → MangaDex (never use absolute external URLs here:
-          // Telegram and other code join origin + href and would produce a broken double-URL).
-          href: `/library/mangadex/${mangaDexId || item.id}`,
+          href: `/library/mangadex/${mangaDexId}`,
           meta: `TRENDING #${index + 1}`,
           rating: (item.averageScore / 10).toFixed(1) || '8.5'
         };
       }));
 
-      return resolved;
+      return resolved.filter((item): item is NonNullable<typeof item> => item !== null);
     }).catch(() => []),
     loadMangaDex(latestParams, lang, latestFallbackParams, { exclusiveFetch: true }),
   ]);
 
-  return dedupeHomeShelvesForRows<HomeShelfComic>(
+  const shelves = dedupeHomeShelvesForRows<HomeShelfComic>(
     {
       trending,
       romance,
@@ -424,15 +425,31 @@ async function getHomeDataUncached(
     },
     shelfCap,
   );
+
+  // Prevent caching an all-empty result caused by a transient MangaDex outage.
+  // unstable_cache stores returned values — throwing forces a retry on the next request.
+  const mangaDexTotal =
+    (shelves.romance?.length ?? 0) +
+    (shelves.fantasy?.length ?? 0) +
+    (shelves.drama?.length ?? 0) +
+    (shelves['manga-hub']?.length ?? 0) +
+    (shelves.webtoons?.length ?? 0) +
+    (shelves.manhwa?.length ?? 0);
+  if (mangaDexTotal === 0) {
+    throw new Error('All MangaDex shelves empty — MangaDex unavailable, skipping cache');
+  }
+
+  return shelves;
 }
 
 /**
  * SSR homepage shelves are identical for everyone sharing a (lang, adult) pair,
  * so cache the assembled result for 1h instead of hitting MangaDex on every request.
  * Caches the final value — inner shelf fetches only run on a cache miss.
+ * Key bumped to v2 to invalidate any previously-cached all-empty result.
  */
 export const getHomeData = unstable_cache(
   getHomeDataUncached,
-  ['home-shelves-v1'],
+  ['home-shelves-v2'],
   { revalidate: 3600 },
 );

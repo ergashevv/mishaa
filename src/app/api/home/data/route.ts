@@ -47,7 +47,15 @@ export async function GET(req: Request) {
   // with AniList→MangaDex-resolved ON-SITE hrefs (`/library/mangadex/...`). The previous
   // per-request AniList refetch threw that away, blocked the response on a fresh GraphQL
   // call, and overwrote trending with OFF-SITE `item.siteUrl` links (a navigation bug).
-  const shelves = await getHomeData(lang, { includeAdultContent });
+  // If MangaDex is transiently unavailable, getHomeData throws to prevent caching empty
+  // shelves — catch here so the API still responds (uncached empty, not a 500).
+  let shelves: Record<string, unknown> = {};
+  try {
+    shelves = await getHomeData(lang, { includeAdultContent });
+  } catch {
+    // Return empty shelves without Cache-Control so the CDN doesn't cache this response
+    return NextResponse.json({ shelves: {} });
+  }
 
   return NextResponse.json({ shelves }, {
     headers: {
