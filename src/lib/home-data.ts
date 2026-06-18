@@ -386,25 +386,27 @@ async function getHomeDataUncached(
           cacheMangaDexIdResolution(item.id.toString(), mangaDexId);
         }
 
-        // Skip items where MangaDex UUID resolution failed — AniList numeric IDs
-        // produce a "This title cannot be opened from this URL" error on the detail page.
-        if (!mangaDexId) return null;
+        // When MangaDex UUID resolution fails, fall back to a library search link
+        // so the item still appears on the shelf (AniList covers don't need MangaDex).
+        const href = mangaDexId
+          ? `/library/mangadex/${mangaDexId}`
+          : `/library?tab=All+sources&q=${encodeURIComponent(title || '')}`;
 
         return {
-          id: mangaDexId,
+          id: mangaDexId || `anilist-${item.id}`,
           title,
           description: item.description?.replace(/<[^>]*>?/gm, '').substring(0, 150) || 'Global trending pick',
           coverUrl:
             item.coverImage.medium || item.coverImage.large || item.coverImage.extraLarge || '/logo.png',
           bannerUrl: item.bannerImage || undefined,
           source: 'mangadex' as const,
-          href: `/library/mangadex/${mangaDexId}`,
+          href,
           meta: `TRENDING #${index + 1}`,
           rating: (item.averageScore / 10).toFixed(1) || '8.5'
         };
       }));
 
-      return resolved.filter((item): item is NonNullable<typeof item> => item !== null);
+      return resolved;
     }).catch(() => []),
     loadMangaDex(latestParams, lang, latestFallbackParams, { exclusiveFetch: true }),
   ]);
@@ -426,17 +428,18 @@ async function getHomeDataUncached(
     shelfCap,
   );
 
-  // Prevent caching an all-empty result caused by a transient MangaDex outage.
-  // unstable_cache stores returned values — throwing forces a retry on the next request.
-  const mangaDexTotal =
+  // Prevent caching a completely empty result. Trending is AniList-sourced and works
+  // even when MangaDex is down, so only throw when both trending AND genre shelves are empty.
+  const totalItems =
+    (shelves.trending?.length ?? 0) +
     (shelves.romance?.length ?? 0) +
     (shelves.fantasy?.length ?? 0) +
     (shelves.drama?.length ?? 0) +
     (shelves['manga-hub']?.length ?? 0) +
     (shelves.webtoons?.length ?? 0) +
     (shelves.manhwa?.length ?? 0);
-  if (mangaDexTotal === 0) {
-    throw new Error('All MangaDex shelves empty — MangaDex unavailable, skipping cache');
+  if (totalItems === 0) {
+    throw new Error('All shelves empty — skipping cache to allow retry');
   }
 
   return shelves;
