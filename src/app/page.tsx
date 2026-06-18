@@ -66,7 +66,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   const initialIsTouchDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
   const uiCookie = cookieStore.get(UI_LANG_COOKIE)?.value;
   const initialMangaLanguage = normalizeLanguage(lang, uiCookie);
-  const initialData = await getHomeData(initialMangaLanguage, { includeAdultContent });
+  // getHomeData throws when MangaDex is unavailable (to prevent caching empty shelves).
+  // Catch here so SSR still renders — HomeClient falls back to client-side fetching.
+  const initialData = await getHomeData(initialMangaLanguage, { includeAdultContent }).catch(() => ({}));
   const uiLang = isUiLang(uiCookie) ? uiCookie : 'en';
   const homePageH1 = translations[uiLang].hero.pageH1;
 
