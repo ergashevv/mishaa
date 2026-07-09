@@ -72,6 +72,24 @@ const applied = [];
   }
 }
 
+// ---------------------------------------------------------------------------
+// Fix 3 — dedup Prisma's query-engine wasm to fit the Cloudflare free-plan 3 MiB Worker limit.
+// @prisma/client ships the SAME postgresql query engine at two paths, and the handler import()s both,
+// so esbuild bundles ~2.1 MiB (~0.84 MiB gzip) of BYTE-IDENTICAL wasm twice. Point the `.prisma/client`
+// copy's import() at the `@prisma/client/runtime` copy so esbuild bundles the engine once; clean-wasm.js
+// then deletes the now-unreferenced `.prisma/client` file. The `case` labels are left untouched, so
+// whichever path Prisma requests at runtime still resolves to the (identical) kept engine.
+{
+  const dupImport = /import\("([^"]*)\/\.prisma\/client\/query_engine_bg\.wasm"\)/g;
+  const n = (code.match(dupImport) || []).length;
+  if (n > 0) {
+    code = code.replace(dupImport, 'import("$1/@prisma/client/runtime/query_engine_bg.postgresql.wasm")');
+    applied.push(`wasm-dedup (${n})`);
+  } else {
+    applied.push('wasm-dedup (not needed)');
+  }
+}
+
 fs.writeFileSync(handlerPath, code);
 
 // Verify the writes stuck.
