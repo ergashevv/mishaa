@@ -50,6 +50,8 @@ export function proxy(request: NextRequest) {
   return res;
 }
 
+export const runtime = 'edge';
+
 export const config = {
   matcher: [
     '/feed.xml',
