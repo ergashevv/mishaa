@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build && node patch-opennext.js",
+    "build": "prisma generate && next build",
+    "cf:build": "opennextjs-cloudflare build && node patch-opennext.js",
+    "preview": "npm run cf:build && wrangler dev",
+    "deploy": "npm run cf:build && opennextjs-cloudflare deploy",
     "start": "next start",
     "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint",
     "test": "vitest run",
