@@ -20,6 +20,21 @@ const cookieDefaults = {
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Block common bot/scanner probes (e.g., .env, .php, wp-login)
+  const BLOCKED_PATTERN = /\.(php|env|bak|sql|tar|gz|zip|save|prod|staging|local|backup|yml|yaml|config|ini|log|sh)$|\/\.git|^(\/wp-admin|\/wp-login|\/wp-content|\/wp-includes|xmlrpc\.php)/i;
+  
+  if (BLOCKED_PATTERN.test(pathname)) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
+  // Basic SQLi & XSS protection in URL and Search Params
+  const queryStr = request.nextUrl.searchParams.toString();
+  const MALICIOUS_PAYLOAD_PATTERN = /(<script|%3Cscript|javascript:|%00|UNION\s+SELECT|SELECT\s+.*?\s+FROM|UPDATE\s+.*?\s+SET|INSERT\s+INTO|DELETE\s+FROM|DROP\s+TABLE|ALTER\s+TABLE|EXEC(\s|\+)+(s|x)p_)/i;
+  
+  if (MALICIOUS_PAYLOAD_PATTERN.test(pathname) || (queryStr && MALICIOUS_PAYLOAD_PATTERN.test(decodeURIComponent(queryStr)))) {
+    return new NextResponse('Forbidden - Malicious Payload Detected', { status: 403 });
+  }
+
   if (pathname === '/feed.xml') {
     const url = request.nextUrl.clone();
     url.pathname = '/feed';

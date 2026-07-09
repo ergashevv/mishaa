@@ -1,0 +1,782 @@
+2026-07-09T12:40:58.206Z	Initializing build environment...
+2026-07-09T12:41:01.005Z	Success: Finished initializing build environment
+2026-07-09T12:41:01.511Z	Cloning repository...
+2026-07-09T12:41:04.771Z	Restoring from dependencies cache
+2026-07-09T12:41:04.773Z	Restoring from build output cache
+2026-07-09T12:41:04.777Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2026-07-09T12:41:04.912Z	Installing project dependencies: npm clean-install --progress=false
+2026-07-09T12:41:10.836Z	npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-07-09T12:41:14.071Z	npm warn deprecated glob@9.3.5: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-07-09T12:41:32.479Z	
+2026-07-09T12:41:32.479Z	added 714 packages, and audited 715 packages in 26s
+2026-07-09T12:41:32.484Z	
+2026-07-09T12:41:32.484Z	208 packages are looking for funding
+2026-07-09T12:41:32.484Z	  run `npm fund` for details
+2026-07-09T12:41:32.662Z	
+2026-07-09T12:41:32.662Z	8 vulnerabilities (2 low, 3 moderate, 2 high, 1 critical)
+2026-07-09T12:41:32.662Z	
+2026-07-09T12:41:32.662Z	To address issues that do not require attention, run:
+2026-07-09T12:41:32.662Z	  npm audit fix
+2026-07-09T12:41:32.662Z	
+2026-07-09T12:41:32.662Z	To address all issues, run:
+2026-07-09T12:41:32.662Z	  npm audit fix --force
+2026-07-09T12:41:32.662Z	
+2026-07-09T12:41:32.662Z	Run `npm audit` for details.
+2026-07-09T12:41:32.831Z	Executing user build command: npx prisma generate && npx @opennextjs/cloudflare build
+2026-07-09T12:41:33.915Z	Prisma schema loaded from prisma/schema.prisma
+2026-07-09T12:41:34.207Z	
+2026-07-09T12:41:34.207Z	✔ Generated Prisma Client (v6.2.1) to ./node_modules/@prisma/client in 72ms
+2026-07-09T12:41:34.207Z	
+2026-07-09T12:41:34.207Z	Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+2026-07-09T12:41:34.207Z	
+2026-07-09T12:41:34.208Z	Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+2026-07-09T12:41:34.208Z	
+2026-07-09T12:41:36.834Z	
+2026-07-09T12:41:36.835Z	┌─────────────────────────────┐
+2026-07-09T12:41:36.835Z	│ OpenNext — Cloudflare build │
+2026-07-09T12:41:36.835Z	└─────────────────────────────┘
+2026-07-09T12:41:36.835Z	
+2026-07-09T12:41:36.954Z	App directory: /opt/buildhome/repo
+2026-07-09T12:41:36.955Z	Next.js version : 16.2.4
+2026-07-09T12:41:36.957Z	@opennextjs/cloudflare version: 1.20.1
+2026-07-09T12:41:36.957Z	@opennextjs/aws version: 4.0.2
+2026-07-09T12:41:36.957Z	workerd compatibility_date: 2026-04-28
+2026-07-09T12:41:36.959Z	
+2026-07-09T12:41:36.959Z	┌─────────────────────────────────┐
+2026-07-09T12:41:36.959Z	│ OpenNext — Building Next.js app │
+2026-07-09T12:41:36.959Z	└─────────────────────────────────┘
+2026-07-09T12:41:36.959Z	
+2026-07-09T12:41:37.115Z	
+2026-07-09T12:41:37.115Z	> icomics.wiki@0.1.0 build
+2026-07-09T12:41:37.115Z	> prisma generate && next build
+2026-07-09T12:41:37.115Z	
+2026-07-09T12:41:37.718Z	Prisma schema loaded from prisma/schema.prisma
+2026-07-09T12:41:38.060Z	
+2026-07-09T12:41:38.060Z	✔ Generated Prisma Client (v6.2.1) to ./node_modules/@prisma/client in 72ms
+2026-07-09T12:41:38.061Z	
+2026-07-09T12:41:38.061Z	Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+2026-07-09T12:41:38.061Z	
+2026-07-09T12:41:38.061Z	Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+2026-07-09T12:41:38.061Z	
+2026-07-09T12:41:38.093Z	┌─────────────────────────────────────────────────────────┐
+2026-07-09T12:41:38.093Z	│  Update available 6.2.1 -> 7.8.0                        │
+2026-07-09T12:41:38.093Z	│                                                         │
+2026-07-09T12:41:38.093Z	│  This is a major update - please follow the guide at    │
+2026-07-09T12:41:38.093Z	│  https://pris.ly/d/major-version-upgrade                │
+2026-07-09T12:41:38.094Z	│                                                         │
+2026-07-09T12:41:38.094Z	│  Run the following to update                            │
+2026-07-09T12:41:38.094Z	│    npm i --save-dev prisma@latest                       │
+2026-07-09T12:41:38.094Z	│    npm i @prisma/client@latest                          │
+2026-07-09T12:41:38.094Z	└─────────────────────────────────────────────────────────┘
+2026-07-09T12:41:38.691Z	⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+2026-07-09T12:41:38.696Z	Attention: Next.js now collects completely anonymous telemetry regarding usage.
+2026-07-09T12:41:38.697Z	This information is used to shape Next.js' roadmap and prioritize features.
+2026-07-09T12:41:38.697Z	You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+2026-07-09T12:41:38.697Z	https://nextjs.org/telemetry
+2026-07-09T12:41:38.697Z	
+2026-07-09T12:41:38.716Z	▲ Next.js 16.2.4 (Turbopack)
+2026-07-09T12:41:38.716Z	- Experiments (use with caution):
+2026-07-09T12:41:38.716Z	  · optimizePackageImports
+2026-07-09T12:41:38.716Z	
+2026-07-09T12:41:38.764Z	⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+2026-07-09T12:41:38.819Z	  Creating an optimized production build ...
+2026-07-09T12:41:53.689Z	✓ Compiled successfully in 14.6s
+2026-07-09T12:41:53.707Z	  Running TypeScript ...
+2026-07-09T12:42:05.422Z	  Finished TypeScript in 11.7s ...
+2026-07-09T12:42:05.438Z	  Collecting page data using 1 worker ...
+2026-07-09T12:42:06.074Z	⚠ Using edge runtime on a page currently disables static generation for that page
+2026-07-09T12:42:06.396Z	  Generating static pages using 1 worker (0/43) ...
+2026-07-09T12:42:06.625Z	  Generating static pages using 1 worker (10/43) 
+2026-07-09T12:42:06.856Z	  Generating static pages using 1 worker (21/43) 
+2026-07-09T12:42:07.151Z	  Generating static pages using 1 worker (32/43) 
+2026-07-09T12:42:07.432Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.432Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.433Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.433Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.433Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.433Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.433Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.441Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.441Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.441Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.441Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.441Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.441Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.444Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.448Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.448Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.448Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.448Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.448Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.453Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.453Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.453Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.453Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.453Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.453Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.453Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.454Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.454Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.454Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.454Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.454Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.454Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.454Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.454Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.454Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.454Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.454Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.454Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.454Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.454Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.454Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.455Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.455Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.455Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.455Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.455Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.455Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.455Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.455Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.456Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.460Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.460Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.461Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.461Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.461Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.461Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.461Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.461Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.461Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.461Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.461Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.461Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.461Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.461Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.461Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.461Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.461Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.461Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.461Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.461Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.485Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.488Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.488Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.488Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.488Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.489Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.489Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.489Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.489Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.489Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.489Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.489Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.489Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.489Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.489Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.489Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.489Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.489Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.489Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.489Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.489Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.490Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.490Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.490Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.490Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.490Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.490Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.490Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.491Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.491Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.491Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.491Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.491Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.491Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.491Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.492Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.492Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.492Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.492Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.492Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.492Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.492Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.493Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.493Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.493Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.493Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.493Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.496Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.496Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.496Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.496Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.496Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.496Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.497Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.497Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.497Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.497Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.497Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.497Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.497Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.497Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.497Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.497Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.498Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.498Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.498Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.498Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.498Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.498Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.498Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.531Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.531Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.531Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.531Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.531Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.531Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.531Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.537Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.537Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.537Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.537Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.537Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.537Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.537Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.586Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.588Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.588Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.588Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.589Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.589Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.589Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.589Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.590Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.590Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.590Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.591Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.591Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.591Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.592Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.592Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.592Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.593Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.593Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.593Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.593Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.594Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.594Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.594Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.594Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.594Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.594Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.594Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.594Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.594Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.594Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.595Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.595Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.595Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.595Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.595Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.595Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.595Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.595Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.595Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.595Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.595Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.595Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.595Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.595Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.596Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.596Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.596Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.596Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.597Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.597Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.597Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.597Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.597Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.597Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.597Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.624Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.626Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.626Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.626Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.627Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.627Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.627Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.628Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.628Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.628Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.628Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.628Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.628Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.628Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.628Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.629Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.629Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.630Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.630Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.630Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.630Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.630Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.630Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.630Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.630Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.630Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.631Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.631Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.631Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.631Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.631Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.631Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.631Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.631Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.631Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.631Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.631Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.631Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.631Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.631Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.632Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.632Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.632Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.632Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.632Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.632Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.632Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.632Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.632Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.632Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.632Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.633Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.633Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.633Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.633Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.633Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.634Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.634Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.634Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.634Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.634Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.634Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.634Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.634Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.634Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.634Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.634Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.634Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.634Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.634Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.659Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.660Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.660Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.660Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.660Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.660Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.660Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.660Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.660Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.660Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.660Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.661Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.661Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.661Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.661Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.661Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.661Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.661Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.661Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.661Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.662Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.662Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.662Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.662Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.662Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.663Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.663Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.663Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.664Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.664Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.664Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.664Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.665Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.665Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.665Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.665Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.665Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.665Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.665Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.665Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.665Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.665Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.665Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.665Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.665Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.665Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.665Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.665Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.665Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.669Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.669Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.669Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.670Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.670Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.670Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.670Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.670Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.670Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.670Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.670Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.670Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.670Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.670Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.670Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.670Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.670Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.670Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.670Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.670Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.670Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.692Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.692Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.692Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.692Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.692Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.692Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.693Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.693Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.693Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.693Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.694Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.694Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.694Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.694Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.694Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.694Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.695Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.695Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.695Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.695Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.695Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.695Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.695Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.695Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.695Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.695Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.695Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.696Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:07.701Z	searchComics error: Error: MangaDex fetch failed
+2026-07-09T12:42:07.701Z	    at O (.next/server/chunks/_0onq_0b._.js:72:2084)
+2026-07-09T12:42:07.701Z	    at async N (.next/server/chunks/_0onq_0b._.js:72:3194)
+2026-07-09T12:42:07.701Z	    at async (.next/server/chunks/_0onq_0b._.js:8:30218)
+2026-07-09T12:42:07.701Z	    at async z (.next/server/chunks/_0onq_0b._.js:72:24119)
+2026-07-09T12:42:07.701Z	    at async $ (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:1407)
+2026-07-09T12:42:07.701Z	    at async C (.next/server/chunks/[root-of-the-server]__05_tzm1._.js:16:2892)
+2026-07-09T12:42:08.168Z	✓ Generating static pages using 1 worker (43/43) in 1771ms
+2026-07-09T12:42:08.182Z	  Finalizing page optimization ...
+2026-07-09T12:42:08.729Z	
+2026-07-09T12:42:08.734Z	Route (app)                                  Revalidate  Expire
+2026-07-09T12:42:08.734Z	┌ ƒ /
+2026-07-09T12:42:08.734Z	├ ○ /_not-found
+2026-07-09T12:42:08.734Z	├ ○ /about
+2026-07-09T12:42:08.734Z	├ ƒ /api/age/verification
+2026-07-09T12:42:08.734Z	├ ƒ /api/analytics
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/google
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/google/callback
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/login
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/logout
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/me
+2026-07-09T12:42:08.734Z	├ ƒ /api/auth/signup
+2026-07-09T12:42:08.734Z	├ ƒ /api/cron/indexnow
+2026-07-09T12:42:08.734Z	├ ƒ /api/home/data
+2026-07-09T12:42:08.734Z	├ ƒ /api/indexnow
+2026-07-09T12:42:08.734Z	├ ƒ /api/marvel/characters
+2026-07-09T12:42:08.735Z	├ ƒ /api/marvel/issues
+2026-07-09T12:42:08.735Z	├ ƒ /api/marvel/issues/[id]
+2026-07-09T12:42:08.735Z	├ ƒ /api/marvel/series/[seriesId]
+2026-07-09T12:42:08.735Z	├ ƒ /api/marvel/series/[seriesId]/issues
+2026-07-09T12:42:08.735Z	├ ƒ /api/marvel/shelf
+2026-07-09T12:42:08.735Z	├ ƒ /api/nhentai/search
+2026-07-09T12:42:08.735Z	├ ƒ /api/profile
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/anilist
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/archive
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/booru
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/image
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/mangadex
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/nhentai
+2026-07-09T12:42:08.735Z	├ ƒ /api/proxy/nhentai/image
+2026-07-09T12:42:08.735Z	├ ƒ /api/reading-progress
+2026-07-09T12:42:08.735Z	├ ƒ /api/recommendations
+2026-07-09T12:42:08.735Z	├ ƒ /api/superhero/character/[id]
+2026-07-09T12:42:08.735Z	├ ƒ /api/superhero/characters
+2026-07-09T12:42:08.735Z	├ ƒ /api/superhero/random
+2026-07-09T12:42:08.735Z	├ ○ /auth
+2026-07-09T12:42:08.735Z	├ ○ /contact
+2026-07-09T12:42:08.735Z	├ ○ /content-policy
+2026-07-09T12:42:08.735Z	├ ○ /dmca
+2026-07-09T12:42:08.735Z	├ ○ /faq
+2026-07-09T12:42:08.740Z	├ ƒ /feed
+2026-07-09T12:42:08.740Z	├ ○ /guides
+2026-07-09T12:42:08.740Z	├ ○ /guides/getting-started
+2026-07-09T12:42:08.740Z	├ ○ /guides/library-sources
+2026-07-09T12:42:08.740Z	├ ○ /guides/manga-formats
+2026-07-09T12:42:08.740Z	├ ○ /icomics-wiki
+2026-07-09T12:42:08.740Z	├ ○ /icon.png
+2026-07-09T12:42:08.740Z	├ ƒ /library
+2026-07-09T12:42:08.740Z	├ ƒ /library/[source]/[id]
+2026-07-09T12:42:08.741Z	├ ƒ /library/[source]/[id]/read/[chapterId]
+2026-07-09T12:42:08.741Z	├ ○ /link-to-us
+2026-07-09T12:42:08.741Z	├ ○ /manifest.webmanifest
+2026-07-09T12:42:08.741Z	├ ○ /opengraph-image
+2026-07-09T12:42:08.741Z	├ ○ /privacy
+2026-07-09T12:42:08.741Z	├ ○ /profile
+2026-07-09T12:42:08.741Z	├ ○ /reading
+2026-07-09T12:42:08.741Z	├ ○ /robots.txt
+2026-07-09T12:42:08.741Z	├ ○ /settings
+2026-07-09T12:42:08.741Z	├ ○ /sitemap.xml                                    15m      1y
+2026-07-09T12:42:08.741Z	├ ○ /superheroes
+2026-07-09T12:42:08.741Z	├ ○ /support
+2026-07-09T12:42:08.741Z	├ ○ /terms
+2026-07-09T12:42:08.741Z	└ ○ /twitter-image
+2026-07-09T12:42:08.741Z	
+2026-07-09T12:42:08.741Z	
+2026-07-09T12:42:08.741Z	ƒ Proxy (Middleware)
+2026-07-09T12:42:08.741Z	
+2026-07-09T12:42:08.741Z	○  (Static)   prerendered as static content
+2026-07-09T12:42:08.741Z	ƒ  (Dynamic)  server-rendered on demand
+2026-07-09T12:42:08.741Z	
+2026-07-09T12:42:08.823Z	
+2026-07-09T12:42:08.823Z	┌──────────────────────────────┐
+2026-07-09T12:42:08.823Z	│ OpenNext — Generating bundle │
+2026-07-09T12:42:08.823Z	└──────────────────────────────┘
+2026-07-09T12:42:08.823Z	
+2026-07-09T12:42:08.918Z	Bundling middleware function...
+2026-07-09T12:42:09.024Z	Bundling static assets...
+2026-07-09T12:42:09.096Z	Bundling cache assets...
+2026-07-09T12:42:09.162Z	Building server function: default...
+2026-07-09T12:42:12.621Z	Applying code patches: 3.024s
+2026-07-09T12:42:12.899Z	# copyPackageTemplateFiles
+2026-07-09T12:42:12.903Z	⚙️ Bundling the OpenNext server...
+2026-07-09T12:42:12.903Z	
+2026-07-09T12:42:20.901Z	Worker saved in `.open-next/worker.js` 🚀
+2026-07-09T12:42:20.901Z	
+2026-07-09T12:42:20.901Z	OpenNext build complete.
+2026-07-09T12:42:21.586Z	Success: Build command completed
+2026-07-09T12:42:21.889Z	Executing user deploy command: npx wrangler deploy
+2026-07-09T12:42:23.353Z	
+2026-07-09T12:42:23.353Z	 ⛅️ wrangler 4.107.1
+2026-07-09T12:42:23.353Z	────────────────────
+2026-07-09T12:42:23.415Z	OpenNext project detected, calling `opennextjs-cloudflare deploy`
+2026-07-09T12:42:27.247Z	
+2026-07-09T12:42:27.247Z	┌──────────────────────────────┐
+2026-07-09T12:42:27.247Z	│ OpenNext — Cloudflare deploy │
+2026-07-09T12:42:27.247Z	└──────────────────────────────┘
+2026-07-09T12:42:27.247Z	
+2026-07-09T12:42:27.746Z	Incremental cache does not need populating
+2026-07-09T12:42:27.747Z	Tag cache does not need populating
+2026-07-09T12:42:28.992Z	
+2026-07-09T12:42:28.992Z	 ⛅️ wrangler 4.107.1
+2026-07-09T12:42:28.993Z	────────────────────
+2026-07-09T12:42:28.998Z	
+2026-07-09T12:42:28.998Z	Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2026-07-09T12:42:31.666Z	🌀 Building list of assets...
+2026-07-09T12:42:31.670Z	✨ Read 122 files from the assets directory /opt/buildhome/repo/.open-next/assets
+2026-07-09T12:42:31.966Z	🌀 Starting asset upload...
+2026-07-09T12:42:33.976Z	🌀 Found 115 new or modified static assets to upload. Proceeding with upload...
+2026-07-09T12:42:33.977Z	+ /BUILD_ID
+2026-07-09T12:42:33.978Z	+ /_next/static/mvAPGqo5gPJB_dNrBtZui/_ssgManifest.js
+2026-07-09T12:42:33.978Z	+ /_next/static/mvAPGqo5gPJB_dNrBtZui/_buildManifest.js
+2026-07-09T12:42:33.978Z	+ /_next/static/mvAPGqo5gPJB_dNrBtZui/_clientMiddlewareManifest.js
+2026-07-09T12:42:33.978Z	+ /_next/static/chunks/16oy8o74dv1gw.js
+2026-07-09T12:42:33.978Z	+ /next.svg
+2026-07-09T12:42:33.978Z	+ /_next/static/chunks/0a--._q32tp~f.js
+2026-07-09T12:42:33.978Z	+ /_next/static/media/e532fa1b9921e1cd-s.0~wrfy7sm-h4g.woff2
+2026-07-09T12:42:33.978Z	+ /_next/static/media/9a4838fcda0d1bca-s.0787d67~10694.woff2
+2026-07-09T12:42:33.978Z	+ /_next/static/media/e390973e931a41c5-s.08hd0g.321csk.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/0~42xpcxz4ic..js
+2026-07-09T12:42:33.979Z	+ /_next/static/media/1a69062cfe6f77f8-s.07r2ragk8ph~z.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/media/033400d475fad6b1-s.0ekd.j2hc~_w0.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/media/2fe89d53234c61d4-s.0k_.i63k_i_qa.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/media/effe91970fc4db64-s.p.07ig5l8azj~hy.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/0fyh3bi~_qsi4.js
+2026-07-09T12:42:33.979Z	+ /_next/static/media/7ebf22b5a21034f8-s.p.10_7676vm7pyy.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/17a22~dxtgstn.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/12i3tx56zqxy1.js
+2026-07-09T12:42:33.979Z	+ /_next/static/media/8800dfc60902df36-s.p.127vvh92c894b.woff2
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/0x_f2dyj1lp_d.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/06jz7tbm_gdoh.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/0l__imh_lb6-3.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/01-7udy.iln9-.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/03~yq9q893hmn.js
+2026-07-09T12:42:33.979Z	+ /_next/static/chunks/10~x95jhs6ns3.js
+2026-07-09T12:42:33.979Z	+ /logo.png
+2026-07-09T12:42:33.980Z	+ /feature-forge.png
+2026-07-09T12:42:33.980Z	+ /showcase.png
+2026-07-09T12:42:33.980Z	+ /cover3.png
+2026-07-09T12:42:33.980Z	+ /new6-desktop.png
+2026-07-09T12:42:33.980Z	+ /new1-mobile.png
+2026-07-09T12:42:33.980Z	+ /story4-desktop.png
+2026-07-09T12:42:33.980Z	+ /story4-mobile.png
+2026-07-09T12:42:33.980Z	+ /new5-desktop.png
+2026-07-09T12:42:33.980Z	+ /new3-desktop.png
+2026-07-09T12:42:33.980Z	+ /new3-mobile.png
+2026-07-09T12:42:33.980Z	+ /story6-mobile.png
+2026-07-09T12:42:33.980Z	+ /story5-desktop.png
+2026-07-09T12:42:33.980Z	+ /3275031d0a124a54a34198daff4136d9.txt
+2026-07-09T12:42:33.980Z	+ /vercel.svg
+2026-07-09T12:42:33.980Z	+ /window.svg
+2026-07-09T12:42:33.981Z	+ /globe.svg
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/0k3t40ddguzbw.js
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/0l1mx3-uk1thd.js
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/01xlw8hd842-c.js
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/02qcnufrcv7~n.js
+2026-07-09T12:42:33.981Z	+ /_next/static/media/6ff74e33ebd7bca3-s.0_n_qwbzcushi.woff2
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/06liq6jbl_njx.js
+2026-07-09T12:42:33.981Z	+ /_next/static/media/59b15b4bcd7b1eb5-s.0x08jh8vondwt.woff2
+2026-07-09T12:42:33.981Z	+ /_next/static/media/ccf27e5a7366fb23-s.0hck6o0i8wq3a.woff2
+2026-07-09T12:42:33.981Z	+ /_next/static/chunks/0eavc~iwdxo42.js
+2026-07-09T12:42:33.981Z	+ /_next/static/media/2e95a7d252b9825a-s.0dgq8lqrj3gc_.woff2
+2026-07-09T12:42:33.981Z	+ /_next/static/media/23b7a97ae3b5c134-s.p.0o14nraug8u5s.woff2
+2026-07-09T12:42:33.982Z	+ /_next/static/media/16d91c780434f2ce-s.p.08txxdt~yy1o3.woff2
+2026-07-09T12:42:33.982Z	+ /_next/static/media/ef79401ea952b7f0-s.14047qjmgi0bb.woff2
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/0g5c6nzma4q1~.js
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/077usebeofozd.js
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/0__w22~7co00m.js
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/0u.vrud-4727~.js
+2026-07-09T12:42:33.982Z	+ /_next/static/media/017d9bea37084d9b-s.p.179.vsfvxa6t5.woff2
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/0jc0zj2m.~ys-.js
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/16_wgicx1scno.css
+2026-07-09T12:42:33.982Z	+ /_next/static/chunks/08st08c5c-aw2.js
+2026-07-09T12:42:33.982Z	+ /me5.PNG
+2026-07-09T12:42:33.982Z	+ /avatars/nova.png
+2026-07-09T12:42:33.982Z	+ /avatars/vile.png
+2026-07-09T12:42:33.982Z	+ /hero-bg.png
+2026-07-09T12:42:33.983Z	+ /avatars/oracle.png
+2026-07-09T12:42:33.983Z	+ /new6-mobile.png
+2026-07-09T12:42:33.983Z	+ /story1-mobile.png
+2026-07-09T12:42:33.983Z	+ /story2-mobile.png
+2026-07-09T12:42:33.983Z	+ /new4-mobile.png
+2026-07-09T12:42:33.983Z	+ /story3-mobile.png
+2026-07-09T12:42:33.983Z	+ /story3-desktop.png
+2026-07-09T12:42:33.983Z	+ /new2-desktop.png
+2026-07-09T12:42:33.983Z	+ /story6-desktop.png
+2026-07-09T12:42:33.983Z	+ /google02749fe266abe3a2.html
+2026-07-09T12:42:33.983Z	+ /yandex_e9f6cda9ea0e7a4e.html
+2026-07-09T12:42:33.983Z	+ /file.svg
+2026-07-09T12:42:33.983Z	+ /_next/static/chunks/0y6t-uek6_0iv.js
+2026-07-09T12:42:33.983Z	+ /_next/static/chunks/0vqjujubuv2v3.js
+2026-07-09T12:42:33.983Z	+ /_next/static/media/4084ce120da2621a-s.0xli8s7shaj_o.woff2
+2026-07-09T12:42:33.983Z	+ /_next/static/chunks/0bwcvlo4st3q-.js
+2026-07-09T12:42:33.983Z	+ /_next/static/media/02263ebadd758ea4-s.0qg7j5o.yrclm.woff2
+2026-07-09T12:42:33.983Z	+ /_next/static/media/5e05ae5b48faa55e-s.0m9hhkgdlzukj.woff2
+2026-07-09T12:42:33.983Z	+ /_next/static/chunks/05-nxyf7ppsnb.js
+2026-07-09T12:42:33.983Z	+ /_next/static/media/a7afbb44bec2bb18-s.0juuwbcf7uz~t.woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/media/fc0a7394b875fa43-s.0y1-r_vehenvp.woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/media/68757d6cddeff913-s.0hkrq11n-dhos.woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/media/99e609270109b47d-s.p.16-z~2sp29ex6.woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/turbopack-0m~smsp6xc8_s.js
+2026-07-09T12:42:33.984Z	+ /_next/static/media/e41d5df559864f9e-s.p.0gq7fw9.sy_5..woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/media/26daee0352f50a5f-s.0rqws-.h91di~.woff2
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/15vxom3lvu1xw.js
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/0jph0zf6rnvlu.js
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/0-acowq9248cm.js
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/18bym8jxmlfkp.js
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/0pqt~8bl3ukh4.js
+2026-07-09T12:42:33.984Z	+ /_next/static/chunks/0d3shmwh5_nmn.js
+2026-07-09T12:42:33.985Z	   (truncating changed assets log, set `WRANGLER_LOG=debug` environment variable to see full diff)
+2026-07-09T12:42:39.994Z	Uploaded 38 of 115 assets
+2026-07-09T12:42:40.473Z	Uploaded 77 of 115 assets
+2026-07-09T12:42:40.841Z	Uploaded 115 of 115 assets
+2026-07-09T12:42:40.841Z	✨ Success! Uploaded 115 files (1 already uploaded) (6.86 sec)
+2026-07-09T12:42:40.841Z	
+2026-07-09T12:42:41.348Z	Total Upload: 16805.26 KiB / gzip: 6084.51 KiB
+2026-07-09T12:42:44.012Z	Your Worker has access to the following bindings:
+2026-07-09T12:42:44.012Z	Binding            Resource      
+2026-07-09T12:42:44.012Z	env.ASSETS         Assets        
+2026-07-09T12:42:44.012Z	
+2026-07-09T12:42:44.019Z	
+2026-07-09T12:42:44.097Z	▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+2026-07-09T12:42:44.098Z	
+2026-07-09T12:42:44.098Z	    .open-next/server-functions/default/handler.mjs:489:939:
+2026-07-09T12:42:44.099Z	      489 │ ...searchedLocations=[],dirname=eval("__dirname"),searchLocations...
+2026-07-09T12:42:44.099Z	          ╵                                 ~~~~
+2026-07-09T12:42:44.099Z	
+2026-07-09T12:42:44.099Z	  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval
+2026-07-09T12:42:44.099Z	
+2026-07-09T12:42:44.100Z	
+2026-07-09T12:42:44.100Z	✘ [ERROR] Your Worker failed validation because it exceeded size limits.
+2026-07-09T12:42:44.100Z	
+2026-07-09T12:42:44.100Z	  
+2026-07-09T12:42:44.100Z	  A request to the Cloudflare API (/accounts/435a1f10d6e76dfc867924f4ad8aab8b/workers/scripts/icomics/versions) failed.
+2026-07-09T12:42:44.100Z	   - Your Worker exceeded the size limit of 3 MiB. Please upgrade to a paid plan to deploy Workers up to 10 MiB. https://dash.cloudflare.com/435a1f10d6e76dfc867924f4ad8aab8b/workers/plans [code: 10027]
+2026-07-09T12:42:44.100Z	  To learn more about this error, visit: https://developers.cloudflare.com/workers/platform/limits/#worker-size
+2026-07-09T12:42:44.101Z	  Here are the 5 largest dependencies included in your script:
+2026-07-09T12:42:44.101Z	  
+2026-07-09T12:42:44.101Z	  - .open-next/server-functions/default/handler.mjs - 6565.58 KiB
+2026-07-09T12:42:44.101Z	  - .open-next/server-functions/default/node_modules/.prisma/client/query_engine_bg.wasm - 2145.45 KiB
+2026-07-09T12:42:44.101Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm - 2145.45 KiB
+2026-07-09T12:42:44.101Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.mysql.wasm - 2106.11 KiB
+2026-07-09T12:42:44.101Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.sqlite.wasm - 2018.58 KiB
+2026-07-09T12:42:44.101Z	  
+2026-07-09T12:42:44.101Z	  If these are unnecessary, consider removing them
+2026-07-09T12:42:44.101Z	  
+2026-07-09T12:42:44.101Z	
+2026-07-09T12:42:44.101Z	
+2026-07-09T12:42:44.101Z	✘ [ERROR] A request to the Cloudflare API (/accounts/435a1f10d6e76dfc867924f4ad8aab8b/workers/scripts/icomics/versions) failed.
+2026-07-09T12:42:44.102Z	
+2026-07-09T12:42:44.103Z	  Your Worker exceeded the size limit of 3 MiB. Please upgrade to a paid plan to deploy Workers up to 10 MiB. https://dash.cloudflare.com/435a1f10d6e76dfc867924f4ad8aab8b/workers/plans [code: 10027]
+2026-07-09T12:42:44.103Z	  To learn more about this error, visit: https://developers.cloudflare.com/workers/platform/limits/#worker-size
+2026-07-09T12:42:44.103Z	
+2026-07-09T12:42:44.103Z	  
+2026-07-09T12:42:44.103Z	  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+2026-07-09T12:42:44.103Z	
+2026-07-09T12:42:44.103Z	
+2026-07-09T12:42:44.103Z	🪵  Logs were written to "/opt/buildhome/.config/.wrangler/logs/wrangler-2026-07-09_12-42-28_662.log"
+2026-07-09T12:42:44.103Z	ERROR Wrangler deploy command failed:
+2026-07-09T12:42:44.103Z	▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+2026-07-09T12:42:44.103Z	
+2026-07-09T12:42:44.103Z	    .open-next/server-functions/default/handler.mjs:489:939:
+2026-07-09T12:42:44.103Z	      489 │ ...searchedLocations=[],dirname=eval("__dirname"),searchLocations...
+2026-07-09T12:42:44.104Z	          ╵                                 ~~~~
+2026-07-09T12:42:44.104Z	
+2026-07-09T12:42:44.104Z	  You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval
+2026-07-09T12:42:44.104Z	
+2026-07-09T12:42:44.104Z	
+2026-07-09T12:42:44.104Z	✘ [ERROR] Your Worker failed validation because it exceeded size limits.
+2026-07-09T12:42:44.104Z	
+2026-07-09T12:42:44.104Z	  
+2026-07-09T12:42:44.104Z	  A request to the Cloudflare API (/accounts/435a1f10d6e76dfc867924f4ad8aab8b/workers/scripts/icomics/versions) failed.
+2026-07-09T12:42:44.104Z	   - Your Worker exceeded the size limit of 3 MiB. Please upgrade to a paid plan to deploy Workers up to 10 MiB. https://dash.cloudflare.com/435a1f10d6e76dfc867924f4ad8aab8b/workers/plans [code: 10027]
+2026-07-09T12:42:44.104Z	  To learn more about this error, visit: https://developers.cloudflare.com/workers/platform/limits/#worker-size
+2026-07-09T12:42:44.104Z	  Here are the 5 largest dependencies included in your script:
+2026-07-09T12:42:44.104Z	  
+2026-07-09T12:42:44.104Z	  - .open-next/server-functions/default/handler.mjs - 6565.58 KiB
+2026-07-09T12:42:44.104Z	  - .open-next/server-functions/default/node_modules/.prisma/client/query_engine_bg.wasm - 2145.45 KiB
+2026-07-09T12:42:44.104Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.postgresql.wasm - 2145.45 KiB
+2026-07-09T12:42:44.104Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.mysql.wasm - 2106.11 KiB
+2026-07-09T12:42:44.105Z	  - .open-next/server-functions/default/node_modules/@prisma/client/runtime/query_engine_bg.sqlite.wasm - 2018.58 KiB
+2026-07-09T12:42:44.105Z	  
+2026-07-09T12:42:44.105Z	  If these are unnecessary, consider removing them
+2026-07-09T12:42:44.105Z	  
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	✘ [ERROR] A request to the Cloudflare API (/accounts/435a1f10d6e76dfc867924f4ad8aab8b/workers/scripts/icomics/versions) failed.
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	  Your Worker exceeded the size limit of 3 MiB. Please upgrade to a paid plan to deploy Workers up to 10 MiB. https://dash.cloudflare.com/435a1f10d6e76dfc867924f4ad8aab8b/workers/plans [code: 10027]
+2026-07-09T12:42:44.105Z	  To learn more about this error, visit: https://developers.cloudflare.com/workers/platform/limits/#worker-size
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	  
+2026-07-09T12:42:44.105Z	  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.105Z	🪵  Logs were written to "/opt/buildhome/.config/.wrangler/logs/wrangler-2026-07-09_12-42-28_662.log"
+2026-07-09T12:42:44.105Z	
+2026-07-09T12:42:44.136Z	
+2026-07-09T12:42:44.193Z	✘ [ERROR] 
+2026-07-09T12:42:44.193Z	
+2026-07-09T12:42:44.193Z	
+2026-07-09T12:42:44.213Z	If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
+2026-07-09T12:42:44.229Z	🪵  Logs were written to "/opt/buildhome/.config/.wrangler/logs/wrangler-2026-07-09_12-42-22_919.log"
+2026-07-09T12:42:44.271Z	Failed: error occurred while running deploy command
