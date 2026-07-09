@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
       "framer-motion",
     ],
   },
+  outputFileTracingExcludes: {
+    '*': [
+      '**/*query_engine_bg.mysql.wasm',
+      '**/*query_engine_bg.sqlite.wasm',
+    ],
+  },
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
 };
 
