@@ -32,11 +32,12 @@ const applied = [];
 {
   const unpatched = 'async loadCustomCacheHandlers(){let handlersSymbol';
   const patched = 'async loadCustomCacheHandlers(){let t,e;let handlersSymbol';
-  if (code.includes(patched)) {
+  const n = code.split(unpatched).length - 1; // patch EVERY copy, not just the first
+  if (n > 0) {
+    code = code.split(unpatched).join(patched);
+    applied.push(`cache-handlers (${n})`);
+  } else if (code.includes(patched)) {
     applied.push('cache-handlers (already patched)');
-  } else if (code.includes(unpatched)) {
-    code = code.replace(unpatched, patched);
-    applied.push('cache-handlers');
   } else {
     fail('could not locate loadCustomCacheHandlers() — OpenNext output changed; re-verify the "t is not defined" fix.');
   }
@@ -77,6 +78,9 @@ fs.writeFileSync(handlerPath, code);
 const out = fs.readFileSync(handlerPath, 'utf8');
 if (!out.includes('async loadCustomCacheHandlers(){let t,e;let handlersSymbol')) {
   fail('cache-handlers patch verification failed after write.');
+}
+if (out.includes('async loadCustomCacheHandlers(){let handlersSymbol')) {
+  fail('a residual unpatched loadCustomCacheHandlers() copy remains after patching.');
 }
 if (/loadInstrumentationModule\(\)\{if\(!this\.serverOptions\.dev\)/.test(out) &&
     !out.includes('return null;/*opennext-no-instrumentation*/')) {

@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { fetchAniListManga } from '@/lib/anilist';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {

@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { AGE_VERIFICATION_COOKIE } from '@/lib/age-verification';
 import { NHENTAI_IMAGE_HEADERS, isAllowedNHentaiImageCdnPath } from '@/lib/nhentai';

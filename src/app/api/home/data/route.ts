@@ -1,4 +1,4 @@
-export const runtime = "edge";
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { getHomeData, getHomeFeed } from "@/lib/home-data";
 import { AGE_VERIFICATION_COOKIE } from "@/lib/age-verification";

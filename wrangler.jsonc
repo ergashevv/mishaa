@@ -8,6 +8,12 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  // Belt-and-suspenders: re-apply the OpenNext handler patch on every `wrangler deploy`/`dev`, even if a
+  // deploy path skipped `npm run cf:build`. patch-opennext.js is idempotent and fails hard (non-zero exit)
+  // if the handler is missing or a known bug pattern can't be neutralized, so a broken worker can't ship.
+  "build": {
+    "command": "node patch-opennext.js"
+  },
   "assets": {
     "binding": "ASSETS",
     "directory": ".open-next/assets"

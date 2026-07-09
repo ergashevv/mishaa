@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { NHENTAI_API_MIRRORS, NHENTAI_JSON_HEADERS } from '@/lib/nhentai';
 
