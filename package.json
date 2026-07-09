@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && rm -f node_modules/@prisma/client/runtime/query_engine_bg.sqlite.wasm node_modules/@prisma/client/runtime/query_engine_bg.mysql.wasm && next build",
+    "build": "prisma generate && rm -f node_modules/@prisma/client/runtime/*.wasm node_modules/.prisma/client/*.node && next build",
     "start": "next start",
     "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint",
     "test": "vitest run",

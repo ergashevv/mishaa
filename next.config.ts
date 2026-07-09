@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
       '**/*query_engine_bg.sqlite.wasm',
     ],
   },
-  serverExternalPackages: ["@prisma/client", "bcryptjs"],
+
 };
 
 export default nextConfig;
