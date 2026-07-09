@@ -17,7 +17,7 @@ const cookieDefaults = {
 };
 
 /** Dot-path routes (`feed.xml`) sometimes skip registration on Edge adapters; RSS is served from `/feed`. */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname === '/feed.xml') {
