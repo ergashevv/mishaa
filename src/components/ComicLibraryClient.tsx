@@ -837,8 +837,18 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     sourceFilter === 'all' &&
     !savedOnly &&
     sortOrder === 'featured';
-  const spotlightItems = showSpotlight ? visibleComics.slice(0, 3) : [];
-  const restItems = showSpotlight ? visibleComics.slice(3) : [];
+  // "All sources" merges MangaDex/Marvel with archive.org (uncurated batch scans, often with
+  // broken or placeholder cover art) and adult booru/nhentai sources — none of those belong in
+  // the "Popular now" spotlight, which should read as a genuine editorial pick, not whichever
+  // title happened to sort first alphabetically. Restrict the featured trio to sources with
+  // real, curated metadata; every other source still appears in the plain grid below.
+  const SPOTLIGHT_ELIGIBLE_SOURCES: ReadonlySet<string> = new Set(['mangadex', 'marvel', 'superhero']);
+  const spotlightItems = showSpotlight
+    ? visibleComics.filter((c) => SPOTLIGHT_ELIGIBLE_SOURCES.has(c.source)).slice(0, 3)
+    : [];
+  const restItems = showSpotlight
+    ? visibleComics.filter((c) => !spotlightItems.includes(c))
+    : visibleComics;
 
   return (
     <LazyMotion features={domAnimation} strict>
