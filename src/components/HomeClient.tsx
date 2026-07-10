@@ -809,7 +809,7 @@ export default function HomeClient({
     <div className="min-h-dvh bg-app text-fg">
       <Navbar />
 
-      <main className="relative pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="relative pt-nav-catalog">
         {/* --- FEATURED HERO --- */}
         <section className="relative w-full">
           <AnimatePresence mode="wait">
