@@ -26,7 +26,7 @@ import type {
   MarvelSeriesIssue,
 } from '@/lib/marvel/types';
 import type { ComicChapter, ComicDetail, ComicsSearchPage } from '@/lib/comic-types';
-import { normalizeMarvelImageOrLogo } from '@/lib/marvel/image';
+import { normalizeMarvelImageOrLogo, normalizeMarvelImageToProxyUrl } from '@/lib/marvel/image';
 import { getSuperheroApiBase, SEARCH_PAGE_LIMIT } from './internal/constants';
 import { fetchJsonThroughProxy, resolveMangaDexLookupId } from './internal/mangadex-client';
 import { buildMangaDexRelatedRails } from './internal/mangadex-related';
@@ -493,6 +493,13 @@ export async function getChapterPages(source: string, id: string, chapterId: str
       return pages;
     }
 
+    if (['e621', 'danbooru', 'gelbooru', 'rule34'].includes(source)) {
+      // Booru posts are single images — reuse the detail fetch (same upstream
+      // URLs and caching) and read the proxied full-size file URL.
+      const detail = await getComicDetails(source, id, undefined, { enrich: false });
+      return detail?.coverUrl ? [detail.coverUrl] : [];
+    }
+
     return [];
   } catch (error) {
     console.error('getChapterPages error:', error);
@@ -547,13 +554,50 @@ export async function searchComics(params: {
     }
 
     if (source === 'marvel') {
-      const searchParams = new URLSearchParams();
-      if (query.length >= 2) searchParams.set('q', query);
-      else {
-        searchParams.set('limit', SEARCH_PAGE_LIMIT.toString());
-        searchParams.set('offset', String(page * SEARCH_PAGE_LIMIT));
+      const mapMarvelItem = (item: {
+        id: number | string;
+        title: string;
+        issueNumber?: string;
+        seriesName?: string;
+        onSaleDate?: string;
+        yearPage?: number;
+        cover?: { path: string; extension: string };
+        pageCount?: number;
+      }) => ({
+        id: String(item.id),
+        title: item.title,
+        description: item.seriesName ?? '',
+        // List/search payloads carry no cover — return '' so the grid renders
+        // its metadata-card fallback instead of a stretched site logo.
+        coverUrl: normalizeMarvelImageToProxyUrl(item.cover),
+        source: 'marvel' as const,
+        rating: item.pageCount ? `${item.pageCount} p` : 'Marvel',
+        issueNumber: item.issueNumber,
+        seriesName: item.seriesName,
+        onSaleDate: item.onSaleDate,
+        yearPage: item.yearPage,
+        pageCount: item.pageCount,
+      });
+
+      if (query.length >= 2) {
+        // `/issues` ignores `q` (it returns the unfiltered latest feed); text
+        // search lives at `/search/issues`, which is unpaged and ignores
+        // limit/offset — return the full result set on page 0, nothing after.
+        if (page > 0) return { items: [], hasMore: false };
+
+        const res = await fetch(
+          `${MARVEL_PUBLIC_API_BASE}/search/issues?q=${encodeURIComponent(query)}`,
+          { next: { revalidate: 900 } },
+        );
+        const data = await res.json();
+        const items = data.items || [];
+        return { items: items.map(mapMarvelItem), hasMore: false };
       }
 
+      const searchParams = new URLSearchParams({
+        limit: SEARCH_PAGE_LIMIT.toString(),
+        offset: String(page * SEARCH_PAGE_LIMIT),
+      });
       const res = await fetch(`${MARVEL_PUBLIC_API_BASE}/issues?${searchParams.toString()}`, {
         next: { revalidate: 900 },
       });
@@ -561,22 +605,7 @@ export async function searchComics(params: {
       const items = data.items || [];
 
       return {
-        items: items.map(
-          (item: {
-            id: number | string;
-            title: string;
-            seriesName: string;
-            cover: { path: string; extension: string };
-            pageCount?: number;
-          }) => ({
-            id: String(item.id),
-            title: item.title,
-            description: item.seriesName,
-            coverUrl: normalizeMarvelImageOrLogo(item.cover),
-            source: 'marvel' as const,
-            rating: item.pageCount ? `${item.pageCount} p` : 'Marvel',
-          }),
-        ),
+        items: items.map(mapMarvelItem),
         hasMore: data.has_next || items.length === SEARCH_PAGE_LIMIT,
       };
     }

@@ -18,6 +18,16 @@ import { NHENTAI_API_MIRRORS, NHENTAI_JSON_HEADERS } from '@/lib/nhentai';
 
 
 const safeText = (value: unknown, fallback = '') => typeof value === 'string' && value.trim() ? value : fallback;
+
+/** Cut at a word boundary with an ellipsis — a hard substring left blurbs ending mid-word ("populari"). */
+const truncateAtWord = (value: string | undefined | null, max: number): string => {
+  if (!value) return '';
+  const text = value.trim();
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${cut.slice(0, lastSpace > max * 0.6 ? lastSpace : max).trimEnd()}…`;
+};
 const FETCH_TIMEOUT_MS = 7000;
 export const MANGADEX_ROMANCE_TAG_ID = '423e2eae-a7a2-4a8b-ac03-a8351462d71d';
 export const MANGADEX_FANTASY_TAG_ID = 'cdc58593-87dd-415e-bbc0-2ec27bf404cc';
@@ -395,7 +405,7 @@ async function getHomeDataUncached(
         return {
           id: mangaDexId || `anilist-${item.id}`,
           title,
-          description: item.description?.replace(/<[^>]*>?/gm, '').substring(0, 150) || 'Global trending pick',
+          description: truncateAtWord(item.description?.replace(/<[^>]*>?/gm, ''), 180) || 'Global trending pick',
           coverUrl:
             item.coverImage.medium || item.coverImage.large || item.coverImage.extraLarge || '/logo.png',
           bannerUrl: item.bannerImage || undefined,

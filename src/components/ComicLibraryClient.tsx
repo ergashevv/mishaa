@@ -88,8 +88,14 @@ const LIMIT = 36;
 /** Separator for debouncing `activeCategory + search` as one string (rare in titles). */
 const LIB_TAB_SEARCH_PAIR_SEP = '\u241e';
 
+/**
+ * Every tab starts with an empty visible search input. Internal category API
+ * queries (e.g. booru `rating:explicit`) flow to `loadData` via `cat.query`
+ * and must never leak into the input. Keep an entry per label ('' not
+ * undefined) so `handleCategoryChange` doesn't fall back to `category.query`.
+ */
 const createCategoryQueryMap = () =>
-  Object.fromEntries(CATEGORIES.map((category) => [category.label, category.query ?? ''])) as Record<string, string>;
+  Object.fromEntries(CATEGORIES.map((category) => [category.label, ''])) as Record<string, string>;
 
 const getCategoryByLabel = (label: string | null) => CATEGORIES.find((category) => category.label === label);
 
@@ -202,18 +208,14 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
   const bookmarkedKeys = useMemo(() => new Set(bookmarks.map((bookmark) => `${bookmark.source}:${bookmark.id}`)), [bookmarks]);
   const visibleComics = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
+    // No client-side text re-filter: `loadData` already refetches server-filtered
+    // results per query, and substring-matching them again hid booru/nhentai items
+    // whose truncated tag titles never contain the query text.
     return comics
       .filter((comic) => {
-        const matchesQuery =
-          !query ||
-          comic.title.toLowerCase().includes(query) ||
-          comic.description.toLowerCase().includes(query) ||
-          comic.rating.toLowerCase().includes(query);
         const matchesSource = sourceFilter === 'all' || comic.source === sourceFilter;
         const matchesSaved = !savedOnly || bookmarkedKeys.has(`${comic.source}:${comic.id}`);
-        return matchesQuery && matchesSource && matchesSaved;
+        return matchesSource && matchesSaved;
       })
       .sort((left, right) => {
         const leftKey = `${left.source}:${left.id}`;
@@ -228,7 +230,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         if (sortOrder === 'title-desc') return right.title.localeCompare(left.title);
         return 0;
       });
-  }, [bookmarkedKeys, comics, recentActivity, savedOnly, searchQuery, sourceFilter, sortOrder]);
+  }, [bookmarkedKeys, comics, recentActivity, savedOnly, sourceFilter, sortOrder]);
 
   useEffect(() => {
     const verified = initialAgeVerified || readAgeVerification();
@@ -331,6 +333,9 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       ...prev,
       [activeCategory]: value,
     }));
+    // Open results as the user types — the old focus-only trigger meant typing into a
+    // freshly-focused input never showed the autocomplete dropdown.
+    setShowDropdown(value.trim().length >= 3);
   }, [activeCategory]);
 
   const closeSearchDropdown = useCallback(() => {
@@ -1105,7 +1110,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     {comic.source === 'marvel' && (
                       <div className="flex flex-wrap gap-1.5">
                         <span className="ic-badge ic-badge--neutral">#{comic.issueNumber || '?'}</span>
-                        <span className="ic-badge ic-badge--neutral">{comic.pageCount ? `${comic.pageCount} p.` : 'No pages'}</span>
+                        {comic.pageCount ? <span className="ic-badge ic-badge--neutral">{`${comic.pageCount} p.`}</span> : null}
                       </div>
                     )}
                   </Link>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -29,7 +30,7 @@ export default function GuideArticleShell({
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <article className="wrap max-w-3xl py-14 sm:py-16 lg:py-20">
           <header>
             <div className="flex items-center gap-2 text-fg-muted">
@@ -66,7 +67,16 @@ export default function GuideArticleShell({
           <footer className="mt-10 rounded-card border border-line bg-card p-5 sm:p-6 md:p-8">
             <p className="ic-eyebrow text-accent-text">Keep exploring</p>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-fg-secondary md:text-base">
-              {footerNote}
+              {/* Route paths in the note ("→ /guides/…") used to print as inert text — linkify them. */}
+              {footerNote.split(/(\/(?:guides|library|reading|faq)(?:\/[\w-]+)*)/g).map((part, i) =>
+                part.startsWith('/') ? (
+                  <Link key={i} href={part} className="font-medium text-accent-text underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent">
+                    {part}
+                  </Link>
+                ) : (
+                  part
+                )
+              )}
             </p>
           </footer>
         </article>

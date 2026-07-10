@@ -68,6 +68,13 @@ interface ShelfDefinition {
   key: ShelfKey;
   title: string;
   subtitle: string;
+  /**
+   * Library tab label for the "See all" link when it differs from `title`
+   * (must match a CATEGORIES label in ComicLibraryClient, or the library
+   * silently falls back to "All sources"). `null` = no library equivalent,
+   * hide the link. Omitted = `title` is already a valid tab label.
+   */
+  libraryTab?: string | null;
 }
 
 interface ContinueItem {
@@ -88,6 +95,21 @@ function resolveImageSrc(src?: string | null) {
 function resolveComicHref(comic: LibraryComic) {
   return comic.href || `/library/${comic.source}/${comic.id}`;
 }
+
+/** Deterministic hue from the title so placeholder posters differ per card (design system). */
+function posterHueFromTitle(title: string): number {
+  let h = 0;
+  for (let i = 0; i < title.length; i += 1) h = (h * 31 + title.charCodeAt(i)) % 360;
+  return h;
+}
+
+/** Content-rating dot colors (system: safe=green, suggestive=yellow, erotica=pink). */
+const RATING_DOT_CLASS: Record<string, string> = {
+  safe: 'bg-emerald-500/80',
+  suggestive: 'bg-yellow-500/80',
+  erotica: 'bg-pink-500/80',
+  pornographic: 'bg-pink-600/90',
+};
 
 /** MangaDex age/maturity flags — not a user score; UI must not label these as “star rating”. */
 const MANGADEX_CONTENT_RATINGS = new Set(['safe', 'suggestive', 'erotica', 'pornographic']);
@@ -187,16 +209,16 @@ function SafeCoverImage({
 const SHELVES: ShelfDefinition[] = [
   { key: 'romance', title: 'Romance', subtitle: 'Reader picks' },
   { key: 'fantasy', title: 'Fantasy', subtitle: 'Adventure reads' },
-  { key: 'drama', title: 'Drama', subtitle: 'Emotional storytelling' },
-  { key: 'trending', title: 'Trending', subtitle: 'Popular now' },
-  { key: 'for-you', title: 'For You', subtitle: 'From your library' },
-  { key: 'manga-hub', title: 'Manga', subtitle: 'Japanese comics' },
-  { key: 'new', title: 'New', subtitle: 'Recently added' },
+  { key: 'drama', title: 'Drama', subtitle: 'Emotional storytelling', libraryTab: null },
+  { key: 'trending', title: 'Trending', subtitle: 'Popular now', libraryTab: null },
+  { key: 'for-you', title: 'For You', subtitle: 'From your library', libraryTab: null },
+  { key: 'manga-hub', title: 'Manga', subtitle: 'Japanese comics', libraryTab: 'Manga Hub' },
+  { key: 'new', title: 'New', subtitle: 'Recently added', libraryTab: null },
   { key: 'manhwa', title: 'Manhwa', subtitle: 'Korean comics' },
   { key: 'webtoons', title: 'Webtoons', subtitle: 'Vertical reads' },
   { key: 'doujinshi', title: 'Doujinshi', subtitle: 'Fan comics' },
-  { key: 'milf', title: 'Mature', subtitle: '18+ titles' },
-  { key: 'ntr', title: 'NTR', subtitle: 'Drama-focused' },
+  { key: 'milf', title: 'Mature', subtitle: '18+ titles', libraryTab: 'Mature Romance' },
+  { key: 'ntr', title: 'NTR', subtitle: 'Drama-focused', libraryTab: 'Doujinshi' },
 ];
 
 import AgeGateOverlay from './AgeGateOverlay';
@@ -207,13 +229,15 @@ type HomeAdultCoverUi = {
   showRestrictedOverlay: boolean;
   useRestrictedAlt: boolean;
   maskText: boolean;
+  politeBlur: boolean;
 };
 
-/** Age-blocked: always blurred + overlay. Verified adults: blurred until hover, focus, or active (touch peek). */
+/** Age-blocked: always blurred + overlay. Verified adults: blurred until hover, focus, or tap-to-peek (touch). */
 function homeAdultCoverUi(
   comic: LibraryComic,
   isAgeVerified: boolean,
   useRichMotion: boolean,
+  isPreviewOpen = false,
 ): HomeAdultCoverUi {
   const adultContent = isAdultComic(comic);
   const ageBlocked = adultContent && !isAgeVerified;
@@ -227,15 +251,21 @@ function homeAdultCoverUi(
       showRestrictedOverlay: true,
       useRestrictedAlt: true,
       maskText: true,
+      politeBlur: false,
     };
   }
 
   if (politeBlur) {
     return {
-      imageClass: `object-cover object-center ${motion} scale-105 blur-lg saturate-[0.7] group-hover:blur-none group-hover:saturate-100 group-hover:scale-[1.03] group-focus-within:blur-none group-focus-within:saturate-100 group-focus-within:scale-[1.03] group-active:blur-none group-active:saturate-100 group-active:scale-100`,
+      // Touch has no hover, so a first tap "peeks" (isPreviewOpen) and renders unblurred here —
+      // appending blur-none after blur-lg would not win (same `filter` property, stylesheet order rules).
+      imageClass: isPreviewOpen
+        ? `object-cover object-center ${motion} scale-[1.03] blur-none saturate-100`
+        : `object-cover object-center ${motion} scale-105 blur-lg saturate-[0.7] group-hover:blur-none group-hover:saturate-100 group-hover:scale-[1.03] group-focus-within:blur-none group-focus-within:saturate-100 group-focus-within:scale-[1.03] group-active:blur-none group-active:saturate-100 group-active:scale-100`,
       showRestrictedOverlay: false,
       useRestrictedAlt: false,
       maskText: false,
+      politeBlur: true,
     };
   }
 
@@ -244,6 +274,7 @@ function homeAdultCoverUi(
     showRestrictedOverlay: false,
     useRestrictedAlt: false,
     maskText: false,
+    politeBlur: false,
   };
 }
 
@@ -268,12 +299,15 @@ function HomeCoverCard({
       href={resolveComicHref(comic)}
       className="group ic-cover"
       onClickCapture={(event) => {
-        if (!isTouchDevice || !coverUi.maskText || isPreviewOpen) return;
+        if (!isTouchDevice || !(coverUi.maskText || coverUi.politeBlur) || isPreviewOpen) return;
         event.preventDefault();
         onLockedTap?.();
       }}
     >
-      <div className="ic-cover__poster">
+      <div
+        className="ic-cover__poster"
+        style={{ ['--poster-h' as string]: posterHueFromTitle(comic.title) }}
+      >
         <SafeCoverImage
           src={comic.coverUrl}
           alt={coverUi.useRestrictedAlt ? 'Restricted' : comic.title}
@@ -291,12 +325,24 @@ function HomeCoverCard({
         <h3 className="ic-cover__title">
           {coverUi.maskText ? 'Age restricted' : comic.title}
         </h3>
-        <p className="ic-eyebrow line-clamp-1">
-          {coverUi.maskText
-            ? isTouchDevice && !isPreviewOpen
-              ? 'Tap to confirm age'
-              : 'Verify age to view'
-            : [comic.meta, comic.rating].filter(Boolean).join(' · ')}
+        <p className="ic-eyebrow line-clamp-1 flex items-center gap-1.5">
+          {coverUi.maskText ? (
+            isTouchDevice && !isPreviewOpen ? 'Tap to confirm age' : 'Verify age to view'
+          ) : (
+            <>
+              {comic.meta}
+              {comic.rating && RATING_DOT_CLASS[comic.rating.toLowerCase()] ? (
+                // Content rating as a quiet dot (system rule), not a shouted label
+                <span
+                  className={`inline-block h-1.5 w-1.5 flex-none rounded-full ${RATING_DOT_CLASS[comic.rating.toLowerCase()]}`}
+                  title={comic.rating}
+                  aria-label={`Content rating: ${comic.rating}`}
+                />
+              ) : comic.rating ? (
+                <>{comic.meta ? ' · ' : ''}{comic.rating}</>
+              ) : null}
+            </>
+          )}
         </p>
       </div>
     </Link>
@@ -341,6 +387,8 @@ export default function HomeClient({
     return base;
   });
   const [activeTab] = useState<ShelfKey>('all');
+  /** Last shelf fetch failed (or came back with nothing) — offer one retry block instead of bare headings. */
+  const [shelfLoadError, setShelfLoadError] = useState(false);
   const [homeShelfSearch, setHomeShelfSearch] = useState('');
   const [uiLang, setUiLang] = useState<Lang>('en');
   const shelfCopy = translations[uiLang].hero;
@@ -361,8 +409,6 @@ export default function HomeClient({
   const [hasMoreInfinite, setHasMoreInfinite] = useState(true);
   const [loaderInView, setLoaderInView] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const autoCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const carouselPausedRef = useRef(false);
   const heroCarouselPausedRef = useRef(false);
   const seenHomeKeysRef = useRef<Set<string>>(new Set());
   /** When SSR trending is empty — fill once when client trending arrives. */
@@ -445,14 +491,17 @@ export default function HomeClient({
   };
 
   useLayoutEffect(() => {
+    // Converge on the effective language (storage first, then the SSR prop) instead of
+    // comparing storage to the prop: after the navbar language switch router.refresh()es,
+    // storage and the new prop already agree, so a `raw !== initialMangaLanguage` guard
+    // would never fire and the shelves would stay in the old language.
     const raw = readStorageItem(MANGA_LANGUAGE_STORAGE_KEY);
-    if (
-      raw &&
-      MANGA_LANGUAGE_OPTIONS.some((option) => option.value === raw) &&
-      raw !== initialMangaLanguage
-    ) {
-      setMangaLanguage(raw as MangaLanguage);
-    }
+    const stored =
+      raw && MANGA_LANGUAGE_OPTIONS.some((option) => option.value === raw)
+        ? (raw as MangaLanguage)
+        : null;
+    const next = stored ?? initialMangaLanguage;
+    setMangaLanguage((prev) => (prev === next ? prev : next));
   }, [initialMangaLanguage]);
 
   useLayoutEffect(() => {
@@ -585,6 +634,12 @@ export default function HomeClient({
       const data = await res.json();
 
       if (data?.shelves) {
+        // The API answers 200 with `{shelves: {}}` when upstreams fail — treat an
+        // all-empty payload as a failed fetch so the page can offer a retry.
+        const hasAnyItems = Object.values(data.shelves as Record<string, unknown>).some(
+          (items) => Array.isArray(items) && items.length > 0,
+        );
+        setShelfLoadError(!hasAnyItems);
         setShelfState(prev => ({
           'trending': { items: data.shelves['trending'] || [], loading: false },
           'romance': { items: data.shelves['romance'] || [], loading: false },
@@ -599,9 +654,12 @@ export default function HomeClient({
           'ntr': { items: data.shelves['ntr'] || [], loading: false },
           'for-you': prev['for-you'] || { items: [], loading: false },
         }));
+      } else {
+        throw new Error('Home data payload missing shelves');
       }
     } catch (error) {
       console.error('Home data error:', error);
+      setShelfLoadError(true);
       setShelfState(prev => {
         const newState = { ...prev };
         Object.keys(newState).forEach(key => newState[key].loading = false);
@@ -708,6 +766,17 @@ export default function HomeClient({
   const shelfSearchNorm = homeShelfSearch.trim().toLowerCase();
   const shelfCardLimit = isTouchDevice ? 8 : 12;
 
+  const anyShelfLoading = renderedShelves.some((shelf) =>
+    shelf.key === 'for-you' ? isRecsLoading : Boolean(shelfState[shelf.key]?.loading),
+  );
+  const allShelvesEmpty = renderedShelves.every((shelf) =>
+    shelf.key === 'for-you'
+      ? personalRecs.length === 0
+      : (shelfState[shelf.key]?.items.length ?? 0) === 0,
+  );
+  /** Only when the fetch failed AND there is nothing to show — stale shelves beat an error wall. */
+  const showShelfLoadError = shelfLoadError && !anyShelfLoading && allShelvesEmpty;
+
   const heroFeaturedKey = featuredComic ? comicKey(featuredComic) : '';
 
   /** Trending fuels the hero; `'all'` is not a shelf key (was always `undefined` → wrong loading UX). */
@@ -725,24 +794,10 @@ export default function HomeClient({
     return () => window.clearTimeout(timer);
   }, [isAgeVerified, mangaLanguage, preferenceProfile.seed]);
 
-  useEffect(() => {
-    if (!useRichMotion) return;
-
-    const interval = window.setInterval(() => {
-      if (carouselPausedRef.current) return;
-
-      Object.values(autoCarouselRefs.current).forEach((node) => {
-        if (!node || node.scrollWidth <= node.clientWidth) return;
-        const nextLeft = node.scrollLeft + Math.max(180, node.clientWidth * 0.55);
-        node.scrollTo({
-          left: nextLeft >= node.scrollWidth - node.clientWidth - 8 ? 0 : nextLeft,
-          behavior: 'smooth',
-        });
-      });
-    }, 6200);
-
-    return () => window.clearInterval(interval);
-  }, [useRichMotion, renderedShelves.length]);
+  // Shelf auto-advance removed: shelves scrolling themselves every few seconds moved
+  // content out from under the pointer/finger, fought user wheel gestures mid-smooth-scroll
+  // (the page felt scroll-locked), left rows half-snapped with the first card clipped, and
+  // violated the design system's "no looping decorative motion" rule.
 
   const goToHeroSlide = (delta: number) => {
     if (heroCarouselSlides.length === 0) return;
@@ -795,7 +850,9 @@ export default function HomeClient({
                 }}
               >
                 <section className="hero" aria-roledescription="carousel">
-                  <AnimatePresence initial={false} mode="wait">
+                  {/* sync (default) crossfades slides over each other; mode="wait" faded the old
+                      slide fully out first, leaving a black hole between every hero slide. */}
+                  <AnimatePresence initial={false}>
                     <m.div
                       key={heroFeaturedKey}
                       initial={prefersReducedMotion ? false : { opacity: 0 }}
@@ -898,7 +955,7 @@ export default function HomeClient({
             ) : (
               <m.div
                 key="home-hero-fallback"
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.36, ease: [0.22, 0.61, 0.36, 1] }}
@@ -996,6 +1053,24 @@ export default function HomeClient({
               </section>
             )}
 
+          {/* --- SHELF LOAD FAILURE (one calm block instead of a wall of empty rows) --- */}
+          {showShelfLoadError && !shelfSearchNorm ? (
+            <section className="section">
+              <div className="state-block">
+                <BookOpen size={28} strokeWidth={1.5} aria-hidden />
+                <h4>{shelfCopy.shelvesErrorTitle}</h4>
+                <p>{shelfCopy.shelvesErrorBody}</p>
+                <button
+                  type="button"
+                  className="ic-btn"
+                  onClick={() => void fetchShelves(mangaLanguage)}
+                >
+                  {shelfCopy.shelvesErrorRetry}
+                </button>
+              </div>
+            </section>
+          ) : null}
+
           {/* --- SHELVES --- */}
           <AnimatePresence>
             {renderedShelves.map((shelf) => {
@@ -1017,6 +1092,11 @@ export default function HomeClient({
 
               if (shelf.key === 'for-you' && filteredItems.length === 0 && !isRecsLoading) return null;
               if (shelfSearchNorm && filteredItems.length === 0) return null;
+              // No headed empty rows: a shelf with nothing on it renders nothing.
+              if (!state.loading && filteredItems.length === 0) return null;
+
+              const seeAllTab =
+                shelf.libraryTab === null ? null : shelf.libraryTab ?? shelf.title;
 
               return (
                 <m.section
@@ -1036,35 +1116,18 @@ export default function HomeClient({
                         {shelf.key === 'for-you' ? <span className="pz">personalized</span> : null}
                       </h2>
                     </div>
-                    <Link
-                      href={`/library?tab=${encodeURIComponent(shelf.title)}`}
-                      className="seeall"
-                    >
-                      See all
-                      <ArrowRight size={15} aria-hidden />
-                    </Link>
+                    {seeAllTab ? (
+                      <Link
+                        href={`/library?tab=${encodeURIComponent(seeAllTab)}`}
+                        className="seeall"
+                      >
+                        See all
+                        <ArrowRight size={15} aria-hidden />
+                      </Link>
+                    ) : null}
                   </div>
 
-                  <div
-                    ref={(node) => {
-                      autoCarouselRefs.current[shelf.key] = node;
-                    }}
-                    onPointerEnter={() => {
-                      carouselPausedRef.current = true;
-                    }}
-                    onPointerLeave={() => {
-                      carouselPausedRef.current = false;
-                    }}
-                    onTouchStart={() => {
-                      carouselPausedRef.current = true;
-                    }}
-                    onTouchEnd={() => {
-                      window.setTimeout(() => {
-                        carouselPausedRef.current = false;
-                      }, 1200);
-                    }}
-                    className="shelf"
-                  >
+                  <div className="shelf">
                     {state.loading ? (
                       Array.from({ length: 8 }).map((_, i) => (
                         <div key={i}>
@@ -1078,7 +1141,7 @@ export default function HomeClient({
                         const cardKey = `${shelf.key}:${comic.source}:${comic.id}`;
                         const adultContent = isAdultComic(comic);
                         const isPreviewOpen = adultContent && previewCardKey === cardKey;
-                        const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion);
+                        const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion, isPreviewOpen);
 
                         return (
                           <HomeCoverCard
@@ -1087,7 +1150,12 @@ export default function HomeClient({
                             coverUi={coverUi}
                             isTouchDevice={isTouchDevice}
                             isPreviewOpen={isPreviewOpen}
-                            onLockedTap={() => setPreviewCardKey(cardKey)}
+                            // Locked (unverified) → open the age gate; verified adult → tap-to-peek.
+                            onLockedTap={
+                              coverUi.maskText
+                                ? () => setShowAgeGate(true)
+                                : () => setPreviewCardKey(cardKey)
+                            }
                             sizes="(max-width: 680px) 132px, 168px"
                           />
                         );
@@ -1116,7 +1184,7 @@ export default function HomeClient({
                 const cardKey = `discover:${comic.source}:${comic.id}`;
                 const adultContent = isAdultComic(comic);
                 const isPreviewOpen = adultContent && previewCardKey === cardKey;
-                const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion);
+                const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion, isPreviewOpen);
 
                 return (
                   <HomeCoverCard
@@ -1125,7 +1193,12 @@ export default function HomeClient({
                     coverUi={coverUi}
                     isTouchDevice={isTouchDevice}
                     isPreviewOpen={isPreviewOpen}
-                    onLockedTap={() => setPreviewCardKey(cardKey)}
+                    // Locked (unverified) → open the age gate; verified adult → tap-to-peek.
+                    onLockedTap={
+                      coverUi.maskText
+                        ? () => setShowAgeGate(true)
+                        : () => setPreviewCardKey(cardKey)
+                    }
                     sizes="(max-width: 680px) 45vw, (max-width: 1024px) 25vw, 180px"
                   />
                 );

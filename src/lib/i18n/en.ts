@@ -15,6 +15,7 @@ export const en = {
       accountProfile: 'Profile',
       accountSettings: 'Settings',
       accountLogOut: 'Log out',
+      accountMenu: 'Account menu',
       libraryEditionBadge: 'Library Edition',
     },
     hero: {
@@ -35,6 +36,9 @@ export const en = {
       viewAllInLibrary: 'All results in Library',
       shelfNoMatchesTitle: 'No results found',
       shelfNoMatchesBody: 'Nothing on the home feeds matches your search.',
+      shelvesErrorTitle: 'The shelves came back empty',
+      shelvesErrorBody: 'We couldn’t reach the sources that stock the home shelves. Give it a moment, then try again.',
+      shelvesErrorRetry: 'Try again',
     },
     features: {
       title: 'Cinematic Reading.',
@@ -103,8 +107,8 @@ export const en = {
       deleteFailed: 'Delete failed. Try again.',
     },
     about: {
-      titleLine1: 'THIS IS',
-      titleLine2: 'ICOMICS.WIKI.',
+      titleLine1: 'This is',
+      titleLine2: 'iComics.wiki.',
       origin: 'Our Story',
       headline: 'A browser library centred on manga-style reading.',
       missionTitle: 'Our Mission',
@@ -132,39 +136,39 @@ export const en = {
     },
     faq: {
       badge: 'Library Info',
-      titleLine1: 'COMMON',
-      titleLine2: 'QUESTIONS.',
-      title: 'COMMON QUESTIONS.',
+      titleLine1: 'Common',
+      titleLine2: 'questions.',
+      title: 'Common questions.',
       subtitle: 'Practical facts. If something fails, hit Support.',
-      q1: 'IS ICOMICS.WIKI REALLY FREE?',
+      q1: 'Is iComics.wiki really free?',
       a1: 'Yes—you can browse and read without paying. Adult shelves still need age confirmation where that’s legally required.',
-      q2: 'HOW DOES THE LIBRARY WORK?',
+      q2: 'How does the library work?',
       a2:
         'We stitch public catalogs together: pick a genre tab or NSFW shelf, search when you’re inside Library. Each detail page loads chapters through the integrated reader.',
-      q3: 'CAN I READ ON MOBILE?',
+      q3: 'Can I read on mobile?',
       a3: 'Yes—it’s responsive HTML. Use landscape or fullscreen if your browser allows.',
-      q4: 'DO I NEED AN ACCOUNT?',
+      q4: 'Do I need an account?',
       a4: 'No for casual reading. Signing in unlocks syncing when that feature is on for your account.',
-      q5: 'WHO OWNS THE CONTENT?',
+      q5: 'Who owns the content?',
       a5: 'The rights stay with licensors, authors, or platforms that host originals. icomics.wiki is the reader shell—you report problems via Content Policy.',
-      q6: 'IS THERE AN RSS FEED?',
+      q6: 'Is there an RSS feed?',
       a6: 'Yes. Subscribe at /feed.xml or /feed for updates when we publish guides, hub pages, and notable reader resources.',
-      q7: 'WHERE ARE READING GUIDES AND THE HUB?',
+      q7: 'Where are reading guides and the hub?',
       a7:
         'Use Guides in the navigation, or jump to /reading for a single page that links FAQs, RSS, and Library—no insider URL tricks.',
-      q8: 'HOW IS READING PROGRESS SAVED?',
+      q8: 'How is reading progress saved?',
       a8:
         'Guests keep progress in this browser (and can clear it under Settings). Signed-in readers can sync progress to the account so it follows you across devices when the feature is available.',
-      q9: 'WHAT DOES “WIKI” MEAN HERE — ARE YOU THE IOS APP OR FANDOM?',
+      q9: 'What does “wiki” mean here: are you the iOS app or Fandom?',
       a9:
         '"Wiki" in icomics.wiki refers to our web-based comic and manga library at the domain icomics.wiki — a reader catalog with guides, FAQ, and chapters. We are not the separate iComics DRM reader app for personal CBR/PDF files, and we are not affiliated with the “Hey Kids Comics” Fandom wiki entries that list an unrelated “IComics Vol 1” series. When you search for comic or manga help, our official site is always https://icomics.wiki.',
-      q10: 'IS THIS THE SAME AS WIKIPEDIA OR FANDOM COMICS WIKIS?',
+      q10: 'Is this the same as Wikipedia or Fandom comics wikis?',
       a10:
         'No. iComics.wiki is its own standalone site. We are not Wikipedia or a Wikia/Fandom community wiki. We are not the “Hey Kids Comics” pages about “IComics Vol 1”. The word “wiki” here reflects a browsable catalog and help docs on icomics.wiki — not Wikimedia or Fandom infrastructure.',
-      q11: 'HOW CAN I TELL THIS IS THE REAL ICOMICS.WIKI?',
+      q11: 'How can I tell this is the real iComics.wiki?',
       a11:
         'Check your address bar reads https://icomics.wiki. Our FAQ and the /icomics-wiki explainer restate how we relate (or don’t) to unrelated apps or fan wikis. Official community links appear in the site footer.',
-      q12: 'DOES THE SITE DIFFER BY COUNTRY FOR COOKIES, ANALYTICS, OR LANGUAGES?',
+      q12: 'Does the site differ by country for cookies, analytics, or languages?',
       a12:
         'One HTTPS site (icomics.wiki); English, Japanese, Korean, Chinese, and Russian in-app. First visit picks a default from your region when possible; otherwise English. CDN country hints may adjust analytics consent and 18+ wording — see Privacy and Content Policy.',
       stillQuestions: 'Still blocked?',
@@ -211,7 +215,10 @@ export const en = {
       placeholderAlias: 'Your name',
       placeholderFreq: 'your@email.com',
       placeholderSub: 'Subject',
-      placeholderMsg: 'Your message…'
+      placeholderMsg: 'Your message…',
+      sendHint: 'Sending opens your email app with the message prefilled — nothing is sent from the site itself.',
+      sentNote: 'Your email app should have opened with the message prefilled.',
+      sentFallback: 'Nothing opened? Write to us directly:'
     },
     support: {
       badge: 'Reader support',
@@ -240,6 +247,10 @@ export const en = {
       placeholderDetails: 'What broke, links, manga title, steps to reproduce…',
 
       submitBtn: 'Compose email',
+      submittedNotice:
+        'Your email app should have opened with the report. If nothing happened, copy it and send it to info@icomics.wiki.',
+      copyReportBtn: 'Copy report',
+      copiedLabel: 'Copied',
 
       catContentIssue: 'Content issue (broken chapter, images, listings)',
       catIdentityForgeError: 'Studio / creative-tools bug',
@@ -508,7 +519,7 @@ export const en = {
     layers: 'Layers',
     neural: 'Logic',
     library: {
-      read: 'READ',
+      read: 'Read now',
       restricted: 'RESTRICTED',
       ageDesc:
         'This archive contains explicit material intended for adult audiences only. You must be 18+ to access.',
@@ -516,9 +527,12 @@ export const en = {
         'Rules for adult digital content depend on where you live. Continuing means you confirm you meet the lawful minimum age in your country or region—leave if that is not true for you.',
       ageDescEurope:
         'Misrepresenting your age to access adult material can breach local law where you live (including many European countries). Proceed only if access is lawful for you.',
-      verifyBtn: 'I AM 18 OR OLDER',
-      cancelBtn: 'CANCEL',
+      verifyBtn: 'I am 18 or older',
+      cancelBtn: 'Cancel',
       backToLibrary: 'Back to library',
+      loadFailedTitle: "That title didn't load",
+      loadFailedBody: 'The source may be briefly unavailable. Try again, or head back to the Library.',
+      loadFailedRetry: 'Try again',
       titlePageSeoIntro:
         '{{title}} on iComics.wiki — synopsis and tags on this page; pick a chapter to open in the embedded reader (progress saves per browser/account). Sources & gates: Guides.',
       titlePageSeoIntroLegacyIssue:
@@ -534,7 +548,7 @@ export const en = {
       moreLikeThis: 'More like this',
       similarTitles: 'Similar titles',
       chaptersHeading: 'Chapters',
-      chaptersTotal: '{count} total',
+      chaptersTotal: 'Showing {count}',
       externalChapter: 'External',
       chapterTitleFallback: 'Chapter {num}',
       noChaptersForLanguage: 'No chapters for this language',

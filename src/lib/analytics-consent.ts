@@ -1,18 +1,19 @@
 'use client';
 
+import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
+
 const STORAGE_KEY = 'ics_analytics_consent';
 
 export type AnalyticsConsentValue = 'granted' | 'denied';
 
 export function getAnalyticsConsentDecision(): AnalyticsConsentValue | null {
-  if (typeof window === 'undefined') return null;
-  const v = window.localStorage.getItem(STORAGE_KEY);
+  const v = readStorageItem(STORAGE_KEY);
   return v === 'granted' || v === 'denied' ? v : null;
 }
 
 export function persistAnalyticsConsent(value: AnalyticsConsentValue) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, value);
+  writeStorageItem(STORAGE_KEY, value);
   window.dispatchEvent(new CustomEvent<AnalyticsConsentValue>('ics-analytics-consent-changed', { detail: value }));
 }
 

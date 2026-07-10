@@ -70,6 +70,9 @@ function SupportPageContent() {
     };
   });
 
+  const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const t = translations[lang].support;
 
   const categoryOpts = useMemo(
@@ -92,22 +95,38 @@ function SupportPageContent() {
     };
   }, []);
 
+  const composeReport = () => {
+    const friendly = categoryUiLabel(report.category as ReportCategory, lang);
+    const reporter = report.email.trim() || t.anonymous;
+    return {
+      subject: `${t.mailSubjectPrefix} ${friendly}`,
+      body: `${t.mailReporterLabel}: ${reporter}\n${t.mailCategoryLabel}: ${friendly}\n\n${report.details}`,
+    };
+  };
+
   const submitReport = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const friendly = categoryUiLabel(report.category as ReportCategory, lang);
+    const { subject, body } = composeReport();
 
-    const subject = encodeURIComponent(`${t.mailSubjectPrefix} ${friendly}`);
-    const reporter = report.email.trim() || t.anonymous;
-    const body = encodeURIComponent(
-      `${t.mailReporterLabel}: ${reporter}\n${t.mailCategoryLabel}: ${friendly}\n\n${report.details}`,
-    );
-
-    window.location.href = `mailto:info@icomics.wiki?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:info@icomics.wiki?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setSubmitted(true);
     trackEvent('report_submitted', {
       category: report.category,
       hasEmail: Boolean(report.email),
       detailsLength: report.details.length,
+      delivery: 'mailto',
     });
+  };
+
+  const copyReport = async () => {
+    const { subject, body } = composeReport();
+    try {
+      await navigator.clipboard.writeText(`${subject}\n\n${body}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable — the notice already shows the address to write to.
+    }
   };
 
   return (
@@ -115,9 +134,9 @@ function SupportPageContent() {
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <m.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
           className="wrap max-w-5xl space-y-14 py-14 sm:py-16 lg:py-20"
@@ -220,6 +239,7 @@ function SupportPageContent() {
                     onChange={(event) => setReport((current) => ({ ...current, details: event.target.value }))}
                     className="ic-input min-h-[200px] py-3!"
                     placeholder={t.placeholderDetails}
+                    required
                   />
                 </div>
               </div>
@@ -229,6 +249,21 @@ function SupportPageContent() {
               >
                 {t.submitBtn}
               </button>
+              {submitted && (
+                <div
+                  role="status"
+                  className="flex flex-col gap-3 rounded-btn border border-line bg-accent-tint p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <p className="text-sm leading-relaxed text-fg-secondary">{t.submittedNotice}</p>
+                  <button
+                    type="button"
+                    onClick={copyReport}
+                    className="ic-btn ic-btn--secondary ic-btn--sm shrink-0"
+                  >
+                    {copied ? t.copiedLabel : t.copyReportBtn}
+                  </button>
+                </div>
+              )}
             </div>
           </form>
         </m.div>

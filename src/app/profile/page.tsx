@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, useRef, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
@@ -62,36 +62,38 @@ export default function ProfilePage() {
     };
   }, []);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const res = await fetch('/api/profile');
-        if (res.status === 401) {
-          router.replace('/auth');
-          return;
-        }
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || translations[langRef.current].profile.loadFailedMsg);
-
-        setUser(data.user);
-        setForm({
-          firstName: data.user.firstName || '',
-          lastName: data.user.lastName || '',
-          username: data.user.username || '',
-          email: data.user.email || '',
-          password: '',
-        });
-      } catch (err: unknown) {
-        const p = translations[langRef.current].profile;
-        setError(err instanceof Error ? err.message : p.loadFailedMsg);
-      } finally {
-        setLoading(false);
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/profile');
+      if (res.status === 401) {
+        router.replace('/auth');
+        return;
       }
-    };
 
-    void loadProfile();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || translations[langRef.current].profile.loadFailedMsg);
+
+      setUser(data.user);
+      setForm({
+        firstName: data.user.firstName || '',
+        lastName: data.user.lastName || '',
+        username: data.user.username || '',
+        email: data.user.email || '',
+        password: '',
+      });
+    } catch (err: unknown) {
+      const p = translations[langRef.current].profile;
+      setError(err instanceof Error ? err.message : p.loadFailedMsg);
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
 
   const handleChange = (key: keyof typeof form) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm((current) => ({ ...current, [key]: event.target.value }));
@@ -130,7 +132,7 @@ export default function ProfilePage() {
     <div className="min-h-dvh bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <div className="wrap grid max-w-6xl gap-8 py-14 sm:py-16 lg:grid-cols-[1fr_380px] lg:gap-12 lg:py-20">
           {/* Left Column: Form & Info */}
           <section className="space-y-8 sm:space-y-10">
@@ -259,7 +261,8 @@ export default function ProfilePage() {
             ) : (
               <div className="state-block">
                 <p>{t.couldntLoad}</p>
-                <button type="button" onClick={() => router.refresh()} className="ic-btn ic-btn--secondary ic-btn--sm">{t.tryAgain}</button>
+                {error && <p className="text-sm text-danger">{error}</p>}
+                <button type="button" onClick={() => void loadProfile()} className="ic-btn ic-btn--secondary ic-btn--sm">{t.tryAgain}</button>
               </div>
             )}
           </section>

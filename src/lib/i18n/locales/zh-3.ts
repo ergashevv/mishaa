@@ -240,7 +240,7 @@ export const zhPart3: DeepPartial<typeof en> = {
     moreLikeThis: '更多类似',
     similarTitles: '相似作品',
     chaptersHeading: '章节',
-    chaptersTotal: '共 {count} 话',
+    chaptersTotal: '显示 {count} 话',
     externalChapter: '外部',
     chapterTitleFallback: '第 {num} 话',
     noChaptersForLanguage: '此语言无章节',

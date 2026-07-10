@@ -14,7 +14,7 @@ export default function GuidesIndexPage() {
       <JsonLd data={buildGuidesIndexItemListJsonLd()} />
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <div className="wrap max-w-3xl space-y-12 py-14 sm:py-16 lg:py-20">
           <header>
             <div className="flex items-center gap-2 text-fg-muted">

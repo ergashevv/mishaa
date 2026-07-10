@@ -158,7 +158,9 @@ export default function RootLayout({
           <GlobalAgeGate />
           <JsonLd data={buildOrganizationJsonLd()} />
           <JsonLd data={buildWebSiteJsonLd()} />
-          <div id="main-content" className="flex-1">
+          {/* Skip-link target lives on each page's post-navbar <main id="main-content">,
+              not here — this wrapper contains the navbar, so targeting it skips nothing. */}
+          <div className="flex-1">
             <Suspense fallback={null}>
               <AnalyticsBridge />
             </Suspense>

@@ -51,7 +51,7 @@ export default function ReadingHubClient() {
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <div className="wrap py-14 sm:py-16 lg:py-20">
         <header className="mx-auto max-w-4xl space-y-5 text-center">
           <p className="ic-eyebrow">{tr.kicker}</p>

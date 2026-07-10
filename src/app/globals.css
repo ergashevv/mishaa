@@ -774,7 +774,12 @@ body {
   width: 100%;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: var(--surface-card);
+  /* Deterministic warm placeholder (design system: gradient poster keyed off the title).
+     Cards set --poster-h inline from a title hash; slow/missing covers now read as
+     intentional plates instead of blank ink boxes. */
+  background:
+    linear-gradient(160deg, oklch(0.36 0.055 var(--poster-h, 305)) 0%, oklch(0.26 0.04 calc(var(--poster-h, 305) + 42)) 62%, oklch(0.2 0.028 calc(var(--poster-h, 305) + 70)) 100%),
+    var(--surface-card);
   box-shadow: var(--cover-frame);
   transition: var(--transition-base);
 }
@@ -896,7 +901,15 @@ body {
 
 /* Hero */
 .hero { position: relative; height: 540px; max-height: 70vh; overflow: hidden; background: var(--surface-base); }
-.hero__bg { position: absolute; inset: 0; background-size: cover; background-position: center 22%; }
+/* Warm plum wash behind the banner: while the image loads (or if it fails) the hero
+   still reads as a designed surface instead of a black hole under the scrims. */
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 22%;
+  background-image: radial-gradient(120% 90% at 78% 18%, oklch(0.34 0.05 310) 0%, oklch(0.24 0.035 300) 48%, oklch(0.17 0.02 295) 100%);
+}
 .hero__bg img { object-position: center 22%; }
 /* Protection scrims sit above the media (img or background-image) */
 .hero__bg::after {
@@ -938,18 +951,20 @@ body {
 }
 .hero__meta { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
 .hero__cta { display: flex; align-items: center; gap: 12px; }
-.hero__dots { position: absolute; right: var(--page-gutter); bottom: 28px; display: flex; align-items: center; gap: 14px; }
+.hero__dots { position: absolute; right: var(--page-gutter); bottom: 28px; display: flex; align-items: center; gap: 2px; }
 .dot {
-  width: 8px;
-  height: 8px;
+  /* 8px visual dot inside a 20px hit area (padding + content-box) — same look, tappable. */
+  width: 20px;
+  height: 20px;
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.35);
+  background-clip: content-box;
   border: 0;
   cursor: pointer;
-  padding: 0;
+  padding: 6px;
   transition: var(--transition-base);
 }
-.dot.is-active { background: #fff; width: 22px; }
+.dot.is-active { background: #fff; background-clip: content-box; width: 34px; }
 .hero__navbtns { display: flex; gap: 8px; }
 
 /* Section / shelf */
@@ -1074,6 +1089,18 @@ body {
 }
 @keyframes sksweep {
   to { background-position: -200% 0; }
+}
+
+/* CSS-only entrance (replaces JS-gated framer fades that left content invisible until
+   hydration). Runs on first paint, no JS required; collapses under reduced motion. */
+.rise-in { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .rise-in { animation: icrise 0.32s var(--ease-out) both; }
+  .rise-in--late { animation-delay: 0.08s; }
+}
+@keyframes icrise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sk-cover { aspect-ratio: 2 / 3; }
 .sk-line { height: 11px; border-radius: 4px; margin-top: 8px; }

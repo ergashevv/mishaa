@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -39,6 +39,9 @@ export default function Navbar() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [lang, setLang] = useState<Lang>('en');
   const [theme, setTheme] = useState<Theme>('dark');
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const accountButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const t = translations[lang].nav;
 
@@ -73,6 +76,29 @@ export default function Navbar() {
       window.removeEventListener('langChange', handleLang);
     };
   }, []);
+
+  // Close the account menu on outside click or Escape (Escape restores focus
+  // to the trigger so keyboard users don't lose their place).
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAccountMenuOpen(false);
+        accountButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [accountMenuOpen]);
 
   const toggleTheme = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
@@ -199,36 +225,48 @@ export default function Navbar() {
           </button>
 
           {user ? (
-            <div className="relative hidden lg:block group">
-              <Link
-                href="/profile"
+            <div ref={accountMenuRef} className="relative hidden lg:block group">
+              <button
+                ref={accountButtonRef}
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={accountMenuOpen}
+                aria-controls="navbar-account-menu"
+                aria-label={t.accountMenu}
                 className="ic-avatar ic-avatar--md transition-shadow hover:shadow-[var(--glow-accent)]"
-                aria-label={t.accountProfile}
               >
                 {user.avatar ? (
                   <Image src={user.avatar} alt={user.username} width={38} height={38} className="h-full w-full object-cover" />
                 ) : (
                   <UserCircle2 size={18} />
                 )}
-              </Link>
+              </button>
 
-              {/* Dropdown */}
-              <div className="invisible absolute right-0 top-full z-[1100] translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+              {/* Dropdown — opens on click/Enter (state) and stays hover-friendly (CSS) */}
+              <div
+                id="navbar-account-menu"
+                className={`absolute right-0 top-full z-[1100] pt-3 transition-all duration-200 ${
+                  accountMenuOpen
+                    ? 'visible translate-y-0 opacity-100'
+                    : 'invisible translate-y-2 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100'
+                }`}
+              >
                 <div className="w-56 rounded-card border border-line bg-raised p-2 shadow-[var(--shadow-lg)]">
                   <div className="mb-2 border-b border-line-subtle px-3 py-2.5">
                     <p className="text-sm font-semibold text-fg">{user.firstName} {user.lastName}</p>
                     <span className="ic-eyebrow">{t.libraryEditionBadge}</span>
                   </div>
-                  <Link href="/profile" className="flex items-center gap-2.5 rounded-btn px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-card-hov hover:text-fg">
+                  <Link href="/profile" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-btn px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-card-hov hover:text-fg">
                     <UserCircle2 size={15} /> {t.accountProfile}
                   </Link>
-                  <Link href="/settings" className="flex items-center gap-2.5 rounded-btn px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-card-hov hover:text-fg">
+                  <Link href="/settings" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-btn px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-card-hov hover:text-fg">
                     <Settings2 size={15} /> {t.accountSettings}
                   </Link>
                   <div className="my-2 ic-rule" />
                   <button
                     type="button"
-                    onClick={handleLogout}
+                    onClick={() => { setAccountMenuOpen(false); handleLogout(); }}
                     className="flex w-full items-center gap-2.5 rounded-btn px-3 py-2 text-sm text-danger transition-colors hover:bg-danger/10"
                   >
                     <X size={15} /> {t.accountLogOut}

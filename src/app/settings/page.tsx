@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const [ageEnabled, setAgeEnabled] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(0);
   const [historyCount, setHistoryCount] = useState(0);
+  const [recentItems, setRecentItems] = useState<ReturnType<typeof readRecentHistoryItems>>([]);
 
   const s = translations[lang].settings;
 
@@ -51,6 +52,7 @@ export default function SettingsPage() {
     const sync = () => {
       setBookmarkCount(readBookmarks().length);
       setHistoryCount(readRecentHistoryItems(100).length);
+      setRecentItems(readRecentHistoryItems(6));
       setAgeEnabled(readAgeVerification());
       setMangaLanguage(readStoredMangaLanguage());
     };
@@ -64,6 +66,8 @@ export default function SettingsPage() {
     const onLang = (event: Event) => {
       const next = (event as CustomEvent<Lang>).detail;
       if (next && translations[next]) setLang(next);
+      // The Navbar switcher also overwrites the stored manga language; re-read it.
+      sync();
     };
 
     window.addEventListener(LIBRARY_ACTIVITY_EVENT, sync);
@@ -78,10 +82,14 @@ export default function SettingsPage() {
   }, []);
 
   const applyLang = (nextLang: Lang) => {
+    const nextMangaLanguage = uiLangToPreferredMangaLanguage(nextLang);
     setLang(nextLang);
     writeStorageItem('lang', nextLang);
     persistUiLangCookie(nextLang);
-    persistStoredMangaLanguage(uiLangToPreferredMangaLanguage(nextLang));
+    persistStoredMangaLanguage(nextMangaLanguage);
+    // Keep the on-screen manga-language select in sync with the overwrite above.
+    setMangaLanguage(nextMangaLanguage);
+    window.dispatchEvent(new Event(LIBRARY_ACTIVITY_EVENT));
     window.dispatchEvent(new CustomEvent('langChange', { detail: nextLang }));
     // Flip <html lang> immediately, then re-render the server tree from the new cookie.
     if (typeof document !== 'undefined') {
@@ -134,10 +142,10 @@ export default function SettingsPage() {
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <LazyMotion features={domAnimation} strict>
         <m.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
           className="wrap max-w-6xl space-y-10 py-14 sm:py-16 lg:py-20"
@@ -306,27 +314,29 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-card border border-line bg-card p-6 md:p-8">
-            <div className="mb-6 flex items-center gap-3">
-              <Clock3 size={18} className="text-accent-text" />
-              <h2 className="text-base font-semibold">{s.recentReads}</h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {readRecentHistoryItems(6).map((item) => (
-                <Link
-                  key={`${item.source}:${item.id}`}
-                  href={item.href}
-                  className="rounded-btn border border-line bg-inset p-4 transition-colors duration-150 hover:border-line-strong hover:bg-card-hov"
-                >
-                  <div className="ic-eyebrow text-accent-text">{s.resume}</div>
-                  <div className="mt-2 line-clamp-2 text-sm font-semibold text-fg">{item.title}</div>
-                  <div className="mt-2 line-clamp-2 text-xs text-fg-muted">
-                    {item.chapterTitle || s.continueReadingChip}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
+          {recentItems.length > 0 && (
+            <section className="rounded-card border border-line bg-card p-6 md:p-8">
+              <div className="mb-6 flex items-center gap-3">
+                <Clock3 size={18} className="text-accent-text" />
+                <h2 className="text-base font-semibold">{s.recentReads}</h2>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {recentItems.map((item) => (
+                  <Link
+                    key={`${item.source}:${item.id}`}
+                    href={item.href}
+                    className="rounded-btn border border-line bg-inset p-4 transition-colors duration-150 hover:border-line-strong hover:bg-card-hov"
+                  >
+                    <div className="ic-eyebrow text-accent-text">{s.resume}</div>
+                    <div className="mt-2 line-clamp-2 text-sm font-semibold text-fg">{item.title}</div>
+                    <div className="mt-2 line-clamp-2 text-xs text-fg-muted">
+                      {item.chapterTitle || s.continueReadingChip}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="rounded-card border border-line bg-card p-6 md:p-8">
             <div className="mb-3 flex items-center gap-3">

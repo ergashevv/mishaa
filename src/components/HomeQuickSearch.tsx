@@ -68,7 +68,10 @@ export default function HomeQuickSearch({
     }
 
     let cancelled = false;
-    const loadingT = window.setTimeout(() => setLoading(true), 0);
+    // Set loading synchronously: the old deferred setTimeout(setLoading(true), 0) fired
+    // AFTER a cache-hit promise had already run finally(setLoading(false)), so cached
+    // queries showed "Searching…" forever.
+    setLoading(true);
     const ratings = isAgeVerified ? ADULT_RATINGS : MINOR_RATINGS;
 
     void searchComicsWithClientCache({
@@ -92,7 +95,6 @@ export default function HomeQuickSearch({
 
     return () => {
       cancelled = true;
-      window.clearTimeout(loadingT);
     };
   }, [debouncedQuery, isAgeVerified, mangaLanguage]);
 
@@ -133,7 +135,13 @@ export default function HomeQuickSearch({
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setQuery(next);
+              // Open as the user types (not only on focus) — with the old focus-only
+              // trigger, typing into a freshly-focused empty input never opened results.
+              setOpen(next.trim().length >= 2);
+            }}
             onFocus={() => trimmed.length >= 2 && setOpen(true)}
             placeholder={t.quickSearchPlaceholder}
             autoComplete="off"

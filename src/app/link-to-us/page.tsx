@@ -26,7 +26,7 @@ export default function LinkToUsPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-dvh bg-app pt-nav-catalog text-fg">
+      <main id="main-content" tabIndex={-1} className="min-h-dvh bg-app pt-nav-catalog text-fg">
         <div className="wrap max-w-3xl py-14 sm:py-16 lg:max-w-4xl lg:py-20">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />

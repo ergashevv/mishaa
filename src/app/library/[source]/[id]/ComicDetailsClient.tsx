@@ -455,7 +455,26 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     );
   }
 
-  if (!comic) return null;
+  if (!comic) {
+    // A swallowed upstream failure used to land here as a bare `return null` — a completely
+    // blank page. Show a reassuring, actionable error state instead (age gate above still wins).
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-app px-4 text-fg">
+        <div className="state-block w-full max-w-md">
+          <h4>{t.loadFailedTitle}</h4>
+          <p>{t.loadFailedBody}</p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button type="button" className="ic-btn ic-btn--primary ic-btn--md" onClick={() => void fetchComicDetails()}>
+              {t.loadFailedRetry}
+            </button>
+            <Link href="/library" className="ic-btn ic-btn--secondary ic-btn--md">
+              {t.backToLibrary}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (comic.source === 'marvel' && !marvelIssue) {
     return (
@@ -472,9 +491,9 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     return (
       <LazyMotion features={domAnimation} strict>
       <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
-        <main className="relative z-10 pt-24 md:pt-28 pb-24 px-4 md:px-20 max-w-7xl mx-auto">
+        <main id="main-content" tabIndex={-1} className="relative z-10 pt-24 md:pt-28 pb-24 px-4 md:px-20 max-w-7xl mx-auto">
           <m.button
-            initial={{ opacity: 0, x: -12 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => router.back()}
             className="group mb-10 flex items-center gap-2 text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
@@ -485,7 +504,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
           <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-12 lg:gap-20 items-start">
             <m.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 lg:sticky lg:top-28"
             >
@@ -571,7 +590,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             </m.div>
 
             <m.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
               className="space-y-10"
@@ -781,7 +800,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       <div className="pointer-events-none fixed inset-0 z-0" style={backdropTintStyle} aria-hidden />
 
       <main className="relative z-10 mx-auto max-w-[min(100%,88rem)] px-4 pb-28 pt-20 sm:px-6 lg:px-10">
-        <m.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}>
+        <m.div initial={false} animate={{ opacity: 1, x: 0 }}>
           <Link
             href="/library"
             className="group mb-10 flex items-center gap-2 text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
@@ -796,7 +815,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
           className="space-y-14 lg:space-y-20"
         >
           <section className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
-          <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-[14rem] shrink-0 sm:max-w-[15rem] lg:mx-0 lg:max-w-[15.5rem] xl:max-w-[16.5rem] lg:sticky lg:top-24">
+          <m.div initial={false} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-[14rem] shrink-0 sm:max-w-[15rem] lg:mx-0 lg:max-w-[15.5rem] xl:max-w-[16.5rem] lg:sticky lg:top-24">
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-cover bg-card [box-shadow:var(--cover-frame),var(--shadow-md)]">
                <Image 
                  src={comic.coverUrl} 
@@ -830,7 +849,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
                {lastReadChapter && (
                  <m.div
-                   initial={{ opacity: 0, y: 4 }}
+                   initial={false}
                    animate={{ opacity: 1, y: 0 }}
                  >
                    <button
@@ -856,20 +875,22 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                    </button>
                  </m.div>
                )}
-              <div className="grid grid-cols-2 gap-3">
+              {/* 2 cols at ~115px each clipped RU labels ("Заклад…" / "Подели…"); tighter
+                  padding/type + no truncate keeps whole words visible in every locale. */}
+              <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={toggleBookmark}
                     aria-pressed={isBookmarked}
-                    className={`ic-btn ic-btn--md ${isBookmarked ? 'ic-btn--primary' : 'ic-btn--secondary'}`}
+                    className={`ic-btn ic-btn--md !px-2 text-xs ${isBookmarked ? 'ic-btn--primary' : 'ic-btn--secondary'}`}
                   >
-                    <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
-                    <span className="truncate">{isBookmarked ? t.bookmarked : t.bookmark}</span>
+                    <Bookmark size={14} className="shrink-0" fill={isBookmarked ? "currentColor" : "none"} />
+                    <span>{isBookmarked ? t.bookmarked : t.bookmark}</span>
                   </button>
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="ic-btn ic-btn--secondary ic-btn--md"
+                    className="ic-btn ic-btn--secondary ic-btn--md !px-2 text-xs"
                   >
-                    <Share2 size={14} /> <span className="truncate">{t.share}</span>
+                    <Share2 size={14} className="shrink-0" /> <span>{t.share}</span>
                   </button>
                   <button
                     onClick={reportIssue}
@@ -883,7 +904,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
           <div className="flex min-w-0 flex-1 flex-col gap-10 lg:gap-12">
           {/* Main Info */}
-          <m.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="min-w-0 space-y-6">
+          <m.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="min-w-0 space-y-6">
             <div className="min-w-0 space-y-5">
               <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-4 gap-y-3">
                  <span className="ic-score shrink-0">

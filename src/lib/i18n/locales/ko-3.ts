@@ -238,7 +238,7 @@ export const koPart3: DeepPartial<typeof en> = {
     moreLikeThis: '비슷한 작품',
     similarTitles: '유사 제목',
     chaptersHeading: '화',
-    chaptersTotal: '총 {count}화',
+    chaptersTotal: '{count}화 표시',
     externalChapter: '외부',
     chapterTitleFallback: '{num}화',
     noChaptersForLanguage: '이 언어의 화가 없습니다',

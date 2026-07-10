@@ -33,9 +33,9 @@ export default function LegalPage({
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <m.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
           className="wrap max-w-3xl py-14 sm:py-16 lg:py-20"

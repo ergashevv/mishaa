@@ -115,7 +115,7 @@ export const jaPart6: DeepPartial<typeof en> = {
     moreLikeThis: 'おすすめ',
     similarTitles: '似た作品',
     chaptersHeading: '章',
-    chaptersTotal: '全 {count} 話',
+    chaptersTotal: '{count}話を表示',
     externalChapter: '外部',
     chapterTitleFallback: '第{num}話',
     noChaptersForLanguage: 'この言語の章がありません',

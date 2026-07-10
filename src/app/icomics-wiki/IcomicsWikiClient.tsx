@@ -29,7 +29,7 @@ export default function IcomicsWikiClient() {
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <div className="wrap max-w-3xl py-14 sm:py-16 lg:py-20">
         <header className="space-y-5 text-center">
           <p className="ic-eyebrow">{t.kicker}</p>

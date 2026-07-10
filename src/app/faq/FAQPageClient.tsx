@@ -44,9 +44,9 @@ export default function FAQPageClient() {
     <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
-      <main className="pt-nav-catalog">
+      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
         <m.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
           className="wrap max-w-3xl space-y-14 py-14 sm:py-16 lg:py-20"
@@ -64,19 +64,28 @@ export default function FAQPageClient() {
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                className={`cursor-pointer rounded-card border bg-card transition-colors duration-150 ${openIndex === i ? 'border-line-strong' : 'border-line hover:bg-card-hov'}`}
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className={`rounded-card border bg-card transition-colors duration-150 ${openIndex === i ? 'border-line-strong' : 'border-line hover:bg-card-hov'}`}
               >
-                <div className="flex items-center justify-between gap-6 p-5 sm:p-6">
-                  <div className="flex items-baseline gap-4">
-                    <span className="font-mono text-xs text-accent-text">0{i + 1}</span>
-                    <h3 className="text-base font-semibold leading-snug sm:text-lg">{faq.q}</h3>
-                  </div>
-                  <m.div animate={{ rotate: openIndex === i ? 180 : 0 }} className="text-fg-muted">
-                    <ChevronDown size={20} />
-                  </m.div>
-                </div>
+                <h3 className="contents">
+                  <button
+                    type="button"
+                    onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                    aria-expanded={openIndex === i}
+                    aria-controls={`faq-panel-${i}`}
+                    className="flex w-full cursor-pointer items-center justify-between gap-6 rounded-card p-5 text-left sm:p-6"
+                  >
+                    <span className="flex items-baseline gap-4">
+                      <span className="font-mono text-xs text-accent-text">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="text-base font-semibold leading-snug sm:text-lg">{faq.q}</span>
+                    </span>
+                    <m.span animate={{ rotate: openIndex === i ? 180 : 0 }} className="inline-flex text-fg-muted">
+                      <ChevronDown size={20} />
+                    </m.span>
+                  </button>
+                </h3>
                 <m.div
+                  id={`faq-panel-${i}`}
+                  aria-hidden={openIndex !== i}
                   initial={false}
                   animate={{ height: openIndex === i ? 'auto' : 0, opacity: openIndex === i ? 1 : 0 }}
                   className="overflow-hidden"

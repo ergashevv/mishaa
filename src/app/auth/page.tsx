@@ -106,7 +106,7 @@ function AuthPageContent() {
       </Link>
 
       <m.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
         className="w-full max-w-[460px] z-10"
@@ -115,7 +115,7 @@ function AuthPageContent() {
           {/* Top Branding */}
           <div className="text-center mb-10 space-y-4">
             <m.div
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={false}
               animate={{ scale: 1, opacity: 1 }}
               className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.2)] mb-2"
             >

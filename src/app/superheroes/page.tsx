@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
 import { Zap, Search, Swords, Users, RefreshCw, X, Check, Star, Crosshair } from 'lucide-react';
@@ -101,8 +101,15 @@ export default function SuperheroesDashboard() {
     setLoadingRandom(false);
   };
 
+  const searchSeq = useRef(new Map<(res: Superhero[]) => void, number>());
+
   const searchHero = async (query: string, setter: (res: Superhero[]) => void) => {
-    if (!query || query.length < 2) return;
+    const seq = (searchSeq.current.get(setter) ?? 0) + 1;
+    searchSeq.current.set(setter, seq);
+    if (!query || query.length < 2) {
+      setter([]);
+      return;
+    }
     try {
       const res = await fetch('/api/superhero/characters', {
         method: 'POST',
@@ -110,7 +117,7 @@ export default function SuperheroesDashboard() {
         body: JSON.stringify({ nameStartsWith: query }),
       });
       const data = await res.json();
-      setter(data.results || []);
+      if (searchSeq.current.get(setter) === seq) setter(data.results || []);
     } catch (e) {
       console.error(e);
     }
@@ -384,7 +391,7 @@ export default function SuperheroesDashboard() {
                        const member = team[idx];
                        return member ? (
                          <div key={idx} className="relative group">
-                           <button onClick={() => setTeam(team.filter((_, i) => i !== idx))} className="ic-iconbtn ic-iconbtn--sm ic-iconbtn--solid absolute top-2 right-2 z-30 opacity-0 transition-opacity group-hover:opacity-100"><X size={12}/></button>
+                           <button onClick={() => setTeam(team.filter((_, i) => i !== idx))} className="ic-iconbtn ic-iconbtn--sm ic-iconbtn--solid absolute top-2 right-2 z-30 pointer-fine:opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"><X size={12}/></button>
                            {renderHeroCard(member, true)}
                          </div>
                        ) : (

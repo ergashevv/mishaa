@@ -21,7 +21,7 @@ const quickLinks = [
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-[calc(100vh-2rem)] items-center justify-center bg-app px-4 py-24 text-fg">
+    <main id="main-content" tabIndex={-1} className="flex min-h-[calc(100vh-2rem)] items-center justify-center bg-app px-4 py-24 text-fg">
       <section className="w-full max-w-2xl">
         <p className="ic-eyebrow">Error 404 · page not found</p>
 
