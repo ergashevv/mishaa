@@ -18,6 +18,14 @@
     "binding": "ASSETS",
     "directory": ".open-next/assets"
   },
+  // OpenNext incremental cache store (see open-next.config.ts). Makes getHomeData's
+  // unstable_cache(1h) + ISR actually persist on Workers, collapsing the homepage TTFB.
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "7c33c899807f470e8123ec7dc0d5dba8"
+    }
+  ],
   "main": ".open-next/worker.js",
   "minify": true
 }
