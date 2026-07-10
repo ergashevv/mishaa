@@ -44,13 +44,24 @@ export function middleware(request: NextRequest) {
   const headers = withIcsGeoRequestHeaders(request);
   const res = NextResponse.next({ request: { headers } });
 
-  const country = request.headers.get('x-vercel-ip-country') ?? '';
+  // On Cloudflare the visitor country arrives in `cf-ipcountry`. The old `x-vercel-ip-country` is
+  // Vercel-only and always absent here, so region detection silently fell back to defaults.
+  const country =
+    request.headers.get('cf-ipcountry') ?? request.headers.get('x-vercel-ip-country') ?? '';
   const signals = resolveRegionSignals(country);
   // Client-readable region UX flags. RegionalShell reads these AFTER hydration so the root
   // layout no longer needs cookies()/headers() (which forced the whole app dynamic).
-  res.cookies.set('ics_analytics_consent_required', signals.analyticsConsentRequired ? '1' : '0', cookieDefaults);
-  res.cookies.set('ics_east_age_copy', signals.eastAsiaAgeCopy ? '1' : '0', cookieDefaults);
-  res.cookies.set('ics_europe_age_copy', signals.europeAgeCopy ? '1' : '0', cookieDefaults);
+  // Write each cookie ONLY when its value actually changes: an unconditional Set-Cookie on every
+  // HTML response makes the page un-cacheable by any shared/CDN cache. Returning visitors already
+  // have these cookies, so they now get a Set-Cookie-free, edge-cacheable response.
+  const setCookieIfChanged = (name: string, value: string) => {
+    if (request.cookies.get(name)?.value !== value) {
+      res.cookies.set(name, value, cookieDefaults);
+    }
+  };
+  setCookieIfChanged('ics_analytics_consent_required', signals.analyticsConsentRequired ? '1' : '0');
+  setCookieIfChanged('ics_east_age_copy', signals.eastAsiaAgeCopy ? '1' : '0');
+  setCookieIfChanged('ics_europe_age_copy', signals.europeAgeCopy ? '1' : '0');
 
   const uiParam = request.nextUrl.searchParams.get(UI_LANG_SEARCH_PARAM);
   const fromUiQuery = isUiLang(uiParam) ? uiParam : null;
