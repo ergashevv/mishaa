@@ -19,8 +19,6 @@ export function libraryWorkTypeLabel(source: string): string {
       return 'Doujin';
     case 'superhero':
       return 'Superhero';
-    case 'archive':
-      return 'Archive comic';
     default:
       return 'Comic';
   }

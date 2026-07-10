@@ -289,22 +289,7 @@ export async function getComicDetails(
       };
     }
 
-    const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
-    if (!res.ok) throw new Error('Archive fetch failed');
-    const payload = await res.json();
-    const meta = payload.metadata;
-    return {
-      id,
-      title: meta.title || id,
-      description: meta.description || 'No description available.',
-      coverUrl: `https://archive.org/services/img/${id}`,
-      rating: 'N/A',
-      genres: meta.subject ? (Array.isArray(meta.subject) ? meta.subject : [meta.subject]) : ['Classic'],
-      status: 'Completed',
-      year: meta.date,
-      author: meta.creator || 'Unknown',
-      source: 'archive' as const,
-    };
+    return null;
   } catch (error) {
     console.error('getComicDetails error:', error);
     return null;
@@ -393,24 +378,6 @@ export async function getChapters(
       return [{ id, title: 'Full Gallery', chapterNum: '1' }];
     }
 
-    if (source === 'archive') {
-      const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
-      const data = await res.json();
-      const bookFiles =
-        data.files?.filter((f: { format: string }) =>
-          ['Image Container PDF', 'PDF', 'EPUB', 'Comic Book Archive'].includes(f.format),
-        ) || [];
-
-      if (bookFiles.length > 1) {
-        return bookFiles.map((f: { name: string; title?: string }, i: number) => ({
-          id: f.name,
-          title: f.title || f.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '),
-          chapterNum: (i + 1).toString(),
-        }));
-      }
-      return [{ id, title: 'Complete Volume', chapterNum: '1' }];
-    }
-
     return [{ id, title: 'Single Item', chapterNum: '1' }];
   } catch (error) {
     console.error('getChapters error:', error);
@@ -463,34 +430,6 @@ export async function getChapterPages(source: string, id: string, chapterId: str
         const ext = resolveNHentaiImageExt(p.t);
         return `/api/proxy/nhentai/image?path=${encodeURIComponent(`galleries/${data.media_id}/${p.page}.${ext}`)}`;
       });
-    }
-
-    if (source === 'archive') {
-      const res = await fetch(`https://archive.org/metadata/${id}`, { next: { revalidate: 3600 } });
-      const data = await res.json();
-      const isSubFile = chapterId !== id;
-
-      let jp2File;
-      if (isSubFile) {
-        const baseName = chapterId.replace(/\.[^/.]+$/, '');
-        jp2File = data.files?.find(
-          (f: { name: string; format: string }) =>
-            f.name.includes(baseName) && f.format === 'Single Page Processed JP2 ZIP',
-        );
-      } else {
-        jp2File = data.files?.find(
-          (f: { format: string }) => f.format === 'Single Page Processed JP2 ZIP',
-        );
-      }
-
-      const count = parseInt(jp2File?.filecount || data.metadata?.page_count || '100', 10);
-      const pages: string[] = [];
-      for (let i = 0; i < Math.min(count, 1500); i++) {
-        pages.push(
-          `/api/proxy/archive?action=page&id=${encodeURIComponent(id)}&page=${i}${isSubFile ? `&file=${encodeURIComponent(chapterId)}` : ''}`,
-        );
-      }
-      return pages;
     }
 
     if (['e621', 'danbooru', 'gelbooru', 'rule34'].includes(source)) {
@@ -620,37 +559,6 @@ export async function searchComics(params: {
         includedTagIds,
         excludedTagIds,
       });
-    }
-
-    if (source === 'archive') {
-      const baseQuery =
-        '(collection:comicbooksarchive OR collection:manga OR collection:comics OR (mediatype:texts AND subject:comics AND subject:manga))';
-      const finalQuery = query ? `(${query}) AND ${baseQuery}` : baseQuery;
-      const res = await fetch(
-        `https://archive.org/advancedsearch.php?q=${encodeURIComponent(finalQuery)}&output=json&rows=${SEARCH_PAGE_LIMIT}&page=${page + 1}`,
-        { next: { revalidate: 3600 } },
-      );
-      const data = await res.json();
-      const docs = data.response.docs || [];
-
-      const filteredDocs = docs.filter((item: { title?: string }) => {
-        const title = (item.title || '').toLowerCase();
-        if (title.includes('thesis') || title.includes('dissertation') || title.includes('journal article'))
-          return false;
-        return true;
-      });
-
-      return {
-        items: filteredDocs.map((item: { identifier: string; title: string }) => ({
-          id: item.identifier,
-          title: item.title,
-          description: '',
-          coverUrl: `https://archive.org/services/img/${item.identifier}`,
-          source: 'archive' as const,
-          rating: 'Safe',
-        })),
-        hasMore: (page + 1) * SEARCH_PAGE_LIMIT < data.response.numFound,
-      };
     }
 
     if (source === 'nhentai') {

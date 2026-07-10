@@ -6,8 +6,8 @@ import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, Search, X, ChevronLeft, ChevronRight, ChevronDown,
   Eye, EyeOff,
-  ZoomIn, ZoomOut, Sparkles, Shuffle, Globe, Flag,
-  Maximize2, Loader2
+  Sparkles, Shuffle, Globe,
+  Loader2
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import Navbar from '@/components/Navbar';
@@ -136,14 +136,9 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   initialCategoryQueries[initialCategory] = searchParams.get('q') ?? initialCategoryQueries[initialCategory] ?? '';
 
   const [comics, setComics] = useState<ComicListItem[]>([]);
-  const [selectedComic, setSelectedComic] = useState<ComicListItem | null>(null);
-  const [pages] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
   const [categoryQueries, setCategoryQueries] = useState<Record<string, string>>(() => initialCategoryQueries);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [reading] = useState(false);
-  const [viewMode, setViewMode] = useState<'single' | 'webtoon' | 'spread'>('single');
   const [isAgeVerified, setIsAgeVerified] = useState(() => Boolean(initialAgeVerified));
   const [nsfwEnabled, setNsfwEnabled] = useState(() => Boolean(initialAgeVerified));
   const [showAgeGate, setShowAgeGate] = useState(false);
@@ -151,7 +146,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [lang, setLang] = useState<Lang>('en');
-  const [zoom, setZoom] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
   const [bookmarks, setBookmarks] = useState<StoredBookmark[]>([]);
   const [recentActivity, setRecentActivity] = useState<Record<string, number>>({});
@@ -178,7 +172,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     : CATEGORIES.filter((category) => !category.nsfw);
   const requestIdRef = useRef(0);
   const skipNextOffsetFetchRef = useRef(false);
-  const readerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
   const searchQuery = categoryQueries[activeCategory] ?? '';
@@ -320,7 +313,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
     const nextQuery = categoryQueries[category.label] ?? category.query ?? '';
     requestIdRef.current += 1;
-    setSelectedComic(null);
     setActiveCategory(category.label);
     setOffset(0);
     setHasMore(true);
@@ -394,12 +386,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       includedTagIds,
       excludedTagIds
     }) as Promise<LoadResult>;
-  }, []);
-
-
-  // Fetch from Archive.org
-  const fetchArchive = useCallback(async (query: string, page: number): Promise<LoadResult> => {
-    return searchComics({ source: 'archive', query, page }) as Promise<LoadResult>;
   }, []);
 
 
@@ -483,10 +469,9 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             ]
           : [];
 
-        const [mdResults, arcResults, nhResults, marvelResults, heroResults, rule34Results, ...booruResults] =
+        const [mdResults, nhResults, marvelResults, heroResults, rule34Results, ...booruResults] =
           await Promise.all([
             fetchMangaDex(query, pageIndex, defaultRatings, undefined, undefined, undefined, mangaLanguage),
-            fetchArchive(query, pageIndex),
             nhentaiSearch,
             fetchMarvelIssues(query, pageIndex),
             fetchSuperheroes(query, pageIndex),
@@ -496,7 +481,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
         const combinedItems = [
           ...mdResults.items,
-          ...arcResults.items,
           ...nhResults.items,
           ...marvelResults.items,
           ...heroResults.items,
@@ -508,7 +492,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
           items: combinedItems,
           hasMore:
             mdResults.hasMore ||
-            arcResults.hasMore ||
             nhResults.hasMore ||
             marvelResults.hasMore ||
             heroResults.hasMore ||
@@ -610,7 +593,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         } else if (source === 'superhero') {
           result = await fetchSuperheroes(catQuery, pageIndex);
         } else {
-          result = await fetchArchive(catQuery, pageIndex);
+          result = { items: [], hasMore: false };
         }
       }
 
@@ -636,7 +619,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
         setLoadingMore(false);
       }
     }
-  }, [activeCategory, fetchArchive, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchSuperheroes, fetchSearchQueryTrimmed, isAgeVerified, mangaLanguage, nsfwEnabled]);
+  }, [activeCategory, fetchBooru, fetchMangaDex, fetchMarvelIssues, fetchSuperheroes, fetchSearchQueryTrimmed, isAgeVerified, mangaLanguage, nsfwEnabled]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -697,19 +680,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
       window.removeEventListener('pointerdown', handlePointerDown, true);
     };
   }, [closeSearchDropdown, showDropdown]);
-
-
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedComic || viewMode !== 'single') return;
-      if (e.key === 'ArrowLeft') setCurrentPage(p => Math.max(0, p - 1));
-      if (e.key === 'ArrowRight') setCurrentPage(p => Math.min(pages.length - 1, p + 1));
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedComic, viewMode, pages.length]);
 
   /**
    * Shared cover-card renderer for both the "Popular now" spotlight row and the
@@ -837,9 +807,8 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     sourceFilter === 'all' &&
     !savedOnly &&
     sortOrder === 'featured';
-  // "All sources" merges MangaDex/Marvel with archive.org (uncurated batch scans, often with
-  // broken or placeholder cover art) and adult booru/nhentai sources — none of those belong in
-  // the "Popular now" spotlight, which should read as a genuine editorial pick, not whichever
+  // "All sources" merges MangaDex/Marvel with adult booru/nhentai sources — those don't belong
+  // in the "Popular now" spotlight, which should read as a genuine editorial pick, not whichever
   // title happened to sort first alphabetically. Restrict the featured trio to sources with
   // real, curated metadata; every other source still appears in the plain grid below.
   const SPOTLIGHT_ELIGIBLE_SOURCES: ReadonlySet<string> = new Set(['mangadex', 'marvel', 'superhero']);
@@ -857,7 +826,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     <div className="min-h-dvh bg-app pt-nav-catalog text-fg">
       {/* Unrestricted Access */}
 
-      {!selectedComic && (
         <div className="mx-auto max-w-[1320px] px-5 py-8 sm:px-8 md:py-12">
           <header className="mb-10 space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1052,7 +1020,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       <option value="all">{t_cat.allSources}</option>
                       <option value="mangadex">MangaDex</option>
                       <option value="marvel">Marvel</option>
-                      <option value="archive">Archive</option>
                       <option value="superhero">Superheroes</option>
                       {isAgeVerified && nsfwEnabled && (
                         <>
@@ -1103,7 +1070,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       className={`ic-tab${activeCategory === cat.label ? ' is-active' : ''}`}
                     >
                       {cat.source === 'all' && <Globe size={12} className="mr-1.5 inline-block align-[-1px]" />}
-                      {cat.source === 'archive' && <Flag size={12} className="mr-1.5 inline-block align-[-1px]" />}
                       {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={12} className="mr-1.5 inline-block align-[-1px]" />}
                       {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru' || cat.source === 'rule34') && (
                         <Sparkles size={12} className="mr-1.5 inline-block align-[-1px]" />
@@ -1188,168 +1154,6 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
             </div>
           )}
         </div>
-      )}
-
-      {/* PRO READER */}
-      <AnimatePresence>
-        {selectedComic && (
-          <m.div ref={readerRef} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="fixed inset-0 z-[5000] bg-black flex flex-col">
-             <div className="h-20 bg-black border-b border-white/10 flex items-center justify-between px-8 max-md:h-auto max-md:flex-col max-md:items-stretch max-md:gap-3 max-md:px-3 max-md:py-3">
-                <div className="flex items-center gap-4 max-md:justify-between max-md:gap-3">
-                  <button onClick={() => setSelectedComic(null)} className="w-10 h-10 rounded-btn border border-white/10 flex items-center justify-center transition-colors hover:bg-white/10 max-md:w-9 max-md:h-9"><X /></button>
-                  <div className="hidden md:block">
-                     <h4 className="max-w-xs truncate text-xs font-medium text-white/60">{selectedComic.title}</h4>
-                  </div>
-                </div>
-
-                <div className="flex w-full flex-wrap justify-center bg-white/5 p-1 border border-white/10 rounded-full max-md:justify-between max-md:rounded-2xl max-md:p-1.5">
-                  <button onClick={() => setViewMode('single')} className={`px-4 py-2 text-xs font-medium rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'single' ? 'bg-accent text-on-accent' : 'text-white/50 hover:text-white'}`}>Single</button>
-                  <button onClick={() => setViewMode('spread')} className={`px-4 py-2 text-xs font-medium rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'spread' ? 'bg-accent text-on-accent' : 'text-white/50 hover:text-white'}`}>Journal</button>
-                  <button onClick={() => setViewMode('webtoon')} className={`px-4 py-2 text-xs font-medium rounded-full transition-all max-md:px-3 max-md:py-2 ${viewMode === 'webtoon' ? 'bg-accent text-on-accent' : 'text-white/50 hover:text-white'}`}>Vertical</button>
-                </div>
-
-                <div className="flex items-center gap-4 max-md:w-full max-md:justify-between">
-                   <button 
-                    onClick={() => {
-                      if (!document.fullscreenElement) {
-                        readerRef.current?.requestFullscreen();
-                      } else {
-                        document.exitFullscreen();
-                      }
-                    }}
-                    className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 max-md:w-9 max-md:h-9"
-                   >
-                     <Maximize2 size={16} />
-                   </button>
-                   <div className="hidden md:flex items-center gap-2 mr-4">
-                      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} className="w-8 h-8 rounded-btn hover:bg-white/5 flex items-center justify-center"><ZoomOut size={14}/></button>
-                      <span className="w-8 text-center font-mono text-[11px] text-white/50">{Math.round(zoom * 100)}%</span>
-                      <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} className="w-8 h-8 rounded-btn hover:bg-white/5 flex items-center justify-center"><ZoomIn size={14}/></button>
-                   </div>
-                   <div className="font-mono text-xs text-accent">
-                      {currentPage + 1} <span className="text-white/40">/</span> {pages.length}
-                   </div>
-                </div>
-             </div>
-
-             <div className="flex-1 overflow-auto bg-[#050505] custom-scrollbar relative">
-                {reading ? (
-                  <ReaderSkeleton />
-                ) : (
-                  <div className={`mx-auto h-full flex items-center justify-center ${viewMode === 'webtoon' ? 'max-w-4xl py-10 px-4' : 'p-6'}`}>
-                    {viewMode === 'single' ? (
-                       <div className="relative h-full w-full flex items-center justify-center group">
-                          {/* Navigation Zones */}
-                          <div 
-                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
-                            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                          >
-                             <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
-                                <ChevronLeft className={currentPage === 0 ? 'text-white/10' : 'text-white'} />
-                             </div>
-                          </div>
-                          
-                          <div 
-                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
-                            onClick={() => setCurrentPage(p => Math.min(pages.length - 1, p + 1))}
-                          >
-                             <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
-                                <ChevronRight className={currentPage === pages.length - 1 ? 'text-white/10' : 'text-white'} />
-                             </div>
-                          </div>
-
-                          <m.img 
-                            key={currentPage}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            src={pages[currentPage]} 
-                            alt={`${selectedComic.title} — page ${currentPage + 1}`}
-                            style={{ transform: `scale(${zoom})`, maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
-                            className="shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5" 
-                          />
-                       </div>
-                    ) : viewMode === 'spread' ? (
-                      <div className="relative h-full w-full flex items-center justify-center group">
-                          <div 
-                            className="absolute inset-y-0 left-0 w-1/4 z-10 cursor-pointer flex items-center justify-start p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
-                            onClick={() => setCurrentPage(p => Math.max(0, p - 2))}
-                          >
-                             <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
-                                <ChevronLeft className={currentPage === 0 ? 'text-white/10' : 'text-white'} />
-                             </div>
-                          </div>
-                          
-                          <div 
-                            className="absolute inset-y-0 right-0 w-1/4 z-10 cursor-pointer flex items-center justify-end p-8 opacity-0 group-hover:opacity-100 transition-opacity max-md:hidden"
-                            onClick={() => setCurrentPage(p => Math.min(pages.length - 1, p + 2))}
-                          >
-                             <div className="w-12 h-12 bg-black/50 border border-white/10 flex items-center justify-center rounded-full backdrop-blur-sm">
-                                <ChevronRight className={currentPage >= pages.length - 1 ? 'text-white/10' : 'text-white'} />
-                             </div>
-                          </div>
-
-                          <div className="flex items-center justify-center h-full w-full max-w-7xl mx-auto">
-                             {currentPage === 0 ? (
-                               <m.img 
-                                 key="cover"
-                                 initial={{ opacity: 0 }}
-                                 animate={{ opacity: 1 }}
-                                 src={pages[0]} 
-                                 alt={`${selectedComic.title} — cover`}
-                                 style={{ transform: `scale(${zoom})`, maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
-                                 className="shadow-2xl border border-white/5 ring-1 ring-white/10" 
-                               />
-                             ) : (
-                               <div className="flex items-center justify-center h-full w-full gap-0 bg-[#111] shadow-2xl relative">
-                                 {/* Spine shadow */}
-                                 <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 bg-gradient-to-r from-black/40 via-black/10 to-black/40 z-20 pointer-events-none" />
-                                 
-                                 <m.img 
-                                   key={currentPage}
-                                   initial={{ opacity: 0, x: -10 }}
-                                   animate={{ opacity: 1, x: 0 }}
-                                   src={pages[currentPage]} 
-                                   alt={`${selectedComic.title} — page ${currentPage + 1} (left)`}
-                                   style={{ transform: `scale(${zoom})`, height: '100%', width: '50%', objectFit: 'contain', objectPosition: 'right' }} 
-                                   className="border-r border-black/20" 
-                                 />
-                                 {pages[currentPage + 1] && (
-                                   <m.img 
-                                     key={currentPage + 1}
-                                     initial={{ opacity: 0, x: 10 }}
-                                     animate={{ opacity: 1, x: 0 }}
-                                     src={pages[currentPage + 1]} 
-                                     alt={`${selectedComic.title} — page ${currentPage + 2} (right)`}
-                                     style={{ transform: `scale(${zoom})`, height: '100%', width: '50%', objectFit: 'contain', objectPosition: 'left' }} 
-                                   />
-                                 )}
-                               </div>
-                             )}
-                          </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-4 items-center">
-                         {pages.map((p, i) => (
-                           <m.img 
-                            key={i} 
-                            src={p} 
-                            alt={`${selectedComic.title} — page ${i + 1}`}
-                            className="w-full h-auto mb-4 shadow-2xl" 
-                            loading="lazy"
-                            onViewportEnter={() => {
-                              if (viewMode === 'webtoon') setCurrentPage(i);
-                            }}
-                            viewport={{ amount: 0.5 }}
-                           />
-                         ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-             </div>
-          </m.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showAgeGate && (
@@ -1380,12 +1184,5 @@ const ComicSkeleton = () => (
     <div className="sk sk-cover" />
     <div className="sk sk-line w-[85%]" />
     <div className="sk sk-line w-[55%]" />
-  </div>
-);
-
-const ReaderSkeleton = () => (
-  <div className="w-full max-w-4xl mx-auto space-y-8 py-10">
-     <div className="sk sk-cover w-full" />
-     <div className="sk sk-cover w-full" />
   </div>
 );

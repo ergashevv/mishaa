@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://api.dicebear.com https://uploads.mangadex.org https://i.annihil.us https://lh3.googleusercontent.com https://s4.anilist.co https://media.kitsu.io https://archive.org; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://api.dicebear.com https://uploads.mangadex.org https://i.annihil.us https://lh3.googleusercontent.com https://s4.anilist.co https://media.kitsu.io; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;",
           },
         ],
       },
@@ -65,10 +65,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'media.kitsu.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'archive.org',
       },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

@@ -5,7 +5,6 @@ export const LIBRARY_SOURCE_SLUGS = [
   'marvel',
   'superhero',
   'nhentai',
-  'archive',
   'e621',
   'danbooru',
   'gelbooru',
