@@ -478,6 +478,12 @@ body {
 .ic-iconbtn--sm { width: 34px; height: 34px; }
 .ic-iconbtn--md { width: 42px; height: 42px; }
 .ic-iconbtn--lg { width: 48px; height: 48px; }
+/* Touch devices: enforce a 44px tap target for the compact controls (they stay
+   34px for mouse/desktop, so the header density is unchanged on pointer:fine). */
+@media (pointer: coarse) {
+  .ic-iconbtn--sm { width: 44px; height: 44px; }
+  .ic-btn--sm { height: 44px; }
+}
 .ic-iconbtn:hover { background: var(--surface-inset); color: var(--text-primary); }
 .ic-iconbtn:active { transform: scale(var(--press-scale)); }
 .ic-iconbtn:focus-visible { outline: none; box-shadow: var(--glow-accent); }
@@ -873,9 +879,19 @@ body {
 /* ------------------------------------------------------------ HOME LAYOUT --- */
 /* Layout primitives from ui_kits/home — shared by home + other catalog pages. */
 
-.wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter); }
+/* Gutters never let content slide under a landscape notch (viewport-fit=cover is set);
+   in portrait the safe-area insets are 0 so the normal gutter is used. */
+.wrap {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding-left: max(var(--page-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--page-gutter), env(safe-area-inset-right, 0px));
+}
 @media (max-width: 720px) {
-  .wrap { padding: 0 var(--page-gutter-sm); }
+  .wrap {
+    padding-left: max(var(--page-gutter-sm), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--page-gutter-sm), env(safe-area-inset-right, 0px));
+  }
 }
 
 /* Hero */

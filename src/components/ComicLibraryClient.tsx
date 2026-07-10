@@ -710,7 +710,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     <LazyMotion features={domAnimation} strict>
     <>
     <Navbar />
-    <div className="min-h-screen bg-app pt-nav-catalog text-fg">
+    <div className="min-h-dvh bg-app pt-nav-catalog text-fg">
       {/* Unrestricted Access */}
 
       {!selectedComic && (

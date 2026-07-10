@@ -9,8 +9,8 @@ export default function MangaDexUnresolvedPanel() {
   const t = translations[lang].library;
 
   return (
-    <article className="min-h-screen bg-app text-fg">
-      <div className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-6 px-4 text-center">
+    <article className="min-h-dvh bg-app text-fg">
+      <div className="mx-auto flex min-h-dvh max-w-4xl flex-col items-center justify-center gap-6 px-4 text-center">
         <div className="ic-eyebrow">{t.unresolvedLegacyKicker}</div>
         <h1 className="ic-display text-4xl sm:text-6xl">{t.unresolvedTitle}</h1>
         <p className="max-w-2xl text-sm leading-7 text-fg-secondary">{t.unresolvedBody}</p>

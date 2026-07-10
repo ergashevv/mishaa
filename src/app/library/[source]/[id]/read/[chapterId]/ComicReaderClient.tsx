@@ -1187,7 +1187,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   return (
     <LazyMotion features={domAnimation} strict>
     <div
-      className="min-h-screen overflow-hidden"
+      className="min-h-dvh overflow-hidden"
       style={{
         backgroundColor: READER_THEMES[readerTheme].shellBg,
         color: READER_THEMES[readerTheme].text,

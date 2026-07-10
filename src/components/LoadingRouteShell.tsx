@@ -7,9 +7,9 @@ type LoadingTone = 'app' | 'library' | 'reader' | 'comic-detail';
 
 const outerByTone: Record<LoadingTone, string> = {
   app: 'min-h-dvh justify-center bg-app',
-  library: 'min-h-screen justify-center bg-app',
-  reader: 'min-h-screen justify-center bg-app',
-  'comic-detail': 'min-h-screen justify-center bg-app',
+  library: 'min-h-dvh justify-center bg-app',
+  reader: 'min-h-dvh justify-center bg-app',
+  'comic-detail': 'min-h-dvh justify-center bg-app',
 };
 
 /**

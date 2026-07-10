@@ -751,7 +751,7 @@ export default function HomeClient({
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <div className="min-h-screen bg-app text-fg">
+    <div className="min-h-dvh bg-app text-fg">
       <Navbar />
 
       <main className="relative pt-nav-catalog">
@@ -779,7 +779,10 @@ export default function HomeClient({
             ) : featuredComic ? (
               <m.div
                 key="home-hero"
-                initial={{ opacity: 0 }}
+                // Paint the hero (the mobile LCP element) immediately. Fading the whole hero
+                // container from opacity:0 kept the largest element invisible until framer
+                // hydrated, delaying LCP; the inner carousel still crossfades between slides.
+                initial={false}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.36, ease: [0.22, 0.61, 0.36, 1] }}

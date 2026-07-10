@@ -10,7 +10,7 @@ export const metadata = guidesIndexMetadata();
 
 export default function GuidesIndexPage() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-app text-fg">
+    <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <JsonLd data={buildGuidesIndexItemListJsonLd()} />
       <Navbar />
 

@@ -186,7 +186,7 @@ export default function SuperheroesDashboard() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <div className="min-h-screen bg-app text-fg">
+    <div className="min-h-dvh bg-app text-fg">
        <Navbar />
        <div className="pt-nav-catalog">
        <div className="wrap max-w-7xl space-y-12 py-12 sm:py-14">

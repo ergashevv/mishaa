@@ -96,7 +96,7 @@ function AuthPageContent() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <div className="min-h-screen flex flex-col items-center justify-center bg-app p-6 font-sans text-fg">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-app p-6 font-sans text-fg">
       {/* Back Button */}
       <Link href="/" className="group absolute top-8 left-8 z-[100] flex items-center gap-3 text-fg-muted transition-colors hover:text-fg">
         <span className="ic-iconbtn ic-iconbtn--sm ic-iconbtn--solid">
@@ -307,7 +307,7 @@ function AuthPageContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-app" />}>
+    <Suspense fallback={<div className="min-h-dvh bg-app" />}>
       <AuthPageContent />
     </Suspense>
   );

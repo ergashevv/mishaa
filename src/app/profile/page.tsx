@@ -127,7 +127,7 @@ export default function ProfilePage() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <div className="min-h-screen bg-app text-fg">
+    <div className="min-h-dvh bg-app text-fg">
       <Navbar />
 
       <main className="pt-nav-catalog">

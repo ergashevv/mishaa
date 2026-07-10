@@ -112,7 +112,7 @@ function SupportPageContent() {
 
   return (
     <LazyMotion features={domAnimation} strict>
-    <div className="min-h-screen overflow-x-hidden bg-app text-fg">
+    <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
       <Navbar />
 
       <main className="pt-nav-catalog">
