@@ -28,6 +28,8 @@ export const en = {
       launch: 'Browse All',
       issue: 'Issue',
       standard: 'Official Edition',
+      searchEyebrow: 'Discover',
+      searchHeading: 'Find your next read',
       quickSearchPlaceholder: 'Search JP / KR / CN / EN / RU titles (MangaDex-style)…',
       quickSearchResults: 'Top matches',
       quickSearchSearching: 'Searching…',
@@ -197,9 +199,9 @@ export const en = {
     },
     contact: {
       badge: 'Contact Us',
-      titleLine1: 'GET',
-      titleLine2: 'IN TOUCH.',
-      title: 'GET IN TOUCH.',
+      titleLine1: 'Get',
+      titleLine2: 'in touch.',
+      title: 'Get in touch.',
       subtitle: 'Direct communication channels for our community.',
       email: 'Email Support',
       telegram: 'Telegram Channel',
@@ -222,8 +224,8 @@ export const en = {
     },
     support: {
       badge: 'Reader support',
-      titleLine1: 'HELP',
-      titleLine2: 'DESK',
+      titleLine1: 'Help',
+      titleLine2: 'desk.',
       intro:
         'Broken chapters, missing images, blocked sources, login issues, or legal notices — outline what happened below. Submit opens your mail app with everything filled in.',
 
@@ -347,6 +349,7 @@ export const en = {
       completed: 'Completed',
       backHome: 'Back home',
       logOut: 'Log out',
+      sectionEdit: 'Edit profile',
     },
     superheroes: {
       badge: 'Global database',
@@ -363,6 +366,7 @@ export const en = {
         'Connected to a public superhero registry with hundreds of entities — power breakdowns, identities, and reference data.',
       totalEntries: 'Total entries',
       powerMetricsShort: 'Power metrics',
+      rosterHeading: 'Featured roster',
       pwrAbbrev: 'PWR',
       statInt: 'INT',
       statStr: 'STR',
@@ -376,8 +380,8 @@ export const en = {
       awaitingEntity1: 'Awaiting fighter 1',
       awaitingEntity2: 'Awaiting fighter 2',
       simulate: 'Simulate',
-      stalemate: 'STALEMATE DETECTED',
-      victoryPrefix: 'VICTORY:',
+      stalemate: 'Stalemate detected',
+      victoryPrefix: 'Victory:',
       victorySubline: 'Overwhelming power metrics',
       squadTitle: 'Squad assembly',
       squadSub: 'Build a five-member strike team',
@@ -463,6 +467,7 @@ export const en = {
       titleLine1: 'Settings &',
       titleAccent: 'Safety',
       intro: 'Tune the interface language, default chapter language, age gate, bookmarks, and shortcuts to support — all in one place.',
+      sectionPreferences: 'Preferences',
       interfaceLang: 'Interface language',
       langEnglish: 'English',
       langJapanese: 'Japanese',
@@ -619,5 +624,7 @@ export const en = {
       savedOnly: 'Saved Only',
       nsfwToggleOn: 'Adult source tabs are on — click to hide NSFW shelves',
       nsfwToggleOff: 'Adult source tabs are off — click to show NSFW shelves',
+      popularNow: 'Popular now',
+      moreTitles: 'More titles',
     }
 }

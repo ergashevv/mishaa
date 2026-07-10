@@ -139,133 +139,129 @@ function SupportPageContent() {
           initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-          className="wrap max-w-5xl space-y-14 py-14 sm:py-16 lg:py-20"
+          className="wrap max-w-6xl space-y-14 py-14 sm:py-16 lg:py-20"
         >
-          <div className="space-y-5 text-center">
+          <div className="max-w-2xl space-y-5">
             <p className="ic-eyebrow">{t.badge}</p>
-            <h1 className="ic-display text-balance text-4xl text-fg sm:text-5xl md:text-6xl">
+            <h1 className="ic-display text-balance text-4xl text-fg sm:text-5xl lg:text-6xl">
               {t.titleLine1}
               <br />
               <span className="text-accent-text">{t.titleLine2}</span>
             </h1>
-            <p className="mx-auto max-w-2xl text-base leading-relaxed text-fg-secondary sm:text-lg">{t.intro}</p>
+            <p className="text-base leading-relaxed text-fg-secondary sm:text-lg">{t.intro}</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            <div className="flex flex-col items-center space-y-5 rounded-card border border-line bg-card p-6 text-center sm:p-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                <Send size={26} />
-              </div>
-              <h3 className="ic-display text-xl text-fg">{t.cardEmailTitle}</h3>
-              <p className="text-sm text-fg-secondary">{t.cardEmailBody}</p>
-              <div className="w-full border-t border-line-subtle pt-4">
-                <a href="mailto:info@icomics.wiki" className="text-sm font-medium text-accent-text hover:underline">
-                  info@icomics.wiki
-                </a>
-              </div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+            {/* Fast channels, stacked as one considered rail */}
+            <div className="divide-y divide-line-subtle rounded-card border border-line bg-card lg:col-span-4 lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
+              <a href="mailto:info@icomics.wiki" className="flex items-start gap-4 p-6 transition-colors duration-150 hover:bg-card-hov">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
+                  <Send size={20} />
+                </span>
+                <span className="min-w-0 space-y-1">
+                  <span className="block text-base font-semibold text-fg">{t.cardEmailTitle}</span>
+                  <span className="block text-sm leading-relaxed text-fg-secondary">{t.cardEmailBody}</span>
+                  <span className="mt-1 block truncate text-sm font-medium text-accent-text">info@icomics.wiki</span>
+                </span>
+              </a>
+              <a href="https://t.me/icomicsuz" target="_blank" rel="noreferrer" className="flex items-start gap-4 p-6 transition-colors duration-150 hover:bg-card-hov">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
+                  <MessageCircle size={20} />
+                </span>
+                <span className="min-w-0 space-y-1">
+                  <span className="block text-base font-semibold text-fg">{t.cardTelegramTitle}</span>
+                  <span className="block text-sm leading-relaxed text-fg-secondary">{t.cardTelegramBody}</span>
+                  <span className="mt-1 block truncate text-sm font-medium text-accent-text">@icomicsuz</span>
+                </span>
+              </a>
+              <Link href="/faq" className="flex items-start gap-4 p-6 transition-colors duration-150 hover:bg-card-hov">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-btn bg-inset text-fg-muted">
+                  <LifeBuoy size={20} />
+                </span>
+                <span className="min-w-0 space-y-1">
+                  <span className="block text-base font-semibold text-fg">{t.cardFaqTitle}</span>
+                  <span className="block text-sm leading-relaxed text-fg-secondary">{t.cardFaqBody}</span>
+                  <span className="mt-1 block text-sm font-medium text-accent-text">{t.cardFaqCta}</span>
+                </span>
+              </Link>
             </div>
 
-            <div className="flex flex-col items-center space-y-5 rounded-card border border-line bg-card p-6 text-center sm:p-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                <MessageCircle size={26} />
-              </div>
-              <h3 className="ic-display text-xl text-fg">{t.cardTelegramTitle}</h3>
-              <p className="text-sm text-fg-secondary">{t.cardTelegramBody}</p>
-              <div className="w-full border-t border-line-subtle pt-4">
-                <a href="https://t.me/icomicsuz" target="_blank" className="text-sm font-medium text-accent-text hover:underline">
-                  @icomicsuz
-                </a>
-              </div>
-            </div>
+            {/* The report form is the page's actual content */}
+            <form
+              onSubmit={submitReport}
+              className="rounded-card border border-line bg-card p-6 sm:p-10 md:p-12 lg:col-span-8"
+            >
+              <div className="space-y-8">
+                <h2 className="ic-display text-balance text-3xl text-fg sm:text-4xl">{t.formTitle}</h2>
+                <p className="border-l-2 border-line py-2 pl-5 font-display text-lg italic leading-snug text-fg-secondary">
+                  {t.formQuote}
+                </p>
 
-            <div className="flex flex-col items-center space-y-5 rounded-card border border-line bg-card p-6 text-center sm:p-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                <LifeBuoy size={26} />
-              </div>
-              <h3 className="ic-display text-xl text-fg">{t.cardFaqTitle}</h3>
-              <p className="text-sm text-fg-secondary">{t.cardFaqBody}</p>
-              <div className="w-full border-t border-line-subtle pt-4">
-                <Link href="/faq" className="text-sm font-medium text-accent-text hover:underline">
-                  {t.cardFaqCta}
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <form
-            onSubmit={submitReport}
-            className="rounded-card border border-line bg-card p-6 sm:p-10 md:p-12"
-          >
-            <div className="space-y-8">
-              <h2 className="ic-display text-balance text-3xl text-fg sm:text-4xl">{t.formTitle}</h2>
-              <p className="border-l-2 border-line py-2 pl-5 font-display text-lg italic text-fg-secondary">
-                {t.formQuote}
-              </p>
-
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="ic-field">
-                  <label className="ic-field__label">{t.labelEmail}</label>
-                  <input
-                    type="text"
-                    value={report.email}
-                    onChange={(event) => setReport((current) => ({ ...current, email: event.target.value }))}
-                    className="ic-input"
-                    placeholder={t.placeholderEmail}
-                  />
-                </div>
-                <div className="ic-field">
-                  <label className="ic-field__label">{t.labelCategory}</label>
-                  <div className="ic-select-wrap">
-                    <select
-                      value={report.category}
-                      onChange={(event) =>
-                        setReport((current) => ({ ...current, category: event.target.value as ReportCategory }))
-                      }
-                      className="ic-select"
-                    >
-                      {categoryOpts.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown size={16} />
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="ic-field">
+                    <label className="ic-field__label">{t.labelEmail}</label>
+                    <input
+                      type="text"
+                      value={report.email}
+                      onChange={(event) => setReport((current) => ({ ...current, email: event.target.value }))}
+                      className="ic-input"
+                      placeholder={t.placeholderEmail}
+                    />
+                  </div>
+                  <div className="ic-field">
+                    <label className="ic-field__label">{t.labelCategory}</label>
+                    <div className="ic-select-wrap">
+                      <select
+                        value={report.category}
+                        onChange={(event) =>
+                          setReport((current) => ({ ...current, category: event.target.value as ReportCategory }))
+                        }
+                        className="ic-select"
+                      >
+                        {categoryOpts.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                  <div className="ic-field md:col-span-2">
+                    <label className="ic-field__label">{t.labelDetails}</label>
+                    <textarea
+                      value={report.details}
+                      onChange={(event) => setReport((current) => ({ ...current, details: event.target.value }))}
+                      className="ic-input min-h-[200px] py-3!"
+                      placeholder={t.placeholderDetails}
+                      required
+                    />
                   </div>
                 </div>
-                <div className="ic-field md:col-span-2">
-                  <label className="ic-field__label">{t.labelDetails}</label>
-                  <textarea
-                    value={report.details}
-                    onChange={(event) => setReport((current) => ({ ...current, details: event.target.value }))}
-                    className="ic-input min-h-[200px] py-3!"
-                    placeholder={t.placeholderDetails}
-                    required
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="ic-btn ic-btn--primary ic-btn--lg w-full sm:w-auto"
-              >
-                {t.submitBtn}
-              </button>
-              {submitted && (
-                <div
-                  role="status"
-                  className="flex flex-col gap-3 rounded-btn border border-line bg-accent-tint p-4 sm:flex-row sm:items-center sm:justify-between"
+                <button
+                  type="submit"
+                  className="ic-btn ic-btn--primary ic-btn--lg w-full sm:w-auto"
                 >
-                  <p className="text-sm leading-relaxed text-fg-secondary">{t.submittedNotice}</p>
-                  <button
-                    type="button"
-                    onClick={copyReport}
-                    className="ic-btn ic-btn--secondary ic-btn--sm shrink-0"
+                  {t.submitBtn}
+                </button>
+                {submitted && (
+                  <div
+                    role="status"
+                    className="flex flex-col gap-3 rounded-btn border border-line bg-accent-tint p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    {copied ? t.copiedLabel : t.copyReportBtn}
-                  </button>
-                </div>
-              )}
-            </div>
-          </form>
+                    <p className="text-sm leading-relaxed text-fg-secondary">{t.submittedNotice}</p>
+                    <button
+                      type="button"
+                      onClick={copyReport}
+                      className="ic-btn ic-btn--secondary ic-btn--sm shrink-0"
+                    >
+                      {copied ? t.copiedLabel : t.copyReportBtn}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
         </m.div>
       </main>
 

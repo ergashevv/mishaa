@@ -154,7 +154,7 @@ export default function Navbar() {
   return (
     <LazyMotion features={domAnimation} strict>
     <nav className="fixed left-0 right-0 top-0 z-[1000] border-b border-line-subtle bg-[color-mix(in_oklab,var(--surface-app)_82%,transparent)] pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-[var(--page-max)] items-center gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-[72px] max-w-[var(--page-max)] items-center gap-6 px-5 sm:px-8">
         {/* Branding — the logo stays as-is (fixed asset) */}
         <Link href="/" className="flex min-w-0 items-center gap-3 py-2 group">
           <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 shadow-2xl transition-all duration-500 group-hover:border-[#ff5a1f]/50 md:h-12 md:w-12 dark:border-white/10 dark:bg-black/40">
@@ -172,8 +172,9 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="ml-2 hidden items-center gap-5 lg:flex">
+        {/* Desktop nav — active route gets a marigold underline bar, not just a color swap,
+            so wayfinding reads at a glance instead of requiring a close look at text color. */}
+        <div className="ml-3 hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -181,11 +182,17 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`text-sm font-medium transition-colors ${
+                className={`relative py-2 text-sm font-medium transition-colors ${
                   isActive ? 'text-fg' : 'text-fg-secondary hover:text-fg'
                 }`}
               >
                 {link.name}
+                <span
+                  aria-hidden
+                  className={`absolute -bottom-[2px] left-0 right-0 h-[2px] rounded-full bg-accent transition-opacity duration-[var(--dur-base)] ${
+                    isActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </Link>
             );
           })}
@@ -275,7 +282,7 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <Link href="/auth" className="ic-btn ic-btn--primary ic-btn--sm hidden lg:inline-flex">
+            <Link href="/auth" className="ic-btn ic-btn--primary ic-btn--md hidden lg:inline-flex">
               {t.registry}
             </Link>
           )}

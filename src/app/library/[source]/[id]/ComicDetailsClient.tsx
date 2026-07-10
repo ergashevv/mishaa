@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
-import { 
-  ChevronLeft, Play, Star, Clock, Globe, BookOpen, Share2, 
+import {
+  ChevronLeft, Play, Star, Clock, Globe, BookOpen, Share2,
   Bookmark, ChevronRight, Loader2, Sparkles, X, Send, Copy, Check, ExternalLink,
-  Users, BarChart2,
+  Users, BarChart2, TrendingUp, Activity,
 } from 'lucide-react';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
@@ -777,6 +777,8 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
     titleLength > 70 ? 'tracking-normal sm:tracking-tight' : 'tracking-tight';
   /** Quiet editorial wash from the cover's dominant color — flat tint, no gradients. */
   const backdropTintStyle = { backgroundColor: `rgba(${dominantColor}, 0.06)` };
+  /** Same flat tint, stronger, bounded to the hero panel behind the cover + title. */
+  const heroPanelStyle = { backgroundColor: `rgba(${dominantColor}, 0.1)` };
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -799,7 +801,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
       {/* Backdrop — flat tint sampled from the cover, follows the active theme */}
       <div className="pointer-events-none fixed inset-0 z-0" style={backdropTintStyle} aria-hidden />
 
-      <main className="relative z-10 mx-auto max-w-[min(100%,88rem)] px-4 pb-28 pt-20 sm:px-6 lg:px-10">
+      <main id="main-content" tabIndex={-1} className="relative z-10 mx-auto max-w-[min(100%,88rem)] px-4 pb-28 pt-20 sm:px-6 lg:px-10">
         <m.div initial={false} animate={{ opacity: 1, x: 0 }}>
           <Link
             href="/library"
@@ -814,14 +816,20 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
           itemType="https://schema.org/ComicStory"
           className="space-y-14 lg:space-y-20"
         >
-          <section className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
-          <m.div initial={false} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-[14rem] shrink-0 sm:max-w-[15rem] lg:mx-0 lg:max-w-[15.5rem] xl:max-w-[16.5rem] lg:sticky lg:top-24">
+          {/* Editorial header: cover + title share one tinted panel, flat colour lifted
+              from the cover (useDominantColor) — no gradients, works in both themes. */}
+          <section
+            className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line p-6 shadow-[var(--shadow-sm)] sm:p-8 lg:p-10"
+            style={heroPanelStyle}
+          >
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
+          <m.div initial={false} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-[14rem] shrink-0 sm:max-w-[15rem] lg:mx-0 lg:max-w-[15.5rem] xl:max-w-[16.5rem]">
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-cover bg-card [box-shadow:var(--cover-frame),var(--shadow-md)]">
-               <Image 
-                 src={comic.coverUrl} 
+               <Image
+                 src={comic.coverUrl}
                  fill
                  className="object-cover"
-                 alt={`${comic.title} — cover`} 
+                 alt={`${comic.title} — cover`}
                  itemProp="image"
                  sizes="(max-width: 1024px) 256px, 288px"
                  quality={78}
@@ -829,7 +837,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  unoptimized={imageUnoptimizedForSrc(comic.coverUrl)}
                />
             </div>
-            
+
             <div className="mt-6 grid grid-cols-1 gap-3">
                {comic.source !== 'superhero' && (
                  <button
@@ -902,10 +910,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
             </div>
           </m.div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-10 lg:gap-12">
-          {/* Main Info */}
-          <m.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="min-w-0 space-y-6">
-            <div className="min-w-0 space-y-5">
+          <m.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="flex min-w-0 flex-1 flex-col justify-end gap-6">
               <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-4 gap-y-3">
                  <span className="ic-score shrink-0">
                     <Star size={13} fill="currentColor" aria-hidden /> {comic.rating}
@@ -924,7 +929,7 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
               </div>
 
               {comic.source === 'mangadex' && comic.mangaDexStats && (
-                <div className="-mt-1 flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {comic.mangaDexStats.follows != null && comic.mangaDexStats.follows > 0 ? (
                     <div className="inline-flex items-center gap-1.5 rounded-btn border border-line bg-card px-3 py-1.5 text-xs text-fg-secondary">
                       <Users size={12} className="text-fg-muted" aria-hidden />
@@ -966,21 +971,75 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   {t.titlePageSeoIntro.replace(/\{\{title\}\}/g, comic.title)}
                 </p>
 
-              <div className="flex min-w-0 max-w-full flex-wrap gap-2 pt-4">
+              <div className="flex min-w-0 max-w-full flex-wrap gap-2">
                 {comic.genres.map(genre => (
                   <span key={genre} className="ic-tag max-w-[min(100%,100vw-2rem)] wrap-anywhere">
                     {genre}
                   </span>
                 ))}
               </div>
-            </div>
           </m.div>
+          </div>
+          </section>
 
-            <div className="min-w-0 space-y-12 lg:space-y-14">
+          {/* Refined stat tiles: surfaced right under the editorial header instead of
+              buried after synopsis/cast, so score / rank / status read at a glance. */}
+          {(comic.aniListData || comic.jikanData) && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+              <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 shadow-[var(--shadow-xs)] md:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="ic-eyebrow">Community score</span>
+                  <Star size={14} className="shrink-0 text-fg-muted" aria-hidden />
+                </div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <div className="ic-display text-2xl leading-none text-accent-text md:text-4xl lg:text-5xl">
+                    {Math.round(Number(comic.aniListData?.averageScore || (comic.jikanData?.score ? (comic.jikanData.score * 10) : 85)))}
+                  </div>
+                  <div className="font-mono text-xs text-fg-muted md:text-sm">/100</div>
+                </div>
+                <div className="text-xs text-fg-muted">
+                  Based on {comic.aniListData?.popularity || comic.jikanData?.members || '15k'} users
+                </div>
+              </div>
+
+              <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 shadow-[var(--shadow-xs)] md:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="ic-eyebrow">Trending rank</span>
+                  <TrendingUp size={14} className="shrink-0 text-fg-muted" aria-hidden />
+                </div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <div className="ic-display text-2xl leading-none text-fg md:text-4xl lg:text-5xl">
+                    #{comic.aniListData?.trending || comic.jikanData?.rank || '42'}
+                  </div>
+                  <div className="font-mono text-xs text-fg-muted md:text-sm">top</div>
+                </div>
+                <div className="text-xs text-fg-muted">
+                  Trending globally
+                </div>
+              </div>
+
+              <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 shadow-[var(--shadow-xs)] md:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="ic-eyebrow">Series status</span>
+                  <Activity size={14} className="shrink-0 text-fg-muted" aria-hidden />
+                </div>
+                <div className="flex items-baseline gap-2 overflow-hidden">
+                  <div className="ic-display truncate text-lg leading-none text-fg md:text-xl lg:text-2xl">
+                    {comic.status}
+                  </div>
+                </div>
+                <div className="text-xs text-fg-muted">
+                  {comic.year ? `Since ${comic.year}` : 'Active timeline'}
+                </div>
+              </div>
+            </div>
+          )}
+
             <section className="space-y-4">
-                  <div className="flex items-center gap-3 pb-1">
-                     <h2 className="text-base font-semibold text-fg">{t.synopsis}</h2>
-                     <div className="ic-rule flex-1" />
+                  <div className="section__head">
+                    <div className="section__titles">
+                      <h2 className="section__heading">{t.synopsis}</h2>
+                    </div>
                   </div>
                   <div
                     itemProp="description"
@@ -998,10 +1057,10 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
 
                {comic.related && comic.related.length > 0 && (
                  <section className="space-y-4">
-                   <div className="flex flex-wrap items-end justify-between gap-3">
+                   <div className="section__head">
                       <div className="section__titles">
                         <span className="ic-eyebrow">{t.similarTitles}</span>
-                        <h2 className="text-base font-semibold text-fg">{t.moreLikeThis}</h2>
+                        <h2 className="section__heading">{t.moreLikeThis}</h2>
                       </div>
                    </div>
 
@@ -1039,9 +1098,10 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                 {/* Big Data - Characters & Actors Section */}
                 {comic.aniListData && (comic.aniListData.characters?.edges?.length ?? 0) > 0 && (
                   <div className="space-y-6 pt-2">
-                    <div className="flex items-center gap-3 pb-1">
-                      <h2 className="text-base font-semibold text-fg">Characters & cast</h2>
-                      <div className="ic-rule flex-1" />
+                    <div className="section__head">
+                      <div className="section__titles">
+                        <h2 className="section__heading">Characters & cast</h2>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
@@ -1071,60 +1131,18 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                   </div>
                 )}
 
-                {/* Advanced Metadata Stats */}
-                {(comic.aniListData || comic.jikanData) && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-                    <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 md:p-6">
-                      <div className="ic-eyebrow">Community score</div>
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <div className="ic-display text-2xl leading-none text-accent-text md:text-4xl lg:text-5xl">
-                          {Math.round(Number(comic.aniListData?.averageScore || (comic.jikanData?.score ? (comic.jikanData.score * 10) : 85)))}
-                        </div>
-                        <div className="font-mono text-xs text-fg-muted md:text-sm">/100</div>
-                      </div>
-                      <div className="text-xs text-fg-muted">
-                        Based on {comic.aniListData?.popularity || comic.jikanData?.members || '15k'} users
-                      </div>
-                    </div>
-
-                    <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 md:p-6">
-                      <div className="ic-eyebrow">Trending rank</div>
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <div className="ic-display text-2xl leading-none text-fg md:text-4xl lg:text-5xl">
-                          #{comic.aniListData?.trending || comic.jikanData?.rank || '42'}
-                        </div>
-                        <div className="font-mono text-xs text-fg-muted md:text-sm">top</div>
-                      </div>
-                      <div className="text-xs text-fg-muted">
-                        Trending globally
-                      </div>
-                    </div>
-
-                    <div className="min-w-0 space-y-3 rounded-card border border-line bg-card p-4 md:p-6">
-                      <div className="ic-eyebrow">Series status</div>
-                      <div className="flex items-baseline gap-2 overflow-hidden">
-                        <div className="ic-display truncate text-lg leading-none text-fg md:text-xl lg:text-2xl">
-                          {comic.status}
-                        </div>
-                      </div>
-                      <div className="text-xs text-fg-muted">
-                        {comic.year ? `Since ${comic.year}` : 'Active timeline'}
-                      </div>
-                    </div>
-                  </div>
-                )}
-             </div>
-
             {/* Conditional Content based on source */}
             {comic.source === 'superhero' && (comic as any).superheroData ? (
                <div className="space-y-10">
                   <div className="space-y-6">
-                     <div className="flex items-center gap-3 border-b border-line pb-4">
-                        <h3 className="text-base font-semibold text-fg">Power stats</h3>
+                     <div className="section__head">
+                        <div className="section__titles">
+                          <h3 className="section__heading">Power stats</h3>
+                        </div>
                      </div>
                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {Object.entries((comic as any).superheroData.powerstats || {}).map(([stat, val]) => (
-                           <div key={stat} className="flex flex-col items-center justify-center gap-2 rounded-card border border-line bg-card p-5">
+                           <div key={stat} className="flex flex-col items-center justify-center gap-2 rounded-card border border-line bg-card p-5 shadow-[var(--shadow-xs)]">
                               <span className="ic-eyebrow">{stat}</span>
                               <span className="ic-display text-2xl text-fg">{val === 'null' ? '?' : String(val)}</span>
                            </div>
@@ -1161,15 +1179,17 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                </div>
             ) : (
               <div id="chapters-section" className="space-y-6">
-                 <div className="flex items-center justify-between border-b border-line pb-4">
-                    <h3 className="text-base font-semibold text-fg">{t.chaptersHeading}</h3>
+                 <div className="section__head">
+                    <div className="section__titles">
+                      <h3 className="section__heading">{t.chaptersHeading}</h3>
+                    </div>
                     <span className="font-mono text-xs text-fg-muted">{t.chaptersTotal.replace('{count}', String(chapters.length))}</span>
                  </div>
-                 <div className="max-h-[min(70vh,44rem)] overflow-y-auto custom-scrollbar pr-2 md:pr-4 divide-y divide-line-subtle">
+                 <div className="max-h-[min(70vh,44rem)] overflow-y-auto custom-scrollbar pr-2 md:pr-4 space-y-1">
                     {chapters.length > 0 ? (
-                      chapters.slice(0, visibleChapterCount).map((ch) => {
+                      chapters.slice(0, visibleChapterCount).map((ch, chapterIndex) => {
                         const sharedClass =
-                          'group relative flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-inset md:px-3';
+                          `group relative flex w-full items-center gap-4 rounded-btn px-3 py-4 text-left transition-colors hover:bg-inset ${chapterIndex % 2 === 1 ? 'bg-inset/50' : ''}`;
                         const chapterOpening =
                           readNavPending && pendingReadVia === 'list' && pendingReadChapterId === ch.id;
                         const inner = (
@@ -1270,8 +1290,6 @@ export default function ComicDetailsClient({ initialComic, initialChapters, sour
                  </div>
               </div>
             )}
-          </div>
-          </section>
         </article>
       </main>
 

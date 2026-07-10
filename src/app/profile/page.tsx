@@ -136,55 +136,58 @@ export default function ProfilePage() {
         <div className="wrap grid max-w-6xl gap-8 py-14 sm:py-16 lg:grid-cols-[1fr_380px] lg:gap-12 lg:py-20">
           {/* Left Column: Form & Info */}
           <section className="space-y-8 sm:space-y-10">
-            <div className="space-y-4">
-              <p className="ic-eyebrow">{t.badge}</p>
-              <h1 className="ic-display text-balance text-4xl sm:text-5xl md:text-6xl">
-                {t.titleLine1}
-                <br />
-                <span className="text-accent-text">{t.titleAccent}</span>
-              </h1>
-              <p className="max-w-xl text-sm leading-relaxed text-fg-secondary">{t.intro}</p>
+            <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-end">
+              <div className="space-y-4">
+                <p className="ic-eyebrow">{t.badge}</p>
+                <h1 className="ic-display text-balance text-4xl sm:text-5xl md:text-6xl">
+                  {t.titleLine1}
+                  <br />
+                  <span className="text-accent-text">{t.titleAccent}</span>
+                </h1>
+                <p className="max-w-xl text-sm leading-relaxed text-fg-secondary">{t.intro}</p>
+                {user && (
+                  <div className="flex flex-wrap gap-x-8 gap-y-3 pt-2">
+                    <div>
+                      <p className="ic-eyebrow">{t.accountId}</p>
+                      <p className="break-all font-mono text-sm text-fg">{user.id}</p>
+                    </div>
+                    <div>
+                      <p className="ic-eyebrow">{t.joined}</p>
+                      <p className="text-sm text-fg-secondary">
+                        {new Date(user.createdAt).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="ic-eyebrow">{t.security}</p>
+                      <p className="text-sm text-accent-text">{t.encryptedBadge}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {user && (
+                <div className="relative h-28 w-28 flex-none overflow-hidden rounded-card border border-line bg-sunken shadow-[var(--shadow-sm)] sm:h-36 sm:w-36">
+                  <img
+                    src={user.avatar || '/logo.png'}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 py-1.5 text-center" style={{ background: 'rgba(12, 11, 16, 0.62)' }}>
+                    <span className="ic-eyebrow">{t.verifiedReader}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {loading ? (
-              <div className="space-y-8">
-                <div className="sk h-64 rounded-card" />
-                <div className="sk h-96 rounded-card" />
-              </div>
+              <div className="sk h-[420px] rounded-card" />
             ) : user ? (
-              <div className="space-y-10">
-                {/* Identity Card */}
-                <div className="grid overflow-hidden rounded-card border border-line bg-card md:grid-cols-[240px_1fr]">
-                  <div className="relative aspect-square overflow-hidden border-r border-line bg-sunken">
-                      <img
-                        src={user.avatar || '/logo.png'}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute bottom-3 left-3 right-3 rounded-btn px-3 py-2 text-center backdrop-blur-sm" style={{ background: 'rgba(12, 11, 16, 0.62)' }}>
-                        <span className="ic-eyebrow">{t.verifiedReader}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col justify-between gap-6 p-6 sm:p-8 md:p-10">
-                      <div className="space-y-2">
-                        <p className="ic-eyebrow">{t.accountId}</p>
-                        <p className="break-all font-mono text-base text-fg sm:text-lg">{user.id}</p>
-                      </div>
-                      <div className="flex flex-col gap-4 sm:flex-row sm:gap-10">
-                        <div>
-                          <p className="ic-eyebrow mb-1">{t.joined}</p>
-                          <p className="text-sm text-fg-secondary">{new Date(user.createdAt).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}</p>
-                        </div>
-                        <div>
-                          <p className="ic-eyebrow mb-1">{t.security}</p>
-                          <p className="text-sm text-accent-text">{t.encryptedBadge}</p>
-                        </div>
-                      </div>
-                    </div>
+              <form onSubmit={handleSave}>
+                <div className="section__head">
+                  <div className="section__titles">
+                    <h2 className="section__heading text-2xl">{t.sectionEdit}</h2>
+                  </div>
                 </div>
-
-                {/* Settings Form */}
-                <form onSubmit={handleSave} className="space-y-6 rounded-card border border-line bg-card p-6 sm:p-10">
+                <div className="space-y-6 rounded-card border border-line bg-card p-6 sm:p-10">
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div className="ic-field">
                       <label className="ic-field__label">{t.labelFirstName}</label>
@@ -256,8 +259,8 @@ export default function ProfilePage() {
                   >
                     {saving ? t.saving : t.saveProfile}
                   </button>
-                </form>
-              </div>
+                </div>
+              </form>
             ) : (
               <div className="state-block">
                 <p>{t.couldntLoad}</p>
@@ -268,17 +271,21 @@ export default function ProfilePage() {
           </section>
 
           {/* Right Column: Cards & Actions */}
-          <aside className="space-y-6">
-            <div className="space-y-5 rounded-card border border-line bg-card p-6 sm:p-8">
-              <p className="ic-eyebrow">{t.signInMethods}</p>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-btn border border-line-subtle bg-inset p-4">
+          <aside className="space-y-10">
+            <div>
+              <div className="section__head">
+                <div className="section__titles">
+                  <h2 className="section__heading text-xl">{t.signInMethods}</h2>
+                </div>
+              </div>
+              <div className="divide-y divide-[var(--border-subtle)]">
+                <div className="flex items-center justify-between py-3.5 first:pt-0">
                   <span className="text-sm font-medium text-fg-secondary">{t.google}</span>
                   <span className={`ic-badge ${user?.authProviderId ? 'ic-badge--accent' : 'ic-badge--neutral'}`}>
                     {user?.authProviderId ? t.enabled : t.disconnected}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-btn border border-line-subtle bg-inset p-4">
+                <div className="flex items-center justify-between py-3.5 last:pb-0">
                   <span className="text-sm font-medium text-fg-secondary">{t.passwordShort}</span>
                   <span className={`ic-badge ${user?.hasPassword ? 'ic-badge--success' : 'ic-badge--neutral'}`}>
                     {user?.hasPassword ? t.active : t.unset}
@@ -287,21 +294,21 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-5 rounded-card border border-line bg-card p-6 sm:p-8">
-              <p className="ic-eyebrow">{t.yourLibrary}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col items-center justify-center space-y-1 rounded-card border border-line-subtle bg-inset p-5">
-                  <div className="ic-display text-4xl text-accent-text">{user?._count?.reading ?? 0}</div>
-                  <div className="ic-eyebrow">{t.reading}</div>
+            <div>
+              <p className="ic-eyebrow mb-5">{t.yourLibrary}</p>
+              <div className="flex divide-x divide-[var(--border-subtle)]">
+                <div className="flex-1 pr-6">
+                  <div className="ic-display text-4xl leading-none text-accent-text">{user?._count?.reading ?? 0}</div>
+                  <div className="ic-eyebrow mt-2">{t.reading}</div>
                 </div>
-                <div className="flex flex-col items-center justify-center space-y-1 rounded-card border border-line-subtle bg-inset p-5">
-                  <div className="ic-display text-4xl text-fg">{user?._count?.completed ?? 0}</div>
-                  <div className="ic-eyebrow">{t.completed}</div>
+                <div className="flex-1 pl-6">
+                  <div className="ic-display text-4xl leading-none text-fg">{user?._count?.completed ?? 0}</div>
+                  <div className="ic-eyebrow mt-2">{t.completed}</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 border-t border-line-subtle pt-8">
               <Link href="/">
                 <button type="button" className="ic-btn ic-btn--secondary ic-btn--md ic-btn--block">
                   {t.backHome}

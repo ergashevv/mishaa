@@ -221,6 +221,11 @@ const SHELVES: ShelfDefinition[] = [
   { key: 'ntr', title: 'NTR', subtitle: 'Drama-focused', libraryTab: 'Doujinshi' },
 ];
 
+/** One shelf renders as a .spotlight-grid bento (lead card + a tight handful of others)
+ * instead of the plain horizontal .shelf row — a deliberate "we chose this for you"
+ * moment rather than N identical cards. Kept small so it reads as curated, not a runoff grid. */
+const SPOTLIGHT_ITEM_LIMIT = 5;
+
 import AgeGateOverlay from './AgeGateOverlay';
 import { isAdultComic } from '@/lib/age-verification';
 
@@ -286,6 +291,9 @@ function HomeCoverCard({
   isPreviewOpen,
   onLockedTap,
   sizes,
+  rank,
+  featured = false,
+  className,
 }: {
   comic: LibraryComic;
   coverUi: HomeAdultCoverUi;
@@ -293,11 +301,18 @@ function HomeCoverCard({
   isPreviewOpen: boolean;
   onLockedTap?: () => void;
   sizes: string;
+  /** 1-based position for ranked shelves (Trending) — renders an editorial serif numeral. */
+  rank?: number;
+  /** Oversized "spotlight" treatment for the lead card in a .spotlight-grid: bigger serif
+   * title plus a short description instead of the plain shelf-card title. */
+  featured?: boolean;
+  /** Extra classes on the card root — e.g. a wider grid span for a leading discover card. */
+  className?: string;
 }) {
   return (
     <Link
       href={resolveComicHref(comic)}
-      className="group ic-cover"
+      className={`group ic-cover${className ? ` ${className}` : ''}`}
       onClickCapture={(event) => {
         if (!isTouchDevice || !(coverUi.maskText || coverUi.politeBlur) || isPreviewOpen) return;
         event.preventDefault();
@@ -320,9 +335,18 @@ function HomeCoverCard({
             <span>18+ · Verify age</span>
           </div>
         ) : null}
+        {typeof rank === 'number' ? (
+          <span className="ic-cover__rank" aria-hidden>{rank}</span>
+        ) : null}
       </div>
-      <div className="min-h-[3.4rem] space-y-1">
-        <h3 className="ic-cover__title">
+      <div className={featured ? 'min-h-[5rem] space-y-1.5' : 'min-h-[3.4rem] space-y-1'}>
+        <h3
+          className={
+            featured
+              ? 'ic-cover__title ic-display !text-xl !font-normal !leading-[1.05] sm:!text-2xl'
+              : 'ic-cover__title'
+          }
+        >
           {coverUi.maskText ? 'Age restricted' : comic.title}
         </h3>
         <p className="ic-eyebrow line-clamp-1 flex items-center gap-1.5">
@@ -344,6 +368,11 @@ function HomeCoverCard({
             </>
           )}
         </p>
+        {featured && !coverUi.maskText && comic.description ? (
+          <p className="line-clamp-2 text-sm leading-relaxed text-fg-secondary">
+            {comic.description}
+          </p>
+        ) : null}
       </div>
     </Link>
   );
@@ -766,6 +795,15 @@ export default function HomeClient({
   const shelfSearchNorm = homeShelfSearch.trim().toLowerCase();
   const shelfCardLimit = isTouchDevice ? 8 : 12;
 
+  /** Prefer "For You" for the bento spotlight moment once it has (or is fetching) picks;
+   * guests with no activity yet fall back to the first genre shelf instead. */
+  const spotlightShelfKey: ShelfKey = useMemo(
+    () => (personalRecs.length > 0 || isRecsLoading ? 'for-you' : 'romance'),
+    [personalRecs.length, isRecsLoading],
+  );
+  const rowShelves = renderedShelves.filter((shelf) => shelf.key !== spotlightShelfKey);
+  const spotlightShelf = renderedShelves.find((shelf) => shelf.key === spotlightShelfKey) ?? null;
+
   const anyShelfLoading = renderedShelves.some((shelf) =>
     shelf.key === 'for-you' ? isRecsLoading : Boolean(shelfState[shelf.key]?.loading),
   );
@@ -802,6 +840,127 @@ export default function HomeClient({
   const goToHeroSlide = (delta: number) => {
     if (heroCarouselSlides.length === 0) return;
     setHeroSlideIndex((i) => (i + delta + heroCarouselSlides.length) % heroCarouselSlides.length);
+  };
+
+  /**
+   * One shelf, two possible rhythms: the plain horizontal-scroll `.shelf` row used almost
+   * everywhere, or the `.spotlight-grid` bento (lead card bigger, a few smaller siblings)
+   * reserved for `spotlightShelf`. Both branches share every bit of ranking/filtering/adult
+   * logic — only the grid container and the lead card's treatment differ.
+   */
+  const renderShelfSection = (shelf: ShelfDefinition, layout: 'row' | 'bento') => {
+    const state = shelf.key === 'for-you' ? { items: personalRecs, loading: isRecsLoading } : shelfState[shelf.key];
+    if (!state) return null;
+
+    const searchedItems = state.items.filter(
+      (comic) =>
+        comic.title.toLowerCase().includes(shelfSearchNorm) ||
+        comic.description.toLowerCase().includes(shelfSearchNorm),
+    );
+    // Trending is a ranked chart: keep the real chart order (meta carries
+    // "TRENDING #n") so the serif rank numerals match the metadata, instead of
+    // letting personalization silently reshuffle a "top 10" list.
+    const filteredItems = shelf.key === 'trending'
+      ? [...searchedItems].sort((a, b) => {
+          const rank = (c: LibraryComic) => {
+            const m = /#(\d+)/.exec(c.meta || '');
+            return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
+          };
+          return rank(a) - rank(b);
+        })
+      : rankComicsForHome(
+      searchedItems,
+      {
+        profile: preferenceProfile,
+        ageVerified: isAgeVerified,
+        shelfKey: shelf.key,
+      }
+    );
+
+    if (shelf.key === 'for-you' && filteredItems.length === 0 && !isRecsLoading) return null;
+    if (shelfSearchNorm && filteredItems.length === 0) return null;
+    // No headed empty rows: a shelf with nothing on it renders nothing.
+    if (!state.loading && filteredItems.length === 0) return null;
+
+    const seeAllTab =
+      shelf.libraryTab === null ? null : shelf.libraryTab ?? shelf.title;
+
+    const isBento = layout === 'bento';
+    const cardLimit = isBento ? SPOTLIGHT_ITEM_LIMIT : shelfCardLimit;
+    const skeletonCount = isBento ? SPOTLIGHT_ITEM_LIMIT : 8;
+
+    return (
+      <m.section
+        key={shelf.key}
+        id={shelf.key}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
+        className={`section${isBento ? ' !mt-20 sm:!mt-28' : ''}`}
+      >
+        <div className="section__head">
+          <div className="section__titles">
+            <span className="ic-eyebrow">{shelf.subtitle}</span>
+            <h2 className={`section__heading${isBento ? ' !text-[clamp(2rem,4vw,3rem)]' : ''}`}>
+              {shelf.title}
+              {shelf.key === 'for-you' ? <span className="pz">personalized</span> : null}
+            </h2>
+          </div>
+          {seeAllTab ? (
+            <Link
+              href={`/library?tab=${encodeURIComponent(seeAllTab)}`}
+              className="seeall"
+            >
+              See all
+              <ArrowRight size={15} aria-hidden />
+            </Link>
+          ) : null}
+        </div>
+
+        <div className={isBento ? 'spotlight-grid' : 'shelf'}>
+          {state.loading ? (
+            Array.from({ length: skeletonCount }).map((_, i) => (
+              <div key={i}>
+                <div className="sk sk-cover" />
+                <div className="sk sk-line" style={{ width: '85%' }} />
+                <div className="sk sk-line" style={{ width: '55%' }} />
+              </div>
+            ))
+          ) : (
+            filteredItems.slice(0, cardLimit).map((comic, cardIdx) => {
+              const cardKey = `${shelf.key}:${comic.source}:${comic.id}`;
+              const adultContent = isAdultComic(comic);
+              const isPreviewOpen = adultContent && previewCardKey === cardKey;
+              const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion, isPreviewOpen);
+
+              return (
+                <HomeCoverCard
+                  key={`${shelf.key}:${comicKey(comic)}`}
+                  comic={comic}
+                  coverUi={coverUi}
+                  isTouchDevice={isTouchDevice}
+                  isPreviewOpen={isPreviewOpen}
+                  // Locked (unverified) → open the age gate; verified adult → tap-to-peek.
+                  onLockedTap={
+                    coverUi.maskText
+                      ? () => setShowAgeGate(true)
+                      : () => setPreviewCardKey(cardKey)
+                  }
+                  sizes={
+                    isBento && cardIdx === 0
+                      ? '(max-width: 560px) 100vw, (max-width: 900px) 55vw, 32vw'
+                      : '(max-width: 680px) 132px, 168px'
+                  }
+                  rank={shelf.key === 'trending' ? cardIdx + 1 : undefined}
+                  featured={isBento && cardIdx === 0}
+                />
+              );
+            })
+          )}
+        </div>
+      </m.section>
+    );
   };
 
   return (
@@ -961,7 +1120,7 @@ export default function HomeClient({
                 transition={{ duration: 0.36, ease: [0.22, 0.61, 0.36, 1] }}
                 className="wrap"
               >
-                <div className="mt-8 rounded-sheet border border-line bg-base px-8 py-12 sm:px-10 sm:py-14">
+                <div className="mt-8 rounded-sheet border border-line bg-surface px-8 py-12 sm:px-10 sm:py-14">
                   <h2 className="ic-display max-w-3xl text-[clamp(2rem,5vw,3rem)] text-fg">
                     {shelfCopy.pageH1}
                   </h2>
@@ -981,7 +1140,7 @@ export default function HomeClient({
         <div className="wrap pb-20 sm:pb-24">
           {/* --- CONTINUE READING --- */}
           {continueItems.length > 0 && !shelfSearchNorm ? (
-            <section className="section">
+            <section className="section !mt-10 sm:!mt-14">
               <div className="section__head">
                 <div className="section__titles">
                   <span className="ic-eyebrow">Pick up where you left off</span>
@@ -1028,13 +1187,17 @@ export default function HomeClient({
           ) : null}
 
           {/* --- QUICK SEARCH --- */}
-          <div className="section">
-            <HomeQuickSearch
-              mangaLanguage={mangaLanguage}
-              isAgeVerified={isAgeVerified}
-              onDebouncedShelfFilter={setHomeShelfSearch}
-            />
-          </div>
+          <section className="section !mt-10 sm:!mt-14">
+            <div className="searchband">
+              <span className="ic-eyebrow">{shelfCopy.searchEyebrow}</span>
+              <h2 className="section__heading mb-5 mt-2">{shelfCopy.searchHeading}</h2>
+              <HomeQuickSearch
+                mangaLanguage={mangaLanguage}
+                isAgeVerified={isAgeVerified}
+                onDebouncedShelfFilter={setHomeShelfSearch}
+              />
+            </div>
+          </section>
 
           {renderedShelves.every((s) =>
             shelfState[s.key]?.items.filter(
@@ -1071,104 +1234,18 @@ export default function HomeClient({
             </section>
           ) : null}
 
-          {/* --- SHELVES --- */}
+          {/* --- SHELVES (horizontal-scroll rows) --- */}
           <AnimatePresence>
-            {renderedShelves.map((shelf) => {
-              const state = shelf.key === 'for-you' ? { items: personalRecs, loading: isRecsLoading } : shelfState[shelf.key];
-              if (!state) return null;
+            {rowShelves.map((shelf) => renderShelfSection(shelf, 'row'))}
+          </AnimatePresence>
 
-              const filteredItems = rankComicsForHome(
-                state.items.filter(
-                  (comic) =>
-                    comic.title.toLowerCase().includes(shelfSearchNorm) ||
-                    comic.description.toLowerCase().includes(shelfSearchNorm),
-                ),
-                {
-                  profile: preferenceProfile,
-                  ageVerified: isAgeVerified,
-                  shelfKey: shelf.key,
-                }
-              );
-
-              if (shelf.key === 'for-you' && filteredItems.length === 0 && !isRecsLoading) return null;
-              if (shelfSearchNorm && filteredItems.length === 0) return null;
-              // No headed empty rows: a shelf with nothing on it renders nothing.
-              if (!state.loading && filteredItems.length === 0) return null;
-
-              const seeAllTab =
-                shelf.libraryTab === null ? null : shelf.libraryTab ?? shelf.title;
-
-              return (
-                <m.section
-                  key={shelf.key}
-                  id={shelf.key}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
-                  className="section"
-                >
-                  <div className="section__head">
-                    <div className="section__titles">
-                      <span className="ic-eyebrow">{shelf.subtitle}</span>
-                      <h2 className="section__heading">
-                        {shelf.title}
-                        {shelf.key === 'for-you' ? <span className="pz">personalized</span> : null}
-                      </h2>
-                    </div>
-                    {seeAllTab ? (
-                      <Link
-                        href={`/library?tab=${encodeURIComponent(seeAllTab)}`}
-                        className="seeall"
-                      >
-                        See all
-                        <ArrowRight size={15} aria-hidden />
-                      </Link>
-                    ) : null}
-                  </div>
-
-                  <div className="shelf">
-                    {state.loading ? (
-                      Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i}>
-                          <div className="sk sk-cover" />
-                          <div className="sk sk-line" style={{ width: '85%' }} />
-                          <div className="sk sk-line" style={{ width: '55%' }} />
-                        </div>
-                      ))
-                    ) : (
-                      filteredItems.slice(0, shelfCardLimit).map((comic) => {
-                        const cardKey = `${shelf.key}:${comic.source}:${comic.id}`;
-                        const adultContent = isAdultComic(comic);
-                        const isPreviewOpen = adultContent && previewCardKey === cardKey;
-                        const coverUi = homeAdultCoverUi(comic, isAgeVerified, useRichMotion, isPreviewOpen);
-
-                        return (
-                          <HomeCoverCard
-                            key={`${shelf.key}:${comicKey(comic)}`}
-                            comic={comic}
-                            coverUi={coverUi}
-                            isTouchDevice={isTouchDevice}
-                            isPreviewOpen={isPreviewOpen}
-                            // Locked (unverified) → open the age gate; verified adult → tap-to-peek.
-                            onLockedTap={
-                              coverUi.maskText
-                                ? () => setShowAgeGate(true)
-                                : () => setPreviewCardKey(cardKey)
-                            }
-                            sizes="(max-width: 680px) 132px, 168px"
-                          />
-                        );
-                      })
-                    )}
-                  </div>
-                </m.section>
-              );
-            })}
+          {/* --- SPOTLIGHT (bento: one shelf gets a lead card + a curated handful) --- */}
+          <AnimatePresence>
+            {spotlightShelf ? renderShelfSection(spotlightShelf, 'bento') : null}
           </AnimatePresence>
 
           {/* --- INFINITE DISCOVERY GRID --- */}
-          <section className="section">
+          <section className="section !mt-24 sm:!mt-32">
             <div className="section__head">
               <div className="section__titles">
                 <span className="ic-eyebrow">Discover</span>
@@ -1179,7 +1256,7 @@ export default function HomeClient({
               Scroll to load more — picks refresh as you explore.
             </p>
 
-            <div className="mtgrid">
+            <div className="mtgrid !gap-6 sm:!gap-8">
               {infiniteItems.map((comic, idx) => {
                 const cardKey = `discover:${comic.source}:${comic.id}`;
                 const adultContent = isAdultComic(comic);

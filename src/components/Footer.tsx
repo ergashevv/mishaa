@@ -27,8 +27,14 @@ export default function Footer() {
 
   return (
     <footer className="mt-24 border-t border-line-subtle bg-app text-fg">
-      <div className="wrap py-12 sm:py-16">
-        <div className="flex flex-col justify-between gap-12 lg:flex-row lg:gap-16">
+      <div className="wrap py-16 sm:py-20">
+        {/* Masthead line: the tagline gets real editorial weight instead of small gray text —
+            a footer should close the page with the same confidence the hero opened it. */}
+        <p className="ic-display max-w-2xl text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.15] text-fg">
+          {t.taglineLine1} {t.taglineLine2} {t.taglineLine3}
+        </p>
+
+        <div className="mt-12 flex flex-col justify-between gap-12 border-t border-line-subtle pt-12 lg:flex-row lg:gap-16">
           <div className="max-w-md space-y-5">
             {/* Brand mark — the logo stays as-is (fixed asset) */}
             <Link href="/" className="inline-flex items-center gap-3">
@@ -39,9 +45,6 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-xs leading-relaxed text-fg-muted">
-              {t.taglineLine1} {t.taglineLine2} {t.taglineLine3}
-            </p>
-            <p className="text-xs leading-relaxed text-fg-muted">
               {t.wikiOfficialLine}
             </p>
             <p className="font-mono text-[11px] tracking-[0.04em] text-fg-muted">
@@ -49,15 +52,15 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-12 lg:gap-16">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3">
+            <div className="space-y-4 sm:pr-12">
               <span className="ic-eyebrow">{t.studio}</span>
               <div className="flex flex-col gap-3 text-sm">
                 <Link href="/library" className="text-fg-secondary transition-colors hover:text-fg">{t.launch}</Link>
                 <Link href="/about" className="text-fg-secondary transition-colors hover:text-fg">{t.about}</Link>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 border-line-subtle pt-10 sm:border-l sm:px-12 sm:pt-0">
               <span className="ic-eyebrow">{t.support}</span>
               <div className="flex flex-col gap-3 text-sm">
                 <Link href="/faq" className="text-fg-secondary transition-colors hover:text-fg">{t.faq}</Link>
@@ -69,7 +72,7 @@ export default function Footer() {
                 <a href={TELEGRAM_CHANNEL_URL} target="_blank" rel="noreferrer" className="text-fg-secondary transition-colors hover:text-fg">{t.telegramChannel}</a>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 border-line-subtle pt-10 sm:border-l sm:pl-12 sm:pt-0">
               <span className="ic-eyebrow">{t.legal}</span>
               <div className="flex flex-col gap-3 text-sm">
                 <Link href="/privacy" className="text-fg-secondary transition-colors hover:text-fg">{t.privacyPolicy}</Link>

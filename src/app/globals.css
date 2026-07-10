@@ -28,7 +28,7 @@
 @theme inline {
   /* Surfaces */
   --color-app: var(--surface-app);
-  --color-base: var(--surface-base);
+  --color-surface: var(--surface-base);
   --color-raised: var(--surface-raised);
   --color-card: var(--surface-card);
   --color-card-hov: var(--surface-card-hov);
@@ -211,7 +211,7 @@
   --page-gutter-sm: 1.25rem;
   --row-gap: 0.875rem;
   --section-gap: 3.5rem;
-  --header-h: 64px;
+  --header-h: 72px;
   --cover-ratio: 2 / 3;
 
   /* ---- Radius / borders / shadows (dark: low + faint, lean on borders) ---- */
@@ -755,6 +755,23 @@ body {
 .ic-tab:focus-visible { outline: none; box-shadow: var(--glow-accent); border-radius: var(--radius-xs); }
 
 /* Cover card */
+/* Spotlight bento: a featured item runs bigger/taller than its siblings so a shelf or
+   grid isn't N identical blocks in a row. Mobile collapses to a plain single column. */
+.spotlight-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: var(--row-gap);
+}
+.spotlight-grid > :first-child { grid-row: span 2; }
+@media (max-width: 900px) {
+  .spotlight-grid { grid-template-columns: 1fr 1fr; }
+  .spotlight-grid > :first-child { grid-column: span 2; grid-row: span 1; }
+}
+@media (max-width: 560px) {
+  .spotlight-grid { grid-template-columns: 1fr; }
+  .spotlight-grid > :first-child { grid-column: span 1; }
+}
+
 .ic-cover {
   display: flex;
   flex-direction: column;
@@ -925,12 +942,13 @@ body {
 .hero__content { max-width: 560px; padding-bottom: 64px; }
 .hero__title {
   font-family: var(--font-display);
-  font-size: var(--text-4xl);
+  /* Bigger editorial presence: the fixed 4rem read as body-adjacent next to the banner. */
+  font-size: clamp(2.6rem, 5.4vw, 5rem);
   font-weight: var(--weight-regular);
-  line-height: 1.02;
-  letter-spacing: -0.01em;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
   color: #fff;
-  margin: 10px 0 14px;
+  margin: 12px 0 16px;
   text-wrap: balance;
 }
 @media (max-width: 680px) {
@@ -968,10 +986,32 @@ body {
 .hero__navbtns { display: flex; gap: 8px; }
 
 /* Section / shelf */
-.section { margin-top: var(--section-gap); }
-.section__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: var(--space-5); }
-.section__titles { display: flex; flex-direction: column; gap: 4px; }
-.section__heading { font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: -0.01em; color: var(--text-primary); }
+.section { margin-top: calc(var(--section-gap) + 16px); }
+@media (max-width: 680px) {
+  /* The desktop editorial gap (72px) compounds with the header's own hairline padding into
+     an oversized dead zone on a 390px screen — tighten it back toward the original rhythm. */
+  .section { margin-top: var(--section-gap); }
+}
+.section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--hairline) solid var(--border-subtle, var(--border));
+}
+.section__titles { display: flex; flex-direction: column; gap: 6px; }
+/* Editorial serif section moments (design system: "serif display for section moments")
+   — was small bold sans, which flattened every section into the same generic rhythm. */
+.section__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-weight: var(--weight-regular);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
 .section__heading .pz {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1007,6 +1047,39 @@ body {
   scroll-snap-type: x proximity;
   padding-bottom: 6px;
   scrollbar-width: none;
+}
+/* Ranked shelf (Trending): oversized serif numerals over the poster's lower-left —
+   the design system's "oversized numerals" as an editorial signature, not a gimmick. */
+.ic-cover__rank {
+  position: absolute;
+  left: 10px;
+  bottom: 2px;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 0.9;
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(8, 7, 11, 0.9), 0 1px 3px rgba(8, 7, 11, 0.7);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+/* Search band: a designed moment rather than a floating input. */
+.searchband {
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  padding: var(--space-6);
+}
+@media (min-width: 720px) {
+  .searchband { padding: var(--space-8); }
+}
+.searchband__hint {
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 .shelf::-webkit-scrollbar { display: none; }
 .shelf > * { scroll-snap-align: start; }

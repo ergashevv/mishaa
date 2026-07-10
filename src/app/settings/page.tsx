@@ -148,7 +148,7 @@ export default function SettingsPage() {
           initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-          className="wrap max-w-6xl space-y-10 py-14 sm:py-16 lg:py-20"
+          className="wrap max-w-6xl py-14 sm:py-16 lg:py-20"
         >
           <section className="space-y-4">
             <div className="flex items-center gap-2">
@@ -159,198 +159,177 @@ export default function SettingsPage() {
               {s.titleLine1}{' '}
               <span className="text-accent-text">{s.titleAccent}</span>
             </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-fg-secondary md:text-base">{s.intro}</p>
+            <p className="max-w-2xl text-sm leading-relaxed text-fg-secondary md:text-[1rem]">{s.intro}</p>
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-card border border-line bg-card p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <Languages size={18} className="text-accent-text" />
-                <h2 className="text-base font-semibold">{s.interfaceLang}</h2>
-              </div>
-              <div className="grid gap-2">
-                {interfaceLangButtons.map(({ code, label }) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => applyLang(code)}
-                    className={`rounded-btn border px-4 py-3 text-left text-sm font-medium transition-colors duration-150 ${
-                      lang === code
-                        ? 'border-accent bg-accent-tint text-accent-text'
-                        : 'border-line bg-inset text-fg-secondary hover:border-line-strong hover:text-fg'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+          {/* Preferences - grouped rows with hairline dividers, not three
+              identical bordered boxes. */}
+          <div className="section">
+            <div className="section__head">
+              <div className="section__titles">
+                <h2 className="section__heading">{s.sectionPreferences}</h2>
               </div>
             </div>
 
-            <div className="rounded-card border border-line bg-card p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <Bookmark size={18} className="text-accent-text" />
-                <h2 className="text-base font-semibold">{s.mangaLang}</h2>
-              </div>
-              <div className="ic-select-wrap">
-                <select
-                  value={mangaLanguage}
-                  onChange={(event) => applyMangaLanguage(event.target.value as MangaLanguage)}
-                  className="ic-select"
-                >
-                  {MANGA_LANGUAGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+            <div className="divide-y divide-[var(--border-subtle)]">
+              <div className="grid gap-4 py-6 first:pt-0 sm:grid-cols-[200px_1fr] sm:items-start">
+                <div className="flex items-center gap-2 text-sm font-semibold text-fg">
+                  <Languages size={16} className="text-accent-text" />
+                  {s.interfaceLang}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {interfaceLangButtons.map(({ code, label }) => (
+                    <button
+                      key={code}
+                      type="button"
+                      aria-pressed={lang === code}
+                      onClick={() => applyLang(code)}
+                      className={`ic-tag ic-tag--interactive ${lang === code ? 'border-transparent bg-accent-tint text-accent-text' : ''}`}
+                    >
+                      {label}
+                    </button>
                   ))}
-                </select>
-                <ChevronDown size={16} />
-              </div>
-            </div>
-
-            <div className="rounded-card border border-line bg-card p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <Shield size={18} className="text-accent-text" />
-                <h2 className="text-base font-semibold">{s.contentSafety}</h2>
-              </div>
-              <p className="mb-5 text-sm leading-relaxed text-fg-secondary">
-                {ageEnabled ? s.adultEnabled : s.adultDisabled}
-              </p>
-              <div className="flex items-center justify-between gap-4 rounded-btn border border-line-subtle bg-inset px-4 py-3">
-                <span className="text-sm font-medium text-fg-secondary">
-                  {ageEnabled ? s.disable18 : s.enable18}
-                </span>
-                <label className="ic-switch">
-                  <input
-                    type="checkbox"
-                    checked={ageEnabled}
-                    onChange={(event) => (event.target.checked ? enableAdultContent() : disableAdultContent())}
-                  />
-                  <span className="ic-switch__track" />
-                  <span className="ic-switch__thumb" />
-                </label>
-              </div>
-            </div>
-          </section>
-
-          <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-card border border-line bg-card p-6 md:p-8">
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="ic-eyebrow text-accent-text">{s.snapshotEyebrow}</p>
-                  <h2 className="ic-display mt-2 text-2xl">{s.savedDataTitle}</h2>
-                </div>
-                <div className="ic-eyebrow text-right">
-                  <div>{s.bookmarksCount.replace('{count}', String(bookmarkCount))}</div>
-                  <div>{s.readsCount.replace('{count}', String(historyCount))}</div>
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Link
-                  href="/library"
-                  className="rounded-btn border border-line bg-inset p-4 transition-colors duration-150 hover:border-line-strong hover:bg-card-hov"
-                >
-                  <div className="ic-eyebrow">
-                    {s.browseCta}
-                  </div>
-                  <div className="mt-2 text-base font-semibold text-fg">{s.openLibrary}</div>
-                </Link>
-                <Link
-                  href="/support"
-                  className="rounded-btn border border-line bg-inset p-4 transition-colors duration-150 hover:border-line-strong hover:bg-card-hov"
-                >
-                  <div className="ic-eyebrow">
-                    {s.reportCta}
-                  </div>
-                  <div className="mt-2 text-base font-semibold text-fg">{s.sendIssue}</div>
-                </Link>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={clearLibraryData}
-                  className="ic-btn ic-btn--danger ic-btn--md"
-                >
-                  <Trash2 size={14} />
-                  {s.clearData}
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-card border border-line bg-card p-6 md:p-8">
-              <div className="mb-4 flex items-center gap-3">
-                <Mail size={18} className="text-accent-text" />
-                <h2 className="text-base font-semibold">{s.reportShortcuts}</h2>
-              </div>
-              <div className="space-y-3">
-                <a
-                  href="mailto:info@icomics.wiki?subject=iComics%20Support%20Report"
-                  className="block rounded-btn border border-line bg-inset px-4 py-4 text-sm font-medium text-fg-secondary transition-colors duration-150 hover:border-line-strong hover:text-fg"
-                >
-                  {s.emailSupport}
-                </a>
-                <a
-                  href="https://t.me/icomicsuz"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block rounded-btn border border-line bg-inset px-4 py-4 text-sm font-medium text-fg-secondary transition-colors duration-150 hover:border-line-strong hover:text-fg"
-                >
-                  {s.telegramDispatch}
-                </a>
-                <Link
-                  href="/support"
-                  className="block rounded-btn border border-line bg-inset px-4 py-4 text-sm font-medium text-fg-secondary transition-colors duration-150 hover:border-line-strong hover:text-fg"
-                >
-                  {s.fullSupportForm}
-                </Link>
-                <Link
-                  href="/profile"
-                  className="block rounded-btn border border-line bg-inset px-4 py-4 text-sm font-medium text-fg-secondary transition-colors duration-150 hover:border-line-strong hover:text-fg"
-                >
-                  {s.accountProfile}
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {recentItems.length > 0 && (
-            <section className="rounded-card border border-line bg-card p-6 md:p-8">
-              <div className="mb-6 flex items-center gap-3">
-                <Clock3 size={18} className="text-accent-text" />
-                <h2 className="text-base font-semibold">{s.recentReads}</h2>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {recentItems.map((item) => (
-                  <Link
-                    key={`${item.source}:${item.id}`}
-                    href={item.href}
-                    className="rounded-btn border border-line bg-inset p-4 transition-colors duration-150 hover:border-line-strong hover:bg-card-hov"
+              <div className="grid gap-4 py-6 sm:grid-cols-[200px_1fr] sm:items-center">
+                <div className="flex items-center gap-2 text-sm font-semibold text-fg">
+                  <Bookmark size={16} className="text-accent-text" />
+                  {s.mangaLang}
+                </div>
+                <div className="ic-select-wrap max-w-xs">
+                  <select
+                    value={mangaLanguage}
+                    onChange={(event) => applyMangaLanguage(event.target.value as MangaLanguage)}
+                    className="ic-select"
                   >
-                    <div className="ic-eyebrow text-accent-text">{s.resume}</div>
-                    <div className="mt-2 line-clamp-2 text-sm font-semibold text-fg">{item.title}</div>
-                    <div className="mt-2 line-clamp-2 text-xs text-fg-muted">
-                      {item.chapterTitle || s.continueReadingChip}
-                    </div>
-                  </Link>
-                ))}
+                    {MANGA_LANGUAGE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} />
+                </div>
               </div>
-            </section>
-          )}
 
-          <section className="rounded-card border border-line bg-card p-6 md:p-8">
-            <div className="mb-3 flex items-center gap-3">
-              <MessageCircle size={18} className="text-accent-text" />
-              <h2 className="text-base font-semibold">{s.reportSectionTitle}</h2>
+              <div className="grid gap-4 py-6 last:pb-0 sm:grid-cols-[200px_1fr] sm:items-center">
+                <div className="flex items-center gap-2 text-sm font-semibold text-fg">
+                  <Shield size={16} className="text-accent-text" />
+                  {s.contentSafety}
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <p className="max-w-md text-sm leading-relaxed text-fg-secondary">
+                    {ageEnabled ? s.adultEnabled : s.adultDisabled}
+                  </p>
+                  <label className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-fg-secondary">
+                      {ageEnabled ? s.disable18 : s.enable18}
+                    </span>
+                    <span className="ic-switch">
+                      <input
+                        type="checkbox"
+                        checked={ageEnabled}
+                        onChange={(event) => (event.target.checked ? enableAdultContent() : disableAdultContent())}
+                      />
+                      <span className="ic-switch__track" />
+                      <span className="ic-switch__thumb" />
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
-            <p className="max-w-3xl text-sm leading-relaxed text-fg-secondary">{s.reportSectionBody}</p>
-            <Link
-              href="/support"
-              className="ic-btn ic-btn--primary ic-btn--md mt-5"
-            >
-              {s.openSupportForm}
-            </Link>
-          </section>
+          </div>
+
+          {/* Your library - stat pair reads as an editorial moment instead of a
+              mono side-note; the recent-reads shelf reuses the same cont-card
+              component the home page uses for continue-reading. */}
+          <div className="section">
+            <div className="section__head">
+              <div className="section__titles">
+                <h2 className="section__heading">{s.savedDataTitle}</h2>
+              </div>
+              <div className="flex items-end gap-8">
+                <div>
+                  <div className="ic-display text-3xl leading-none text-accent-text">{bookmarkCount}</div>
+                  <div className="ic-eyebrow mt-1">{s.bookmarksCount.replace('{count}', '').trim()}</div>
+                </div>
+                <div>
+                  <div className="ic-display text-3xl leading-none">{historyCount}</div>
+                  <div className="ic-eyebrow mt-1">{s.readsCount.replace('{count}', '').trim()}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/library" className="ic-btn ic-btn--primary ic-btn--md">
+                {s.openLibrary}
+              </Link>
+              <button type="button" onClick={clearLibraryData} className="ic-btn ic-btn--danger ic-btn--md">
+                <Trash2 size={14} />
+                {s.clearData}
+              </button>
+            </div>
+
+            {recentItems.length > 0 && (
+              <div className="mt-8 border-t border-line-subtle pt-8">
+                <div className="mb-4 flex items-center gap-2">
+                  <Clock3 size={16} className="text-accent-text" />
+                  <h3 className="text-sm font-semibold text-fg">{s.recentReads}</h3>
+                </div>
+                <div className="continue">
+                  {recentItems.map((item) => (
+                    <Link key={`${item.source}:${item.id}`} href={item.href} className="cont-card">
+                      <span className="cont-card__thumb">
+                        <img src={item.coverUrl} alt="" className="h-full w-full object-cover" />
+                      </span>
+                      <span className="cont-card__body">
+                        <span className="cont-card__title">{item.title}</span>
+                        <span className="cont-card__ch">{item.chapterTitle || s.continueReadingChip}</span>
+                        {typeof item.progressPercent === 'number' && (
+                          <span className="ic-progress">
+                            <span
+                              className="ic-progress__fill block"
+                              style={{ width: `${Math.min(100, Math.max(0, item.progressPercent))}%` }}
+                            />
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Support */}
+          <div className="section">
+            <div className="section__head">
+              <div className="section__titles">
+                <h2 className="section__heading">{s.reportSectionTitle}</h2>
+              </div>
+            </div>
+            <p className="max-w-2xl text-sm leading-relaxed text-fg-secondary">{s.reportSectionBody}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link href="/support" className="ic-btn ic-btn--primary ic-btn--md">
+                <MessageCircle size={14} />
+                {s.openSupportForm}
+              </Link>
+              <a
+                href="mailto:info@icomics.wiki?subject=iComics%20Support%20Report"
+                className="ic-btn ic-btn--secondary ic-btn--md"
+              >
+                <Mail size={14} />
+                {s.emailSupport}
+              </a>
+              <a href="https://t.me/icomicsuz" target="_blank" rel="noreferrer" className="ic-btn ic-btn--secondary ic-btn--md">
+                {s.telegramDispatch}
+              </a>
+              <Link href="/profile" className="ic-btn ic-btn--ghost ic-btn--md">
+                {s.accountProfile}
+              </Link>
+            </div>
+          </div>
         </m.div>
         </LazyMotion>
       </main>

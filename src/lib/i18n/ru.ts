@@ -29,6 +29,8 @@ export const ru = {
       launch: 'Смотреть Все',
       issue: 'Выпуск',
       standard: 'Официальное Издание',
+      searchEyebrow: 'Поиск',
+      searchHeading: 'Что почитать дальше?',
       quickSearchPlaceholder: 'Японский / корейский / китайский / EN / RU (как MangaDex)…',
       quickSearchResults: 'Лучшие совпадения',
       quickSearchSearching: 'Поиск…',
@@ -199,9 +201,9 @@ export const ru = {
     },
     contact: {
       badge: 'Связаться с нами',
-      titleLine1: 'НА',
-      titleLine2: 'СВЯЗИ.',
-      title: 'НА СВЯЗИ.',
+      titleLine1: 'На',
+      titleLine2: 'связи.',
+      title: 'На связи.',
       subtitle: 'Прямые каналы связи для нашего сообщества.',
       email: 'Email Поддержка',
       telegram: 'Telegram Канал',
@@ -224,8 +226,8 @@ export const ru = {
     },
     support: {
       badge: 'Поддержка читателя',
-      titleLine1: 'ПОМОЩЬ',
-      titleLine2: 'И ПИСЬМА',
+      titleLine1: 'Помощь',
+      titleLine2: 'и письма.',
       intro:
         'Нерабочие главы, картинки, блокировки, вход в аккаунт или жалобы по контенту — опишите ниже и отправка откроет почту уже с текстом.',
 
@@ -350,6 +352,7 @@ export const ru = {
       completed: 'Прочитано',
       backHome: 'На главную',
       logOut: 'Выйти',
+      sectionEdit: 'Редактировать профиль',
     },
     superheroes: {
       badge: 'Глобальная база',
@@ -366,6 +369,7 @@ export const ru = {
         'Подключено к открытому реестру сотен персонажей — метрики силы, личности и справочные данные.',
       totalEntries: 'Записей',
       powerMetricsShort: 'Метрики силы',
+      rosterHeading: 'Витрина героев',
       pwrAbbrev: 'PWR',
       statInt: 'ИНТ',
       statStr: 'СИЛ',
@@ -379,8 +383,8 @@ export const ru = {
       awaitingEntity1: 'Слот 1 свободен',
       awaitingEntity2: 'Слот 2 свободен',
       simulate: 'Симуляция',
-      stalemate: 'НИЧЬЯ',
-      victoryPrefix: 'ПОБЕДИТЕЛЬ:',
+      stalemate: 'Ничья',
+      victoryPrefix: 'Победитель:',
       victorySubline: 'Преимущество по метрикам',
       squadTitle: 'Сбор отряда',
       squadSub: 'До пяти героев в команде',
@@ -467,6 +471,7 @@ export const ru = {
       titleAccent: 'безопасность',
       intro:
         'Язык интерфейса, язык глав MangaDex, возрастной доступ, закладки и быстрый выход в поддержку — на одной странице.',
+      sectionPreferences: 'Параметры',
       interfaceLang: 'Язык интерфейса',
       langEnglish: 'English',
       langJapanese: '日本語',
@@ -622,5 +627,7 @@ export const ru = {
       savedOnly: 'Только сохранённые',
       nsfwToggleOn: 'Вкладки 18+ видны — нажмите, чтобы скрыть',
       nsfwToggleOff: 'Вкладки 18+ скрыты — нажмите, чтобы показать',
+      popularNow: 'Сейчас популярно',
+      moreTitles: 'Другие тайтлы',
     }
 }

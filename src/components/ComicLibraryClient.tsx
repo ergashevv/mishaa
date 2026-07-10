@@ -711,6 +711,135 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedComic, viewMode, pages.length]);
 
+  /**
+   * Shared cover-card renderer for both the "Popular now" spotlight row and the
+   * regular grid, so the two densities never drift apart. `globalIndex` is the
+   * position within the full `visibleComics` list (not just the section it's
+   * rendered in) so the infinite-scroll IntersectionObserver ref still lands on
+   * the actual last card. `rank` draws the serif numeral overlay (Trending-style)
+   * for the featured trio only.
+   */
+  const renderComicCard = (comic: ComicListItem, globalIndex: number, rank?: number) => {
+    const adultContent = isAdultComic(comic);
+    const shouldBlur = adultContent && !isAgeVerified;
+    const coverClassName = 'object-cover';
+    // The rank numeral is designed to sit over photographic cover art with a scrim behind
+    // it (Trending-style). The Marvel no-cover fallback is a dense text plate instead, so
+    // overlaying a big numeral there just collides with "Issue N" — skip it for that case.
+    const hasImageBackdrop = !(comic.source === 'marvel' && !comic.coverUrl);
+
+    return (
+      // Real crawlable anchor (was an onClick-only <div>, invisible to Googlebot
+      // so the ~2k catalog detail pages were orphaned). prefetch={false} avoids
+      // mass-prefetching an infinite grid. Age gate still intercepts via preventDefault.
+      <Link
+        ref={visibleComics.length === globalIndex + 1 ? lastComicRef : null}
+        key={`${comic.source}:${comic.id}`}
+        href={`/library/${comic.source}/${comic.id}`}
+        prefetch={false}
+        onClick={(event) => {
+          if (adultContent && !isAgeVerified) {
+            event.preventDefault();
+            setShowAgeGate(true);
+          }
+        }}
+        className={`ic-cover group${shouldBlur ? ' ic-cover--adult' : ''}`}
+      >
+        <div className="ic-cover__poster">
+          {comic.source === 'marvel' ? (
+            comic.coverUrl ? (
+              <div className="relative h-full w-full">
+                <Image
+                  src={comic.coverUrl}
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                  quality={72}
+                  unoptimized={imageUnoptimizedForSrc(comic.coverUrl)}
+                  className={coverClassName}
+                  alt={`${comic.title} — cover`}
+                />
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col justify-between bg-card p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="ic-badge ic-badge--neutral">Marvel</span>
+                  <span className="ic-eyebrow">{comic.yearPage || '----'}</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="ic-eyebrow">Issue {comic.issueNumber || '?'}</div>
+                  <div className="ic-display line-clamp-3 text-lg text-fg">{comic.title}</div>
+                  <div className="line-clamp-2 text-[11px] text-fg-muted">{comic.seriesName || comic.description}</div>
+                </div>
+              </div>
+            )
+          ) : comic.source === 'superhero' ? (
+            <div className="relative h-full w-full">
+              <Image
+                src={comic.coverUrl || '/logo.png'}
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                quality={72}
+                unoptimized={imageUnoptimizedForSrc(comic.coverUrl || '/logo.png')}
+                className={coverClassName}
+                alt={`${comic.title} — cover`}
+              />
+            </div>
+          ) : (
+            <div className="relative h-full w-full">
+              <Image
+                src={comic.coverUrl || '/logo.png'}
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
+                quality={72}
+                unoptimized={imageUnoptimizedForSrc(comic.coverUrl || '/logo.png')}
+                className={coverClassName}
+                alt={`${comic.title} — cover`}
+              />
+            </div>
+          )}
+          {shouldBlur && (
+            <div className="ic-cover__lock">
+              <span>18+ · tap to reveal</span>
+            </div>
+          )}
+          {rank != null && hasImageBackdrop && (
+            <span className="ic-cover__rank" aria-hidden>{rank}</span>
+          )}
+        </div>
+        <h3 className="ic-cover__title">
+          {comic.title}
+        </h3>
+        <div className="ic-cover__meta">
+          <span className="ic-eyebrow">{comic.source}</span>
+          {comic.source === 'marvel' ? (
+            <span className="ic-eyebrow">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
+          ) : (
+            isAdultComic(comic) && <span className="ic-badge ic-badge--danger">18+</span>
+          )}
+        </div>
+        {comic.source === 'marvel' && (
+          <div className="flex flex-wrap gap-1.5">
+            <span className="ic-badge ic-badge--neutral">#{comic.issueNumber || '?'}</span>
+            {comic.pageCount ? <span className="ic-badge ic-badge--neutral">{`${comic.pageCount} p.`}</span> : null}
+          </div>
+        )}
+      </Link>
+    );
+  };
+
+  /** Featured trio gets `.spotlight-grid` bento weight, but only while the shelf reflects
+   * the plain default browse (no active search/filter/sort) — otherwise a "Popular now"
+   * label over deliberately-filtered results would be misleading. */
+  const showSpotlight =
+    !loading &&
+    visibleComics.length > 0 &&
+    searchQuery.trim().length === 0 &&
+    sourceFilter === 'all' &&
+    !savedOnly &&
+    sortOrder === 'featured';
+  const spotlightItems = showSpotlight ? visibleComics.slice(0, 3) : [];
+  const restItems = showSpotlight ? visibleComics.slice(3) : [];
+
   return (
     <LazyMotion features={domAnimation} strict>
     <>
@@ -720,101 +849,47 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
 
       {!selectedComic && (
         <div className="mx-auto max-w-[1320px] px-5 py-8 sm:px-8 md:py-12">
-          <header className="mb-12">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <header className="mb-10 space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push('/')}
-                  className="ic-btn ic-btn--secondary ic-btn--sm w-full md:w-auto"
+                  className="ic-btn ic-btn--secondary ic-btn--sm"
                 >
                   <ChevronLeft size={14} />
                   Back
                 </button>
-
-                <div className="hidden md:flex items-center gap-4">
-                  <span className="ic-eyebrow">Library</span>
-                </div>
-
-                <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
-                  <div className="flex items-center gap-2">
-                    <Globe size={14} className="text-fg-muted" />
-                    <span className="ic-field__label">Manga language</span>
-                  </div>
-                  <div className="relative flex w-full items-center md:w-[220px]">
-                    <select
-                      value={mangaLanguage}
-                      onChange={(e) => setMangaLanguage(e.target.value as MangaLanguage)}
-                      className="ic-select"
-                    >
-                      {MANGA_LANGUAGE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown size={16} className="pointer-events-none absolute right-3 text-fg-muted" aria-hidden />
-                  </div>
-                </div>
+                <span className="ic-eyebrow hidden sm:inline-flex">Library</span>
               </div>
 
-              <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-line py-4">
-                <span className="ic-eyebrow">
-                  Learn
-                </span>
+              <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                <span className="ic-eyebrow">Learn</span>
                 <Link
                   href="/guides"
-                  className="text-sm font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
+                  className="font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
                 >
                   Guides
                 </Link>
                 <Link
                   href="/reading"
-                  className="text-sm font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
+                  className="font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
                 >
                   Reading hub
                 </Link>
                 <Link
                   href="/faq"
-                  className="text-sm font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
+                  className="font-medium text-fg-secondary underline-offset-4 transition-colors hover:text-accent-text hover:underline"
                 >
                   FAQ
                 </Link>
               </nav>
+            </div>
 
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <button
-                  type="button"
-                  title="Shuffle this shelf offset"
-                  onClick={() => {
-                    const randomOffset = Math.floor(Math.random() * 10);
-                    skipNextOffsetFetchRef.current = true;
-                    setOffset(randomOffset);
-                    loadData(randomOffset, false);
-                  }}
-                  className="ic-iconbtn ic-iconbtn--solid h-11 w-full shrink-0 md:w-11"
-                >
-                  <Shuffle size={18} />
-                </button>
-                <button
-                  type="button"
-                  title="Random manga from MangaDex (API)"
-                  aria-busy={randomMangaBusy}
-                  disabled={randomMangaBusy}
-                  onClick={async () => {
-                    setRandomMangaBusy(true);
-                    try {
-                      const picked = await getRandomMangaDexManga();
-                      if (picked?.id) router.push(`/library/mangadex/${picked.id}`);
-                    } finally {
-                      setRandomMangaBusy(false);
-                    }
-                  }}
-                  className="ic-btn ic-btn--secondary ic-btn--md w-full shrink-0 md:w-auto"
-                >
-                  {randomMangaBusy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                  <span>Random manga</span>
-                </button>
-                <div ref={searchBoxRef} className="relative flex-1 md:w-96">
+            {/* Considered toolbar: search, quick actions, filters and category tabs share
+                one bordered control surface instead of five stacked, disconnected rows. */}
+            <div className="searchband space-y-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div ref={searchBoxRef} className="relative flex-1">
                   <div className="ic-input-wrap has-icon">
                     <Search size={16} aria-hidden />
                     <input
@@ -826,7 +901,7 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                       onFocus={() => searchQuery.length >= 3 && setShowDropdown(true)}
                     />
                   </div>
-                  
+
                   {/* Search dropdown */}
                   <AnimatePresence>
                     {showDropdown && (
@@ -888,18 +963,74 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                     )}
                   </AnimatePresence>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleNsfwToggle}
-                  aria-pressed={nsfwEnabled}
-                  aria-label={nsfwEnabled ? t_cat.nsfwToggleOn : t_cat.nsfwToggleOff}
-                  className="ic-iconbtn ic-iconbtn--solid h-11 w-full shrink-0 md:w-11"
-                >
-                  {isMounted && nsfwEnabled ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}
-                </button>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    title="Shuffle this shelf offset"
+                    onClick={() => {
+                      const randomOffset = Math.floor(Math.random() * 10);
+                      skipNextOffsetFetchRef.current = true;
+                      setOffset(randomOffset);
+                      loadData(randomOffset, false);
+                    }}
+                    className="ic-iconbtn ic-iconbtn--solid h-11 w-11 shrink-0"
+                  >
+                    <Shuffle size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    title="Random manga from MangaDex (API)"
+                    aria-busy={randomMangaBusy}
+                    disabled={randomMangaBusy}
+                    onClick={async () => {
+                      setRandomMangaBusy(true);
+                      try {
+                        const picked = await getRandomMangaDexManga();
+                        if (picked?.id) router.push(`/library/mangadex/${picked.id}`);
+                      } finally {
+                        setRandomMangaBusy(false);
+                      }
+                    }}
+                    className="ic-btn ic-btn--secondary ic-btn--md shrink-0 whitespace-nowrap"
+                  >
+                    {randomMangaBusy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                    <span>Random manga</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNsfwToggle}
+                    aria-pressed={nsfwEnabled}
+                    aria-label={nsfwEnabled ? t_cat.nsfwToggleOn : t_cat.nsfwToggleOff}
+                    className="ic-iconbtn ic-iconbtn--solid h-11 w-11 shrink-0"
+                  >
+                    {isMounted && nsfwEnabled ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}
+                  </button>
+                </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-[1.4fr_1fr_auto]">
+              <div className="grid gap-3 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-[1fr_1.3fr_1fr_auto]">
+                <div className="ic-field">
+                  <span className="ic-field__label">
+                    <Globe size={12} className="mr-1 inline-block align-[-1px] text-fg-muted" aria-hidden />
+                    Manga language
+                  </span>
+                  <div className="ic-select-wrap">
+                    <select
+                      value={mangaLanguage}
+                      onChange={(e) => setMangaLanguage(e.target.value as MangaLanguage)}
+                      className="ic-select"
+                    >
+                      {MANGA_LANGUAGE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} aria-hidden />
+                  </div>
+                </div>
+
                 <div className="ic-field">
                   <span className="ic-field__label">{t_cat.filterLabel}</span>
                   <div className="ic-select-wrap">
@@ -952,24 +1083,26 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   {t_cat.savedOnly}
                 </button>
               </div>
-            </div>
 
-            <div className="ic-tabs mt-6">
-              {visibleCategories.map(cat => (
-                <button
-                  key={cat.label}
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`ic-tab${activeCategory === cat.label ? ' is-active' : ''}`}
-                >
-                  {cat.source === 'all' && <Globe size={12} className="mr-1.5 inline-block align-[-1px]" />}
-                  {cat.source === 'archive' && <Flag size={12} className="mr-1.5 inline-block align-[-1px]" />}
-                  {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={12} className="mr-1.5 inline-block align-[-1px]" />}
-                  {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru' || cat.source === 'rule34') && (
-                    <Sparkles size={12} className="mr-1.5 inline-block align-[-1px]" />
-                  )}
-                  {cat.label}
-                </button>
-              ))}
+              <div className="border-t border-line pt-5">
+                <div className="ic-tabs">
+                  {visibleCategories.map(cat => (
+                    <button
+                      key={cat.label}
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`ic-tab${activeCategory === cat.label ? ' is-active' : ''}`}
+                    >
+                      {cat.source === 'all' && <Globe size={12} className="mr-1.5 inline-block align-[-1px]" />}
+                      {cat.source === 'archive' && <Flag size={12} className="mr-1.5 inline-block align-[-1px]" />}
+                      {(cat.source === 'marvel' || cat.source === 'superhero') && <BookOpen size={12} className="mr-1.5 inline-block align-[-1px]" />}
+                      {(cat.source === 'e621' || cat.source === 'danbooru' || cat.source === 'gelbooru' || cat.source === 'rule34') && (
+                        <Sparkles size={12} className="mr-1.5 inline-block align-[-1px]" />
+                      )}
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </header>
 
@@ -1014,108 +1147,28 @@ export default function ComicLibraryClient({ initialAgeVerified = false }: Comic
                   </button>
                 </div>
              </div>
+          ) : showSpotlight ? (
+            <>
+              <div className="mb-5">
+                <span className="ic-eyebrow">{t_cat.popularNow}</span>
+              </div>
+              <div className="spotlight-grid mb-10">
+                {spotlightItems.map((comic, i) => renderComicCard(comic, i, i + 1))}
+              </div>
+              {restItems.length > 0 && (
+                <>
+                  <div className="mb-5 border-t border-line pt-8">
+                    <span className="ic-eyebrow">{t_cat.moreTitles}</span>
+                  </div>
+                  <div className="mtgrid">
+                    {restItems.map((comic, i) => renderComicCard(comic, i + spotlightItems.length))}
+                  </div>
+                </>
+              )}
+            </>
           ) : (
             <div className="mtgrid">
-              {visibleComics.map((comic, index) => {
-                const adultContent = isAdultComic(comic);
-                const shouldBlur = adultContent && !isAgeVerified;
-                const coverClassName = 'object-cover';
-
-                return (
-                  // Real crawlable anchor (was an onClick-only <div>, invisible to Googlebot
-                  // so the ~2k catalog detail pages were orphaned). prefetch={false} avoids
-                  // mass-prefetching an infinite grid. Age gate still intercepts via preventDefault.
-                  <Link
-                    ref={visibleComics.length === index + 1 ? lastComicRef : null}
-                    key={`${comic.source}:${comic.id}`}
-                    href={`/library/${comic.source}/${comic.id}`}
-                    prefetch={false}
-                    onClick={(event) => {
-                      if (adultContent && !isAgeVerified) {
-                        event.preventDefault();
-                        setShowAgeGate(true);
-                      }
-                    }}
-                    className={`ic-cover group${shouldBlur ? ' ic-cover--adult' : ''}`}
-                  >
-                    <div className="ic-cover__poster">
-                      {comic.source === 'marvel' ? (
-                        comic.coverUrl ? (
-                          <div className="relative h-full w-full">
-                            <Image
-                              src={comic.coverUrl}
-                              fill
-                              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
-                              quality={72}
-                              unoptimized={imageUnoptimizedForSrc(comic.coverUrl)}
-                              className={coverClassName}
-                              alt={`${comic.title} — cover`}
-                            />
-                          </div>
-                        ) : (
-                          <div className="absolute inset-0 flex flex-col justify-between bg-card p-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="ic-badge ic-badge--neutral">Marvel</span>
-                              <span className="ic-eyebrow">{comic.yearPage || '----'}</span>
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="ic-eyebrow">Issue {comic.issueNumber || '?'}</div>
-                              <div className="ic-display line-clamp-3 text-lg text-fg">{comic.title}</div>
-                              <div className="line-clamp-2 text-[11px] text-fg-muted">{comic.seriesName || comic.description}</div>
-                            </div>
-                          </div>
-                        )
-                      ) : comic.source === 'superhero' ? (
-                        <div className="relative h-full w-full">
-                          <Image
-                            src={comic.coverUrl || '/logo.png'}
-                            fill
-                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
-                            quality={72}
-                            unoptimized={imageUnoptimizedForSrc(comic.coverUrl || '/logo.png')}
-                            className={coverClassName}
-                            alt={`${comic.title} — cover`}
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative h-full w-full">
-                          <Image
-                            src={comic.coverUrl || '/logo.png'}
-                            fill
-                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 200px"
-                            quality={72}
-                            unoptimized={imageUnoptimizedForSrc(comic.coverUrl || '/logo.png')}
-                            className={coverClassName}
-                            alt={`${comic.title} — cover`}
-                          />
-                        </div>
-                      )}
-                      {shouldBlur && (
-                        <div className="ic-cover__lock">
-                          <span>18+ · tap to reveal</span>
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="ic-cover__title">
-                      {comic.title}
-                    </h3>
-                    <div className="ic-cover__meta">
-                      <span className="ic-eyebrow">{comic.source}</span>
-                      {comic.source === 'marvel' ? (
-                        <span className="ic-eyebrow">{comic.onSaleDate ? formatMarvelDate(comic.onSaleDate) : 'Metadata only'}</span>
-                      ) : (
-                        isAdultComic(comic) && <span className="ic-badge ic-badge--danger">18+</span>
-                      )}
-                    </div>
-                    {comic.source === 'marvel' && (
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="ic-badge ic-badge--neutral">#{comic.issueNumber || '?'}</span>
-                        {comic.pageCount ? <span className="ic-badge ic-badge--neutral">{`${comic.pageCount} p.`}</span> : null}
-                      </div>
-                    )}
-                  </Link>
-                );
-              })}
+              {visibleComics.map((comic, index) => renderComicCard(comic, index))}
             </div>
           )}
 

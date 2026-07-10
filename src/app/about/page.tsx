@@ -45,68 +45,87 @@ export default function AboutPage() {
           initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-          className="wrap max-w-4xl space-y-16 py-14 sm:py-16 lg:py-20"
+          className="wrap max-w-6xl space-y-16 py-14 sm:py-16 lg:py-20"
         >
-          {/* Header */}
-          <div className="space-y-6">
-            <p className="ic-eyebrow">{t.origin}</p>
-            <h1 className="ic-display text-balance text-4xl sm:text-5xl md:text-6xl">
-               {t.titleLine1}{' '}
-               <span className="text-accent-text">{t.titleLine2}</span>
-            </h1>
-            <p className="max-w-3xl border-y border-line py-6 text-lg leading-relaxed text-fg-secondary sm:text-xl">
-              {t.headline}
-            </p>
-            <div className="max-w-3xl rounded-card border border-line bg-card px-6 py-6 text-left sm:px-8 sm:py-7">
-              <h2 className="ic-eyebrow text-accent-text">{t.trustTitle}</h2>
-              <p className="mt-4 text-sm leading-relaxed text-fg-secondary sm:text-base">
-                {t.trustBody}
+          {/* Hero: statement left, credentials rail right */}
+          <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
+            <div className="space-y-6">
+              <p className="ic-eyebrow">{t.origin}</p>
+              <h1 className="ic-display text-balance text-4xl sm:text-5xl lg:text-6xl">
+                 {t.titleLine1}{' '}
+                 <span className="text-accent-text">{t.titleLine2}</span>
+              </h1>
+              <p className="max-w-xl border-y border-line py-6 text-lg leading-relaxed text-fg-secondary sm:text-xl">
+                {t.headline}
               </p>
             </div>
-            <div className="max-w-3xl rounded-card border border-line bg-card px-6 py-6 text-left sm:px-8 sm:py-7">
-              <h2 className="ic-eyebrow">{t.wikiIdentityTitle}</h2>
-              <p className="mt-4 text-sm leading-relaxed text-fg-secondary sm:text-base">
-                {t.wikiIdentityBody}{' '}
-                <Link href="/icomics-wiki" className="font-medium text-accent-text underline decoration-line underline-offset-4 hover:decoration-accent">
-                  /icomics-wiki
-                </Link>
-                .
-              </p>
+
+            <div className="space-y-5 lg:pt-1">
+              <div className="rounded-card border border-line bg-card px-6 py-6 text-left sm:px-7">
+                <h2 className="ic-eyebrow text-accent-text">{t.trustTitle}</h2>
+                <p className="mt-4 text-sm leading-relaxed text-fg-secondary">
+                  {t.trustBody}
+                </p>
+              </div>
+              <div className="rounded-card border border-line bg-card px-6 py-6 text-left sm:px-7">
+                <h2 className="ic-eyebrow">{t.wikiIdentityTitle}</h2>
+                <p className="mt-4 text-sm leading-relaxed text-fg-secondary">
+                  {t.wikiIdentityBody}{' '}
+                  <Link href="/icomics-wiki" className="font-medium text-accent-text underline decoration-line underline-offset-4 hover:decoration-accent">
+                    /icomics-wiki
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Grid Layout for Content */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Mission leads, quality supports — not two equal boxes */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
             <div className="space-y-5 rounded-card border border-line bg-card p-6 sm:p-10">
               <div className="flex h-14 w-14 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
                 <BookOpen size={28} />
               </div>
               <h2 className="ic-display text-balance text-2xl sm:text-3xl">{t.missionTitle}</h2>
-              <p className="text-base leading-relaxed text-fg-secondary">
+              <p className="max-w-lg text-base leading-relaxed text-fg-secondary">
                 {t.missionText}
               </p>
             </div>
 
-            <div className="space-y-5 rounded-card border border-line bg-card p-6 sm:p-10">
-              <div className="flex h-14 w-14 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                <Zap size={28} />
+            <div className="space-y-5 rounded-card border border-line bg-raised p-6 sm:p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
+                <Zap size={24} />
               </div>
-              <h2 className="ic-display text-balance text-2xl sm:text-3xl">{t.techTitle}</h2>
-              <p className="text-base leading-relaxed text-fg-secondary">
+              <h2 className="ic-display text-balance text-xl sm:text-2xl">{t.techTitle}</h2>
+              <p className="text-sm leading-relaxed text-fg-secondary">
                 {t.techText}
               </p>
             </div>
           </div>
 
+          {/* Why join — spotlight bento instead of three identical columns */}
           <div className="space-y-8">
             <h2 className="ic-display text-balance text-3xl sm:text-4xl">{t.whyExist}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-               {reasons.map((item, i) => (
-                 <div key={i} className="space-y-2 border-l-2 border-accent pl-5">
-                   <h4 className="ic-eyebrow text-accent-text">{item.title}</h4>
-                   <p className="text-sm leading-relaxed text-fg-secondary">{item.text}</p>
-                 </div>
-               ))}
+            <div className="spotlight-grid">
+              {reasons.map((item, i) => (
+                <div
+                  key={i}
+                  className={`relative overflow-hidden rounded-card border border-line bg-card ${i === 0 ? 'flex min-h-[260px] flex-col justify-end p-7 sm:p-9' : 'p-6 sm:p-7'}`}
+                >
+                  {i === 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="ic-display pointer-events-none absolute -top-3 left-5 select-none text-[7rem] leading-none text-accent-tint"
+                    >
+                      01
+                    </span>
+                  )}
+                  <div className="relative space-y-2 border-l-2 border-accent pl-5">
+                    <h4 className="ic-eyebrow text-accent-text">{item.title}</h4>
+                    <p className="text-sm leading-relaxed text-fg-secondary">{item.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

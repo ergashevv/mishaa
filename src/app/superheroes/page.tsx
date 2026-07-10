@@ -228,7 +228,7 @@ export default function SuperheroesDashboard() {
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
               <m.div key="home" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-12">
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                 <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-8 items-start">
                     <div className="space-y-6">
                        <h2 className="ic-display border-l-2 border-accent pl-4 text-2xl">{tr.heroOfCycle}</h2>
                        {loadingRandom ? (
@@ -261,13 +261,28 @@ export default function SuperheroesDashboard() {
                        </div>
                     </div>
                  </div>
+
+                 {featuredHeroes.length > 0 && (
+                   <div className="space-y-6">
+                      <div className="section__head">
+                         <div className="section__titles">
+                            <h2 className="section__heading">{tr.rosterHeading}</h2>
+                         </div>
+                      </div>
+                      <div className="spotlight-grid">
+                         {featuredHeroes.slice(0, 5).map((hero, i) => (
+                            <div key={hero.id}>{renderHeroCard(hero, i !== 0)}</div>
+                         ))}
+                      </div>
+                   </div>
+                 )}
               </m.div>
             )}
 
             {activeTab === 'arena' && (
               <m.div key="arena" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-12">
                  <div className="text-center">
-                    <h2 className="ic-display text-3xl text-fg">{tr.combatSim}</h2>
+                    <h2 className="section__heading">{tr.combatSim}</h2>
                     <p className="mt-2 text-sm text-fg-muted">{tr.combatSub}</p>
                  </div>
 
@@ -375,10 +390,10 @@ export default function SuperheroesDashboard() {
 
             {activeTab === 'team' && (
               <m.div key="team" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-12">
-                 <div className="flex flex-col md:flex-row gap-8 justify-between items-end border-b border-line pb-8">
-                    <div>
-                      <h2 className="ic-display text-3xl text-fg">{tr.squadTitle}</h2>
-                      <p className="mt-2 text-sm text-fg-muted">{tr.squadSub}</p>
+                 <div className="section__head">
+                    <div className="section__titles">
+                      <h2 className="section__heading">{tr.squadTitle}</h2>
+                      <p className="text-sm text-fg-muted">{tr.squadSub}</p>
                     </div>
                     <div className="rounded-card border border-line bg-card px-8 py-4 text-center">
                        <div className="ic-display text-2xl text-accent-text">{teamPower}</div>
