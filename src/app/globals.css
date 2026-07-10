@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   iComics.wiki — "Reading Room" design system
-   Warm plum-ink dark (default) · warm paper light · single marigold accent.
-   Tokens ported from `iComics.wiki Design System/tokens/*` — keep in sync.
+   iComics.wiki — "Reading Room" design system, v2 (2026-07 identity refresh)
+   Cool graphite ink (dark, default) · crisp bone paper (light) · single Ember
+   accent (#FF5A1F, matching the logo mark) · Spectral display serif.
+   Variable names are kept from v1 (--ink-*, --paper-*, --marigold-*, --dusk-*)
+   to avoid touching every consumer — only the assigned colors changed.
    ============================================================================ */
 
 /* Theme switches on `data-theme` (set before paint in layout.tsx). `.dark`
@@ -58,46 +60,51 @@
 
 /* ---------------------------------------------------------------- COLORS --- */
 :root {
-  /* Base palette: INK (warm plum-charcoal neutrals, dark surfaces) */
-  --ink-990: #0C0B10;
-  --ink-950: #110F16;
-  --ink-900: #16131C;
-  --ink-850: #1C1925;
-  --ink-800: #221E2D;
-  --ink-750: #2A2637;
-  --ink-700: #342F43;
-  --ink-650: #403A52;
-  --ink-500: #5A5470;
+  /* Base palette: INK — cool graphite neutrals (dark surfaces). Deliberately shifted off the
+     old warm-plum tint toward a cooler, more confident near-black; still never pure #000. */
+  --ink-990: #0A0A0C;
+  --ink-950: #0D0D10;
+  --ink-900: #131316;
+  --ink-850: #18181C;
+  --ink-800: #1D1D22;
+  --ink-750: #24242B;
+  --ink-700: #2E2E36;
+  --ink-650: #3A3A44;
+  --ink-500: #55555F;
 
-  /* Base palette: PAPER (warm off-whites) */
+  /* Base palette: PAPER — crisp bone whites (light surfaces), cooler and less yellow-cream
+     than before. */
   --paper-0: #FFFFFF;
-  --paper-50: #FBF8F3;
-  --paper-100: #F4F0E8;
-  --paper-150: #ECE7DC;
-  --paper-200: #E4DED1;
-  --paper-300: #D6CFBE;
+  --paper-50: #F7F6F4;
+  --paper-100: #EDECE9;
+  --paper-150: #E3E2DE;
+  --paper-200: #D7D5D0;
+  --paper-300: #C5C3BC;
 
-  /* Text neutrals */
-  --warm-white: #F8F5F0;
-  --warm-300: #C7C1D2;
-  --warm-500: #948EA6;
-  --warm-ink: #1B1822;
-  --warm-ink-600: #4B4658;
-  --warm-ink-400: #787287;
+  /* Text neutrals — cool-neutral instead of the old purple-leaning warm tones. */
+  --warm-white: #F1F1EE;
+  --warm-300: #C6C6C8;
+  --warm-500: #8F8F94;
+  --warm-ink: #17171A;
+  --warm-ink-600: #4C4C51;
+  --warm-ink-400: #7A7A80;
 
-  /* Brand: MARIGOLD */
-  --marigold-200: #FCD9A8;
-  --marigold-300: #FBC685;
-  --marigold-400: #F7AE5A;
-  --marigold-500: #F2994A;
-  --marigold-600: #E07F2E;
-  --marigold-700: #B5611C;
-  --marigold-800: #8A4A18;
+  /* Brand: EMBER — a vivid orange-red matching the logo's actual mark color (#ff5a1f), replacing
+     the old, more muted marigold. Variable names kept as --marigold-* to avoid touching every
+     consumer; the color itself is now Ember, not marigold. */
+  --marigold-200: #FFCDB8;
+  --marigold-300: #FFAD8A;
+  --marigold-400: #FF7F4D;
+  --marigold-500: #FF5A1F;
+  --marigold-600: #E8460D;
+  --marigold-700: #C23A0A;
+  --marigold-800: #9C2F08;
 
-  /* Secondary editorial tint: DUSK */
-  --dusk-400: #8E86C9;
-  --dusk-500: #6F66B8;
-  --dusk-600: #574FA0;
+  /* Secondary editorial tint: GOLD — matches the logo's gold "·" (#ffd36b). Used sparingly as a
+     rare second-tier highlight (ratings, standout numerals) — never a competing primary accent. */
+  --dusk-400: #FFDE94;
+  --dusk-500: #FFD36B;
+  --dusk-600: #D6A83E;
 
   /* Semantic hues */
   --green-500: #3BA776;
@@ -138,8 +145,8 @@
   --accent-hover: var(--marigold-400);
   --accent-press: var(--marigold-600);
   --accent-text: var(--marigold-400);
-  --accent-tint: rgba(242, 153, 74, 0.14);
-  --accent-tint-2: rgba(242, 153, 74, 0.08);
+  --accent-tint: rgba(255, 90, 31, 0.14);
+  --accent-tint-2: rgba(255, 90, 31, 0.08);
 
   --focus-ring: var(--marigold-400);
   --focus-ring-offset: var(--ink-950);
@@ -158,8 +165,8 @@
   --reader-sepia-fg: #4A3B26;
 
   /* Scrim / protection gradients */
-  --scrim-strong: linear-gradient(180deg, transparent 0%, rgba(8, 7, 11, 0.55) 55%, rgba(8, 7, 11, 0.92) 100%);
-  --scrim-side: linear-gradient(90deg, rgba(8, 7, 11, 0.94) 0%, rgba(8, 7, 11, 0.6) 45%, transparent 100%);
+  --scrim-strong: linear-gradient(180deg, transparent 0%, rgba(10, 10, 12, 0.55) 55%, rgba(10, 10, 12, 0.92) 100%);
+  --scrim-side: linear-gradient(90deg, rgba(10, 10, 12, 0.94) 0%, rgba(10, 10, 12, 0.6) 45%, transparent 100%);
 
   /* ---- Type scale ---- */
   --text-2xs: 0.6875rem;
@@ -231,7 +238,7 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.6);
   --shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.7);
-  --glow-accent: 0 0 0 3px rgba(242, 153, 74, 0.32);
+  --glow-accent: 0 0 0 3px rgba(255, 90, 31, 0.32);
   --cover-frame: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 
   /* ---- Motion: minimal, accessibility-first ---- */
@@ -259,7 +266,7 @@
   --surface-card: var(--paper-0);
   --surface-card-hov: var(--paper-100);
   --surface-sunken: var(--paper-100);
-  --surface-inset: rgba(27, 24, 34, 0.03);
+  --surface-inset: rgba(23, 23, 26, 0.03);
 
   --text-primary: var(--warm-ink);
   --text-secondary: var(--warm-ink-600);
@@ -274,8 +281,8 @@
   --accent-hover: var(--marigold-600);
   --accent-press: var(--marigold-700);
   --accent-text: var(--marigold-700);
-  --accent-tint: rgba(242, 153, 74, 0.16);
-  --accent-tint-2: rgba(242, 153, 74, 0.09);
+  --accent-tint: rgba(255, 90, 31, 0.16);
+  --accent-tint-2: rgba(255, 90, 31, 0.09);
 
   --focus-ring: var(--marigold-600);
   --focus-ring-offset: var(--paper-50);
@@ -285,16 +292,16 @@
   --info: var(--blue-600);
   --warning: var(--yellow-600);
 
-  --scrim-strong: linear-gradient(180deg, transparent 0%, rgba(20, 16, 24, 0.35) 55%, rgba(20, 16, 24, 0.78) 100%);
-  --scrim-side: linear-gradient(90deg, rgba(20, 16, 24, 0.82) 0%, rgba(20, 16, 24, 0.45) 45%, transparent 100%);
+  --scrim-strong: linear-gradient(180deg, transparent 0%, rgba(23, 23, 26, 0.35) 55%, rgba(23, 23, 26, 0.78) 100%);
+  --scrim-side: linear-gradient(90deg, rgba(23, 23, 26, 0.82) 0%, rgba(23, 23, 26, 0.45) 45%, transparent 100%);
 
-  --shadow-xs: 0 1px 2px rgba(28, 24, 34, 0.06);
-  --shadow-sm: 0 2px 10px rgba(28, 24, 34, 0.08);
-  --shadow-md: 0 10px 28px rgba(28, 24, 34, 0.1);
-  --shadow-lg: 0 20px 50px rgba(28, 24, 34, 0.14);
-  --shadow-pop: 0 28px 70px rgba(28, 24, 34, 0.18);
-  --glow-accent: 0 0 0 3px rgba(242, 153, 74, 0.3);
-  --cover-frame: inset 0 0 0 1px rgba(27, 24, 34, 0.1);
+  --shadow-xs: 0 1px 2px rgba(23, 23, 26, 0.06);
+  --shadow-sm: 0 2px 10px rgba(23, 23, 26, 0.08);
+  --shadow-md: 0 10px 28px rgba(23, 23, 26, 0.1);
+  --shadow-lg: 0 20px 50px rgba(23, 23, 26, 0.14);
+  --shadow-pop: 0 28px 70px rgba(23, 23, 26, 0.18);
+  --glow-accent: 0 0 0 3px rgba(255, 90, 31, 0.3);
+  --cover-frame: inset 0 0 0 1px rgba(23, 23, 26, 0.1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -363,7 +370,7 @@ body {
 /* Editorial display helper */
 .ic-display {
   font-family: var(--font-display);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-medium);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-snug);
 }
@@ -491,8 +498,8 @@ body {
 .ic-iconbtn--solid:hover { background: var(--surface-card-hov); }
 .ic-iconbtn--accent { background: var(--accent); color: var(--text-on-accent); }
 .ic-iconbtn--accent:hover { background: var(--accent-hover); }
-.ic-iconbtn--ghost-scrim { background: rgba(12, 11, 16, 0.55); color: #fff; backdrop-filter: blur(6px); }
-.ic-iconbtn--ghost-scrim:hover { background: rgba(12, 11, 16, 0.78); }
+.ic-iconbtn--ghost-scrim { background: rgba(10, 10, 12, 0.55); color: #fff; backdrop-filter: blur(6px); }
+.ic-iconbtn--ghost-scrim:hover { background: rgba(10, 10, 12, 0.78); }
 .ic-iconbtn[aria-pressed="true"] { background: var(--accent-tint); color: var(--accent-text); }
 
 /* Badge */
@@ -568,7 +575,7 @@ body {
 }
 .ic-score svg { color: var(--accent); }
 .ic-score--oncover {
-  background: rgba(12, 11, 16, 0.62);
+  background: rgba(10, 10, 12, 0.62);
   color: #fff;
   padding: 4px 7px;
   border-radius: var(--radius-xs);
@@ -854,7 +861,7 @@ body {
   justify-content: center;
   gap: 6px;
   color: #fff;
-  background: rgba(12, 11, 16, 0.35);
+  background: rgba(10, 10, 12, 0.35);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
@@ -877,7 +884,7 @@ body {
 .ic-dialog-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(8, 7, 11, 0.6);
+  background: rgba(10, 10, 12, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -944,7 +951,7 @@ body {
   font-family: var(--font-display);
   /* Bigger editorial presence: the fixed 4rem read as body-adjacent next to the banner. */
   font-size: clamp(2.6rem, 5.4vw, 5rem);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-semibold);
   line-height: 0.98;
   letter-spacing: -0.02em;
   color: #fff;
@@ -1007,7 +1014,7 @@ body {
 .section__heading {
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-semibold);
   letter-spacing: -0.015em;
   line-height: 1.05;
   color: var(--text-primary);
@@ -1057,9 +1064,10 @@ body {
   z-index: 2;
   font-family: var(--font-display);
   font-size: 3.4rem;
+  font-weight: var(--weight-bold);
   line-height: 0.9;
   color: #fff;
-  text-shadow: 0 2px 20px rgba(8, 7, 11, 0.9), 0 1px 3px rgba(8, 7, 11, 0.7);
+  text-shadow: 0 2px 20px rgba(10, 10, 12, 0.9), 0 1px 3px rgba(10, 10, 12, 0.7);
   pointer-events: none;
   font-variant-numeric: tabular-nums;
 }

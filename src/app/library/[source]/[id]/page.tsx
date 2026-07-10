@@ -28,8 +28,8 @@ export const runtime = 'nodejs';
 /** Safari UI tint — align with the Reading Room surface tokens (paper light / plum-ink dark) so the URL bar / home gutter does not contrast-strip from the page. */
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FBF8F3' },
-    { media: '(prefers-color-scheme: dark)', color: '#110F16' },
+    { media: '(prefers-color-scheme: light)', color: '#F7F6F4' },
+    { media: '(prefers-color-scheme: dark)', color: '#0D0D10' },
   ],
 };
 

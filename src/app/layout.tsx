@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Onest, Instrument_Serif, IBM_Plex_Mono, Bricolage_Grotesque } from "next/font/google";
+import { Onest, Spectral, IBM_Plex_Mono, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { getPublicSiteUrl } from "@/lib/og-metadata";
 import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
@@ -21,11 +21,14 @@ const onest = Onest({
   display: "swap",
 });
 
-const instrumentSerif = Instrument_Serif({
+/* Display serif: Spectral, not Instrument Serif (an overused LLM-default). Bold weights (600-700)
+   give headlines/hero titles/oversized numerals real editorial weight; full cyrillic coverage
+   keeps Russian headings on-brand instead of falling back to a generic system serif. */
+const displaySerif = Spectral({
   variable: "--font-instrument-serif",
-  weight: "400",
+  weight: ["400", "600", "700"],
   style: ["normal", "italic"],
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   display: "swap",
 });
 
@@ -54,8 +57,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FBF8F3" },
-    { media: "(prefers-color-scheme: dark)", color: "#110F16" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F6F4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D0D10" },
   ],
 };
 
@@ -130,7 +133,6 @@ export const metadata: Metadata = {
       "https://api.mangadex.org",
       "https://uploads.mangadex.org",
       "https://marvel.emreparker.com",
-      "https://archive.org",
       "https://superheroapi.com"
     ],
   }
@@ -146,7 +148,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${onest.variable} ${instrumentSerif.variable} ${plexMono.variable} ${bricolage.variable} h-full min-h-dvh antialiased`}
+      className={`${onest.variable} ${displaySerif.variable} ${plexMono.variable} ${bricolage.variable} h-full min-h-dvh antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: PREPAINT_BOOTSTRAP }} />

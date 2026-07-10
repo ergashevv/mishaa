@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
       'Browse and read manga, manhwa, webtoons, and comics online. Library catalog with multi-source chapters.',
     start_url: `${base}/`,
     display: 'standalone',
-    background_color: '#110F16',
-    theme_color: '#110F16',
+    background_color: '#0D0D10',
+    theme_color: '#0D0D10',
     icons: [
       {
         src: `${base}/icon.png`,

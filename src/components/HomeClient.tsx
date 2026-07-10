@@ -1009,8 +1009,10 @@ export default function HomeClient({
                 }}
               >
                 <section className="hero" aria-roledescription="carousel">
-                  {/* sync (default) crossfades slides over each other; mode="wait" faded the old
-                      slide fully out first, leaving a black hole between every hero slide. */}
+                  {/* sync (default) crossfades backgrounds over each other; mode="wait" faded the old
+                      slide fully out first, leaving a black hole between every hero slide. Background
+                      art dissolving into the next looks intentional — but the caption text below is
+                      swapped in its own mode="wait" group, since two overlapping captions read as broken. */}
                   <AnimatePresence initial={false}>
                     <m.div
                       key={heroFeaturedKey}
@@ -1035,47 +1037,59 @@ export default function HomeClient({
                           className="object-cover"
                         />
                       </div>
-
-                      <div className="wrap hero__in">
-                        <div className="hero__content">
-                          <span className="ic-eyebrow !text-white/70">
-                            {shelfCopy.featuredSeries} · {featuredComic.source}
-                          </span>
-                          <h2 className="hero__title">
-                            {heroAgeBlocked ? 'Age restricted' : featuredComic.title}
-                          </h2>
-                          {featuredComic.description && !heroAgeBlocked ? (
-                            <p className="hero__blurb">{featuredComic.description}</p>
-                          ) : null}
-                          <div className="hero__meta">
-                            {heroRating?.showBlock ? (
-                              <>
-                                <span className="ic-eyebrow !text-white/60">{heroRating.label}</span>
-                                <span className="font-mono text-xs font-semibold text-white">
-                                  {heroRating.value}
-                                </span>
-                              </>
-                            ) : null}
-                          </div>
-                          <div className="hero__cta">
-                            <Link
-                              href={resolveComicHref(featuredComic)}
-                              className="ic-btn ic-btn--primary ic-btn--lg"
-                            >
-                              <BookOpen size={18} aria-hidden />
-                              {shelfCopy.readFeaturedCta}
-                            </Link>
-                            <Link
-                              href="/library"
-                              className="ic-btn ic-btn--lg border-white/25 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
-                            >
-                              {shelfCopy.cta}
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
                     </m.div>
                   </AnimatePresence>
+
+                  <div className="wrap hero__in">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <m.div
+                        key={heroFeaturedKey}
+                        initial={prefersReducedMotion ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                        transition={{
+                          duration: prefersReducedMotion ? 0 : 0.18,
+                          ease: [0.22, 0.61, 0.36, 1],
+                        }}
+                        className="hero__content"
+                      >
+                        <span className="ic-eyebrow !text-white/70">
+                          {shelfCopy.featuredSeries} · {featuredComic.source}
+                        </span>
+                        <h2 className="hero__title">
+                          {heroAgeBlocked ? 'Age restricted' : featuredComic.title}
+                        </h2>
+                        {featuredComic.description && !heroAgeBlocked ? (
+                          <p className="hero__blurb">{featuredComic.description}</p>
+                        ) : null}
+                        <div className="hero__meta">
+                          {heroRating?.showBlock ? (
+                            <>
+                              <span className="ic-eyebrow !text-white/60">{heroRating.label}</span>
+                              <span className="font-mono text-xs font-semibold text-white">
+                                {heroRating.value}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                        <div className="hero__cta">
+                          <Link
+                            href={resolveComicHref(featuredComic)}
+                            className="ic-btn ic-btn--primary ic-btn--lg"
+                          >
+                            <BookOpen size={18} aria-hidden />
+                            {shelfCopy.readFeaturedCta}
+                          </Link>
+                          <Link
+                            href="/library"
+                            className="ic-btn ic-btn--lg border-white/25 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+                          >
+                            {shelfCopy.cta}
+                          </Link>
+                        </div>
+                      </m.div>
+                    </AnimatePresence>
+                  </div>
 
                   {heroCarouselSlides.length > 1 ? (
                     <div className="hero__dots">
