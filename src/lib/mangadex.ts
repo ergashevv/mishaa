@@ -3,7 +3,7 @@ export const MANGADEX_LONG_STRIP_TAG_ID = '3e2b8dae-350e-4ab8-a8ce-016e844b9f0d'
 export const MANGADEX_GIRLS_LOVE_TAG_ID = 'a3c67850-4684-404e-9b7f-c69850ee5da6';
 
 const MANGADEX_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'User-Agent': 'iComics.wiki/1.0 (+https://icomics.wiki; contact support@icomics.wiki)',
   Accept: 'application/json',
   'Accept-Language': 'en-US,en;q=0.9',
 };
