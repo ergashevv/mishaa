@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import ComicLibraryClient from '@/components/ComicLibraryClient';
+import ZineLibrary from '@/components/zine/ZineLibrary';
+import ZineFooter from '@/components/zine/ZineFooter';
 import LibraryRouteLoading from '@/components/LibraryRouteLoading';
 import JsonLd from '@/components/JsonLd';
 import { searchComics } from '@/actions/comic';
@@ -121,17 +122,17 @@ async function BrowseTitlesNav() {
   return (
     <nav
       aria-label="Browse popular series"
-      className="mx-auto max-w-6xl border-t border-line px-4 py-10"
+      className="z-wrap border-t-[3px] border-[var(--z-ink)] py-10"
     >
-      <h2 className="ic-eyebrow mb-4">
+      <h2 className="z-display mb-5 inline-block -rotate-1 border-[3px] border-[var(--z-ink)] bg-[var(--z-yellow)] px-3 py-1 text-[1.6rem] leading-[0.82] shadow-[4px_4px_0_var(--z-ink)]">
         Popular series
       </h2>
-      <ul className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-[14px] sm:grid-cols-3 lg:grid-cols-4">
         {browseTitles.map((item) => (
           <li key={item.id} className="truncate">
             <Link
               href={`/library/mangadex/${item.id}`}
-              className="text-fg-secondary transition-colors hover:text-accent-text"
+              className="font-bold text-[var(--z-ink-2)] underline-offset-4 transition-colors hover:text-[var(--z-red)] hover:underline"
             >
               {item.title}
             </Link>
@@ -180,16 +181,17 @@ export default async function Page({
   };
 
   return (
-    <>
+    <div className="zine min-h-dvh">
       <Suspense
         fallback={<LibraryRouteLoading />}
       >
         <JsonLd data={collectionSchema} />
-        <ComicLibraryClient initialAgeVerified={initialAgeVerified} />
+        <ZineLibrary initialAgeVerified={initialAgeVerified} />
       </Suspense>
       <Suspense fallback={null}>
         <BrowseTitlesNav />
       </Suspense>
-    </>
+      <ZineFooter />
+    </div>
   );
 }

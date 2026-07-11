@@ -13,18 +13,20 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-onest), "Noto Sans JP", "Noto Sans KR", "Noto Sans SC",
+  --font-sans: var(--font-manrope), "Noto Sans JP", "Noto Sans KR", "Noto Sans SC",
     ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-instrument-serif), "Noto Serif JP", Georgia, serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
-  /* Logo wordmark only — the logo keeps its original face. Do not use elsewhere. */
+  /* Display = Bricolage Grotesque; Manrope covers cyrillic headings, Noto covers CJK. */
+  --font-display: var(--font-bricolage), var(--font-manrope), "Noto Sans JP",
+    "Noto Sans KR", ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+  /* Logo wordmark — shares the Bricolage display face. */
   --font-accent: var(--font-bricolage);
 
-  /* Editorial radii (additive — defaults untouched) */
-  --radius-cover: 6px;
-  --radius-btn: 10px;
-  --radius-card: 14px;
-  --radius-sheet: 20px;
+  /* Softer, cinematic radii (Netflix-leaning) */
+  --radius-cover: 8px;
+  --radius-btn: 12px;
+  --radius-card: 16px;
+  --radius-sheet: 22px;
 }
 
 @theme inline {
@@ -60,51 +62,58 @@
 
 /* ---------------------------------------------------------------- COLORS --- */
 :root {
-  /* Base palette: INK — cool graphite neutrals (dark surfaces). Deliberately shifted off the
-     old warm-plum tint toward a cooler, more confident near-black; still never pure #000. */
-  --ink-990: #0A0A0C;
-  --ink-950: #0D0D10;
-  --ink-900: #131316;
-  --ink-850: #18181C;
-  --ink-800: #1D1D22;
-  --ink-750: #24242B;
-  --ink-700: #2E2E36;
-  --ink-650: #3A3A44;
-  --ink-500: #55555F;
+  /* ============================================================================
+     iComics.wiki — "Crimson Noir" design system, v3 (2026-07 cinematic refresh)
+     Deep theatre-black canvas (cool blue-black undertone) · crisp cool paper (light) ·
+     single rose-crimson accent (#F4356A) · gold reserved for star ratings · Bricolage
+     Grotesque display + Manrope. Variable names kept from v2 (--ink-*, --paper-*,
+     --marigold-*, --dusk-*) so every consumer reskins from the values alone.
+     ============================================================================ */
 
-  /* Base palette: PAPER — crisp bone whites (light surfaces), cooler and less yellow-cream
-     than before. */
+  /* Base palette: INK — deep cinematic near-blacks with a faint cool undertone (a dark theatre),
+     deeper and cooler than v2's graphite; never pure #000. */
+  --ink-990: #08080B;
+  --ink-950: #0B0B0F;
+  --ink-900: #0F0F15;
+  --ink-850: #14141B;
+  --ink-800: #1A1A22;
+  --ink-750: #21212B;
+  --ink-700: #2B2B37;
+  --ink-650: #383846;
+  --ink-500: #565664;
+
+  /* Base palette: PAPER — clean cool near-whites (light surfaces). */
   --paper-0: #FFFFFF;
-  --paper-50: #F7F6F4;
-  --paper-100: #EDECE9;
-  --paper-150: #E3E2DE;
-  --paper-200: #D7D5D0;
-  --paper-300: #C5C3BC;
+  --paper-50: #FAFAFB;
+  --paper-100: #F1F1F4;
+  --paper-150: #E7E7EC;
+  --paper-200: #DADAE1;
+  --paper-300: #C6C6CF;
 
-  /* Text neutrals — cool-neutral instead of the old purple-leaning warm tones. */
-  --warm-white: #F1F1EE;
-  --warm-300: #C6C6C8;
-  --warm-500: #8F8F94;
-  --warm-ink: #17171A;
-  --warm-ink-600: #4C4C51;
-  --warm-ink-400: #7A7A80;
+  /* Text neutrals — cool-neutral, tuned for the deeper canvas. */
+  --warm-white: #F4F4F7;
+  --warm-300: #C4C4CE;
+  --warm-500: #8B8B98;
+  --warm-ink: #16161C;
+  --warm-ink-600: #494954;
+  --warm-ink-400: #74747F;
 
-  /* Brand: EMBER — a vivid orange-red matching the logo's actual mark color (#ff5a1f), replacing
-     the old, more muted marigold. Variable names kept as --marigold-* to avoid touching every
-     consumer; the color itself is now Ember, not marigold. */
-  --marigold-200: #FFCDB8;
-  --marigold-300: #FFAD8A;
-  --marigold-400: #FF7F4D;
-  --marigold-500: #FF5A1F;
-  --marigold-600: #E8460D;
-  --marigold-700: #C23A0A;
-  --marigold-800: #9C2F08;
+  /* Brand: CRIMSON — a vivid rose-crimson (#F4356A). Premium streaming energy, distinct from the
+     old ember-orange. Variable names kept as --marigold-* to avoid touching every consumer; the
+     color itself is now Crimson, not marigold. */
+  --marigold-200: #FFD0DC;
+  --marigold-300: #FF9DB6;
+  --marigold-400: #FF5C86;
+  --marigold-500: #F4356A;
+  --marigold-600: #E01F58;
+  --marigold-700: #BC1747;
+  --marigold-800: #97103A;
 
-  /* Secondary editorial tint: GOLD — matches the logo's gold "·" (#ffd36b). Used sparingly as a
-     rare second-tier highlight (ratings, standout numerals) — never a competing primary accent. */
-  --dusk-400: #FFDE94;
-  --dusk-500: #FFD36B;
-  --dusk-600: #D6A83E;
+  /* Secondary editorial tint: GOLD — a warm champagne, reserved for star ratings / rare standout
+     numerals. Crimson + gold is the premium duo; gold never competes as a primary accent. */
+  --dusk-400: #FFE08A;
+  --dusk-500: #FFD25E;
+  --dusk-600: #D8A63C;
 
   /* Semantic hues */
   --green-500: #3BA776;
@@ -135,7 +144,7 @@
   --text-primary: var(--warm-white);
   --text-secondary: var(--warm-300);
   --text-muted: var(--warm-500);
-  --text-on-accent: #2A1705;
+  --text-on-accent: #FFFFFF;
 
   --border: var(--ink-650);
   --border-subtle: var(--ink-700);
@@ -145,8 +154,8 @@
   --accent-hover: var(--marigold-400);
   --accent-press: var(--marigold-600);
   --accent-text: var(--marigold-400);
-  --accent-tint: rgba(255, 90, 31, 0.14);
-  --accent-tint-2: rgba(255, 90, 31, 0.08);
+  --accent-tint: rgba(244, 53, 106, 0.16);
+  --accent-tint-2: rgba(244, 53, 106, 0.08);
 
   --focus-ring: var(--marigold-400);
   --focus-ring-offset: var(--ink-950);
@@ -218,16 +227,17 @@
   --page-gutter-sm: 1.25rem;
   --row-gap: 0.875rem;
   --section-gap: 3.5rem;
-  --header-h: 72px;
+  /* Clears the floating nav pill (top gap + pill height) below fixed-nav pages. */
+  --header-h: 84px;
   --cover-ratio: 2 / 3;
 
   /* ---- Radius / borders / shadows (dark: low + faint, lean on borders) ---- */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 30px;
   --radius-pill: 999px;
 
   --hairline: 1px;
@@ -238,7 +248,7 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.6);
   --shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.7);
-  --glow-accent: 0 0 0 3px rgba(255, 90, 31, 0.32);
+  --glow-accent: 0 0 0 3px rgba(244, 53, 106, 0.34);
   --cover-frame: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 
   /* ---- Motion: minimal, accessibility-first ---- */
@@ -271,18 +281,18 @@
   --text-primary: var(--warm-ink);
   --text-secondary: var(--warm-ink-600);
   --text-muted: var(--warm-ink-400);
-  --text-on-accent: #2A1705;
+  --text-on-accent: #FFFFFF;
 
   --border: var(--paper-200);
   --border-subtle: var(--paper-150);
   --border-strong: var(--paper-300);
 
-  --accent: var(--marigold-500);
-  --accent-hover: var(--marigold-600);
+  --accent: var(--marigold-600);
+  --accent-hover: var(--marigold-500);
   --accent-press: var(--marigold-700);
   --accent-text: var(--marigold-700);
-  --accent-tint: rgba(255, 90, 31, 0.16);
-  --accent-tint-2: rgba(255, 90, 31, 0.09);
+  --accent-tint: rgba(244, 53, 106, 0.14);
+  --accent-tint-2: rgba(244, 53, 106, 0.08);
 
   --focus-ring: var(--marigold-600);
   --focus-ring-offset: var(--paper-50);
@@ -300,7 +310,7 @@
   --shadow-md: 0 10px 28px rgba(23, 23, 26, 0.1);
   --shadow-lg: 0 20px 50px rgba(23, 23, 26, 0.14);
   --shadow-pop: 0 28px 70px rgba(23, 23, 26, 0.18);
-  --glow-accent: 0 0 0 3px rgba(255, 90, 31, 0.3);
+  --glow-accent: 0 0 0 3px rgba(244, 53, 106, 0.28);
   --cover-frame: inset 0 0 0 1px rgba(23, 23, 26, 0.1);
 }
 
@@ -398,6 +408,59 @@ body {
   border: var(--hairline) solid var(--border);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(14px);
+}
+
+/* -------------------------------------------------- FLOATING NAV PILL --- */
+/* Detached, centered pill (edugrants-style) that shrinks + gains weight on scroll. The outer
+   .ic-navdock is a non-interactive full-width flex row so the pill can center and keep a gutter;
+   the pill itself is a frosted translucent surface over whatever it floats above. */
+.ic-navdock {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  padding: max(env(safe-area-inset-top, 0px), 12px) 12px 0;
+  pointer-events: none;
+}
+@media (min-width: 640px) {
+  .ic-navdock { padding-left: 16px; padding-right: 16px; }
+}
+.ic-navpill {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--page-max);
+  height: 66px;
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border-radius: var(--radius-xl);
+  border: var(--hairline) solid color-mix(in oklab, var(--border) 65%, transparent);
+  background: color-mix(in oklab, var(--surface-raised) 70%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--shadow-sm);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  transition:
+    max-width var(--dur-base) var(--ease-out),
+    height var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.ic-navpill.is-scrolled {
+  max-width: 1080px;
+  height: 56px;
+  background: color-mix(in oklab, var(--surface-raised) 88%, transparent);
+  border-color: var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--shadow-md);
+}
+@media (min-width: 640px) {
+  .ic-navpill { padding-left: var(--space-5); padding-right: var(--space-4); }
 }
 
 /* Subtle scrollbars */
@@ -796,26 +859,39 @@ body {
   position: relative;
   aspect-ratio: var(--cover-ratio);
   width: 100%;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  /* Deterministic warm placeholder (design system: gradient poster keyed off the title).
+  /* Deterministic placeholder (design system: gradient poster keyed off the title).
      Cards set --poster-h inline from a title hash; slow/missing covers now read as
      intentional plates instead of blank ink boxes. */
   background:
-    linear-gradient(160deg, oklch(0.36 0.055 var(--poster-h, 305)) 0%, oklch(0.26 0.04 calc(var(--poster-h, 305) + 42)) 62%, oklch(0.2 0.028 calc(var(--poster-h, 305) + 70)) 100%),
+    linear-gradient(155deg, oklch(0.34 0.06 var(--poster-h, 350)) 0%, oklch(0.24 0.045 calc(var(--poster-h, 350) + 40)) 60%, oklch(0.17 0.03 calc(var(--poster-h, 350) + 66)) 100%),
     var(--surface-card);
   box-shadow: var(--cover-frame);
-  transition: var(--transition-base);
+  /* Netflix-style: the whole poster lifts + scales on hover. Animate transform/box-shadow only.
+     No global will-change here — promoting all ~100 posters at once blows up GPU layers. */
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
 .ic-cover__poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform var(--dur-base) var(--ease-out);
+  transition: transform var(--dur-slow) var(--ease-out);
 }
-.ic-cover:hover .ic-cover__poster { box-shadow: var(--cover-frame), var(--shadow-md); }
-.ic-cover:hover .ic-cover__poster img { transform: scale(1.03); }
+/* Hover: poster tile lifts, scales up and casts a deep cinematic shadow with a hair of crimson.
+   Guarded to fine-pointer devices so touch scrolling never triggers the lift. */
+@media (hover: hover) and (pointer: fine) {
+  .ic-cover:hover { z-index: 5; }
+  .ic-cover:hover .ic-cover__poster {
+    transform: translateY(-6px) scale(1.055);
+    box-shadow: var(--cover-frame), 0 22px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(244, 53, 106, 0.35);
+  }
+  .ic-cover:hover .ic-cover__poster img { transform: scale(1.08); }
+}
+[data-theme="light"] .ic-cover:hover .ic-cover__poster {
+  box-shadow: var(--cover-frame), 0 22px 48px rgba(23, 23, 26, 0.2), 0 0 0 1px rgba(244, 53, 106, 0.4);
+}
 .ic-cover:focus-visible .ic-cover__poster { box-shadow: var(--glow-accent); }
 .ic-cover__overlay {
   position: absolute;
@@ -924,44 +1000,54 @@ body {
 }
 
 /* Hero */
-.hero { position: relative; height: 540px; max-height: 70vh; overflow: hidden; background: var(--surface-base); }
-/* Warm plum wash behind the banner: while the image loads (or if it fails) the hero
-   still reads as a designed surface instead of a black hole under the scrims. */
+.hero { position: relative; height: 600px; max-height: 76vh; overflow: hidden; background: var(--surface-app); }
+/* Crimson-dark cinematic wash behind the billboard: while the image loads (or if it fails)
+   the hero still reads as a designed theatre surface instead of a black hole under the scrims. */
 .hero__bg {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center 22%;
-  background-image: radial-gradient(120% 90% at 78% 18%, oklch(0.34 0.05 310) 0%, oklch(0.24 0.035 300) 48%, oklch(0.17 0.02 295) 100%);
+  background-position: center 20%;
+  background-image: radial-gradient(120% 95% at 76% 16%, oklch(0.32 0.075 12) 0%, oklch(0.2 0.05 8) 46%, oklch(0.13 0.025 6) 100%);
 }
-.hero__bg img { object-position: center 22%; }
-/* Protection scrims sit above the media (img or background-image) */
+.hero__bg img { object-position: center 20%; }
+/* Protection scrims sit above the media. The extra bottom gradient fades to the page canvas so
+   the billboard bleeds seamlessly into the first card row (Netflix-style), not a hard cut. */
 .hero__bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--scrim-strong), var(--scrim-side);
+  background-image:
+    linear-gradient(0deg, var(--surface-app) 0.5%, rgba(11, 11, 15, 0) 34%),
+    var(--scrim-strong),
+    var(--scrim-side);
+}
+[data-theme="light"] .hero__bg::after {
+  background-image:
+    linear-gradient(0deg, var(--surface-app) 0.5%, rgba(250, 250, 251, 0) 34%),
+    var(--scrim-strong),
+    var(--scrim-side);
 }
 .hero__bg.is-adult { filter: blur(26px) saturate(0.7); transition: filter var(--dur-slow) var(--ease-out); }
 .hero:hover .hero__bg.is-adult,
 .hero:focus-within .hero__bg.is-adult { filter: blur(10px) saturate(0.85); }
 .hero__in { position: relative; height: 100%; display: flex; align-items: flex-end; }
-.hero__content { max-width: 560px; padding-bottom: 64px; }
+.hero__content { max-width: 620px; padding-bottom: 92px; }
 .hero__title {
   font-family: var(--font-display);
-  /* Bigger editorial presence: the fixed 4rem read as body-adjacent next to the banner. */
-  font-size: clamp(2.6rem, 5.4vw, 5rem);
-  font-weight: var(--weight-semibold);
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  /* Big cinematic billboard presence in Bricolage bold. */
+  font-size: clamp(2.8rem, 5.8vw, 5.4rem);
+  font-weight: var(--weight-bold);
+  line-height: 0.96;
+  letter-spacing: -0.025em;
   color: #fff;
-  margin: 12px 0 16px;
+  margin: 14px 0 18px;
   text-wrap: balance;
 }
 @media (max-width: 680px) {
-  .hero { height: 460px; }
-  .hero__title { font-size: var(--text-3xl); }
-  .hero__content { padding-bottom: 80px; }
+  .hero { height: 500px; max-height: 72vh; }
+  .hero__title { font-size: clamp(2rem, 9vw, 2.9rem); }
+  .hero__content { padding-bottom: 88px; }
 }
 .hero__blurb {
   font-size: var(--text-md);
@@ -1048,29 +1134,120 @@ body {
 .shelf {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 168px;
+  grid-auto-columns: 172px;
   gap: var(--row-gap);
   overflow-x: auto;
   scroll-snap-type: x proximity;
-  padding-bottom: 6px;
+  scroll-padding-left: 2px;
+  /* Top/bottom padding gives the hover-lift + cinematic shadow room inside the scroll box. */
+  padding: 12px 2px 20px;
   scrollbar-width: none;
 }
 /* Ranked shelf (Trending): oversized serif numerals over the poster's lower-left —
    the design system's "oversized numerals" as an editorial signature, not a gimmick. */
 .ic-cover__rank {
   position: absolute;
-  left: 10px;
-  bottom: 2px;
-  z-index: 2;
+  top: 0px;
+  left: 8px;
+  z-index: 3;
   font-family: var(--font-display);
-  font-size: 3.4rem;
-  font-weight: var(--weight-bold);
-  line-height: 0.9;
+  font-size: 3.1rem;
+  font-weight: var(--weight-heavy);
+  line-height: 1;
   color: #fff;
-  text-shadow: 0 2px 20px rgba(10, 10, 12, 0.9), 0 1px 3px rgba(10, 10, 12, 0.7);
+  text-shadow: 0 2px 22px rgba(244, 53, 106, 0.6), 0 2px 8px rgba(10, 10, 12, 0.9);
   pointer-events: none;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
 }
+
+/* ---- Immersive media tile: title + meta baked onto the poster (streaming look) ---- */
+/* Replaces the old "poster + plain text row below" catalog card. The gradient + caption sit
+   over the artwork; on hover the tile lifts (see .ic-cover:hover above) and a Read pill appears. */
+.ic-cover__grad {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(6, 6, 10, 0.94) 0%, rgba(6, 6, 10, 0.6) 22%, rgba(6, 6, 10, 0.05) 46%, transparent 58%);
+  transition: background var(--dur-base) var(--ease-out);
+}
+.ic-cover__cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  pointer-events: none;
+}
+.ic-cover__cap-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  min-width: 0;
+}
+.ic-cover__cap-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ic-cover__cap-title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: 0.98rem;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+}
+.ic-cover__cap-desc {
+  margin-top: 1px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ic-cover__play {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(244, 53, 106, 0.5);
+  opacity: 0;
+  transform: scale(0.55);
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ic-cover:hover .ic-cover__play { opacity: 1; transform: scale(1); }
+  .ic-cover:hover .ic-cover__grad {
+    background: linear-gradient(to top, rgba(6, 6, 10, 0.96) 0%, rgba(6, 6, 10, 0.72) 30%, rgba(6, 6, 10, 0.12) 56%, transparent 68%);
+  }
+}
+/* Featured spotlight lead — a bigger caption with a short blurb. */
+.ic-cover--featured .ic-cover__cap { padding: 18px; gap: 8px; }
+.ic-cover--featured .ic-cover__cap-title { font-size: clamp(1.35rem, 2.3vw, 2rem); -webkit-line-clamp: 3; }
 /* Search band: a designed moment rather than a floating input. */
 .searchband {
   border: var(--hairline) solid var(--border);
@@ -1118,7 +1295,8 @@ body {
   text-align: left;
   color: inherit;
 }
-.cont-card:hover { background: var(--surface-card-hov); border-color: var(--border); }
+.cont-card { transition: var(--transition-base); }
+.cont-card:hover { background: var(--surface-card-hov); border-color: color-mix(in oklab, var(--accent) 45%, var(--border)); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .cont-card__thumb {
   width: 56px;
   height: 80px;
@@ -1220,3 +1398,182 @@ body {
 .qresult__t { font-size: var(--text-sm); color: var(--text-primary); }
 .qresult__m { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .qresult--all { justify-content: center; color: var(--accent-text); font-weight: 600; font-size: var(--text-sm); }
+
+/* ============================================================================
+   ZINE DESIGN SYSTEM — v4 "Bold Pop Zine" (full product rebuild, 2026-07)
+   A manga-magazine / risograph language: warm paper, ink outlines, hard offset
+   shadows, pop-ink color blocks, halftone texture, sticker tags, huge Anton
+   poster type. Everything is namespaced under `.zine` so Read Mode and its
+   reader tokens stay identical — the reader never sees any of this.
+   ============================================================================ */
+:root {
+  --z-paper: #F2EBD8;
+  --z-paper-2: #E7DCC1;
+  --z-card: #FFFDF5;
+  --z-ink: #17120B;
+  --z-ink-2: #453d2d;
+  --z-blue: #2540EA;
+  --z-red: #FF2D55;
+  --z-pink: #FF5DA2;
+  --z-yellow: #FFC517;
+  --z-green: #0FB981;
+  --z-purple: #7A44FF;
+  --z-orange: #FF6A1A;
+
+  --z-b: 2.5px;
+  --z-radius: 7px;
+  --z-sh-sm: 3px 3px 0 var(--z-ink);
+  --z-sh: 5px 5px 0 var(--z-ink);
+  --z-sh-lg: 9px 9px 0 var(--z-ink);
+
+  --font-zine-display: var(--font-anton), "Arial Narrow", Impact, sans-serif;
+  --font-zine: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
+  --font-zine-mono: var(--font-space-mono), ui-monospace, monospace;
+}
+
+/* Page root — paper canvas + faint halftone grain. */
+.zine {
+  min-height: 100dvh;
+  background-color: var(--z-paper);
+  color: var(--z-ink);
+  font-family: var(--font-zine);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(rgba(23, 18, 11, 0.055) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  overflow-x: hidden;
+}
+.zine ::selection { background: var(--z-yellow); color: var(--z-ink); }
+.zine a:focus-visible,
+.zine button:focus-visible {
+  outline: 3px solid var(--z-blue);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Poster display headline. */
+.z-display {
+  font-family: var(--font-zine-display);
+  font-weight: 400;
+  line-height: 0.84;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+/* Wrapper max width. */
+.z-wrap {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+/* Ink-outlined surface with a hard offset shadow. */
+.z-box {
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-card);
+  box-shadow: var(--z-sh);
+}
+.z-box--flat { box-shadow: none; }
+
+/* Sticker tag — quirky mono caps, colored, bordered. */
+.z-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 8px;
+  border: 2px solid var(--z-ink);
+  border-radius: 4px;
+  background: var(--z-yellow);
+  color: var(--z-ink);
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 var(--z-ink);
+}
+.z-tag--red { background: var(--z-red); color: #fff; }
+.z-tag--blue { background: var(--z-blue); color: #fff; }
+.z-tag--green { background: var(--z-green); color: #fff; }
+.z-tag--pink { background: var(--z-pink); color: var(--z-ink); }
+.z-tag--purple { background: var(--z-purple); color: #fff; }
+.z-tag--paper { background: var(--z-card); color: var(--z-ink); }
+.z-tag--ink { background: var(--z-ink); color: var(--z-paper); }
+
+/* Eyebrow / kicker in mono. */
+.z-kicker {
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Chunky tactile button. */
+.z-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-zine);
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  padding: 12px 20px;
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-ink);
+  color: var(--z-paper);
+  box-shadow: var(--z-sh);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 90ms ease, box-shadow 90ms ease, background-color 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.z-btn:hover { transform: translate(-2px, -2px); box-shadow: var(--z-sh-lg); }
+.z-btn:active { transform: translate(2px, 2px); box-shadow: var(--z-sh-sm); }
+.z-btn--sm { padding: 8px 14px; font-size: 13px; box-shadow: var(--z-sh-sm); }
+.z-btn--red { background: var(--z-red); color: #fff; }
+.z-btn--blue { background: var(--z-blue); color: #fff; }
+.z-btn--yellow { background: var(--z-yellow); color: var(--z-ink); }
+.z-btn--green { background: var(--z-green); color: #fff; }
+.z-btn--paper { background: var(--z-card); color: var(--z-ink); }
+
+/* Pop hover for cards / tiles. */
+.z-pop { transition: transform 110ms ease, box-shadow 110ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .z-pop:hover { transform: translate(-3px, -3px) rotate(-0.5deg); box-shadow: var(--z-sh-lg); z-index: 2; }
+}
+
+/* Marquee ticker (bold scrolling band). */
+.z-ticker { overflow: hidden; white-space: nowrap; }
+.z-ticker__track {
+  display: inline-flex;
+  gap: 2.5rem;
+  padding-block: 0;
+  will-change: transform;
+  animation: z-scroll 26s linear infinite;
+}
+@keyframes z-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .z-ticker__track { animation: none; } }
+
+/* Hard hairline divider (ink). */
+.z-rule { height: var(--z-b); background: var(--z-ink); border: 0; border-radius: 2px; }
+
+/* Cover frame inside a card. */
+.z-cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  overflow: hidden;
+  background: var(--z-paper-2);
+  border-bottom: var(--z-b) solid var(--z-ink);
+}
+.z-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 import JsonLd from '@/components/JsonLd';
-import ComicDetailsClient from './ComicDetailsClient';
+import ZineDetail from '@/components/zine/ZineDetail';
 import MangaDexUnresolvedPanel from '@/components/MangaDexUnresolvedPanel';
 import { getComicDetails as getComicDetailsAction, getChapters } from '@/actions/comic';
 import { fetchAniListManga } from '@/lib/anilist';
@@ -362,7 +362,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
   return (
     <article>
       <JsonLd data={workGraphLd} />
-      <ComicDetailsClient
+      <ZineDetail
       key={`${source}:${id}`}
       initialComic={initialComic}
       initialChapters={initialChapters}

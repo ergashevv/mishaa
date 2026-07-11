@@ -1,168 +1,82 @@
 'use client';
 
+/** FAQ — rebuilt in the Bold Pop Zine language (sticker accordion). Reuses only the i18n copy. */
+
 import { useState, useEffect } from 'react';
-import { LazyMotion, domAnimation, m } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
+import ZineNav from '@/components/zine/ZineNav';
+import ZineFooter from '@/components/zine/ZineFooter';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
 
 export default function FAQPageClient() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [lang, setLang] = useState<Lang>('en');
-
   const t = translations[lang].faq;
   const footerT = translations[lang].footer;
 
   useEffect(() => {
-    const savedLang = readStorageItem('lang') as Lang;
-    if (savedLang && translations[savedLang]) setLang(savedLang);
-
-    const handleLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
-    window.addEventListener('langChange', handleLang as EventListener);
-    return () => window.removeEventListener('langChange', handleLang as EventListener);
+    const saved = readStorageItem('lang') as Lang;
+    if (saved && translations[saved]) setLang(saved);
+    const onLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
+    window.addEventListener('langChange', onLang as EventListener);
+    return () => window.removeEventListener('langChange', onLang as EventListener);
   }, []);
 
   const FAQS = [
-    { q: t.q1, a: t.a1 },
-    { q: t.q2, a: t.a2 },
-    { q: t.q3, a: t.a3 },
-    { q: t.q4, a: t.a4 },
-    { q: t.q5, a: t.a5 },
-    { q: t.q6, a: t.a6 },
-    { q: t.q7, a: t.a7 },
-    { q: t.q8, a: t.a8 },
-    { q: t.q10, a: t.a10 },
-    { q: t.q11, a: t.a11 },
-    { q: t.q12, a: t.a12 },
+    { q: t.q1, a: t.a1 }, { q: t.q2, a: t.a2 }, { q: t.q3, a: t.a3 }, { q: t.q4, a: t.a4 },
+    { q: t.q5, a: t.a5 }, { q: t.q6, a: t.a6 }, { q: t.q7, a: t.a7 }, { q: t.q8, a: t.a8 },
+    { q: t.q10, a: t.a10 }, { q: t.q11, a: t.a11 }, { q: t.q12, a: t.a12 },
+  ];
+
+  const links = [
+    { href: '/icomics-wiki', label: t.wikiExplainerCta }, { href: '/contact', label: t.dept },
+    { href: '/guides', label: footerT.guides }, { href: '/reading', label: footerT.readingHub },
   ];
 
   return (
-    <LazyMotion features={domAnimation} strict>
-    <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
-      <Navbar />
+    <div className="zine min-h-dvh">
+      <ZineNav />
+      <main id="main-content" tabIndex={-1} className="z-wrap max-w-6xl space-y-16 py-14">
+        <div className="grid gap-10 lg:grid-cols-[340px_1fr] lg:gap-14">
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <span className="z-tag z-tag--red">{t.badge}</span>
+            <h1 className="z-display mt-4 text-[clamp(2.6rem,6vw,5rem)] leading-[0.8]">{t.titleLine1} {t.titleLine2}</h1>
+            <p className="mt-4 text-[18px] font-bold italic leading-snug text-[var(--z-ink-2)]">&ldquo;{t.subtitle}&rdquo;</p>
+          </aside>
 
-      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
-        <m.div
-          initial={false}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-          className="wrap max-w-6xl space-y-16 py-14 sm:py-16 lg:py-20"
-        >
-          <div className="grid gap-10 lg:grid-cols-[340px_1fr] lg:gap-16 xl:grid-cols-[380px_1fr]">
-            {/* Anchor: statement + jump nav, pinned alongside the list on desktop */}
-            <aside className="space-y-10 lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
-              <div className="space-y-5 border-b border-line-subtle pb-8 lg:border-b-0 lg:pb-0">
-                <p className="ic-eyebrow">{t.badge}</p>
-                <h1 className="ic-display text-balance text-4xl sm:text-5xl lg:text-6xl">
-                  {t.titleLine1} <br />
-                  <span className="text-accent-text">{t.titleLine2}</span>
-                </h1>
-                <p className="font-display text-xl italic leading-snug text-fg-secondary">&quot;{t.subtitle}&quot;</p>
-              </div>
-
-              <nav aria-label={t.badge} className="hidden lg:flex lg:flex-col lg:gap-0.5 lg:border-t lg:border-line-subtle lg:pt-6">
-                {FAQS.map((faq, i) => (
-                  <a
-                    key={i}
-                    href={`#faq-item-${i}`}
-                    onClick={() => setOpenIndex(i)}
-                    className="group -mx-3 flex items-baseline gap-3 rounded-md px-3 py-2 transition-colors duration-150 hover:bg-card-hov"
-                  >
-                    <span className="font-mono text-[11px] text-accent-text">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="line-clamp-1 text-sm text-fg-secondary group-hover:text-fg">{faq.q}</span>
-                  </a>
-                ))}
-              </nav>
-            </aside>
-
-            <div className="space-y-3">
-              {FAQS.map((faq, i) => (
-                <div
-                  key={i}
-                  id={`faq-item-${i}`}
-                  className={`scroll-mt-28 rounded-card border bg-card transition-colors duration-150 ${openIndex === i ? 'border-line-strong' : 'border-line hover:bg-card-hov'}`}
-                >
-                  <h3 className="contents">
-                    <button
-                      type="button"
-                      onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                      aria-expanded={openIndex === i}
-                      aria-controls={`faq-panel-${i}`}
-                      className="flex w-full cursor-pointer items-center justify-between gap-6 rounded-card p-5 text-left sm:p-6"
-                    >
-                      <span className="flex items-baseline gap-4">
-                        <span className="font-mono text-xs text-accent-text">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="text-base font-semibold leading-snug sm:text-lg">{faq.q}</span>
-                      </span>
-                      <m.span animate={{ rotate: openIndex === i ? 180 : 0 }} className="inline-flex text-fg-muted">
-                        <ChevronDown size={20} />
-                      </m.span>
-                    </button>
-                  </h3>
-                  <m.div
-                    id={`faq-panel-${i}`}
-                    aria-hidden={openIndex !== i}
-                    initial={false}
-                    animate={{ height: openIndex === i ? 'auto' : 0, opacity: openIndex === i ? 1 : 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="border-t border-line-subtle px-5 pb-6 pt-4 sm:px-6">
-                      <p className="max-w-2xl text-sm leading-relaxed text-fg-secondary sm:text-base">{faq.a}</p>
-                    </div>
-                  </m.div>
+          <div className="space-y-3">
+            {FAQS.map((faq, i) => {
+              const open = openIndex === i;
+              return (
+                <div key={i} id={`faq-item-${i}`} className="z-box scroll-mt-28 overflow-hidden" style={open ? { boxShadow: 'var(--z-sh-lg)' } : undefined}>
+                  <button type="button" onClick={() => setOpenIndex(open ? null : i)} aria-expanded={open} className="flex w-full items-center justify-between gap-6 p-5 text-left">
+                    <span className="flex items-baseline gap-4">
+                      <span className="text-[13px] font-black text-[var(--z-red)]" style={{ fontFamily: 'var(--font-zine-mono)' }}>{String(i + 1).padStart(2, '0')}</span>
+                      <span className="text-[16px] font-extrabold leading-snug text-[var(--z-ink)]">{faq.q}</span>
+                    </span>
+                    <ChevronDown size={20} strokeWidth={3} className="shrink-0 transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
+                  </button>
+                  {open ? <div className="border-t-[2.5px] border-[var(--z-ink)] px-5 pb-6 pt-4"><p className="max-w-2xl text-[15px] font-semibold leading-relaxed text-[var(--z-ink-2)]">{faq.a}</p></div> : null}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="searchband rise-in flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2 text-center lg:text-left">
-              <h2 className="ic-display text-3xl">{t.stillQuestions}</h2>
-              <p className="text-base text-fg-secondary">{t.stillDesc}</p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 lg:justify-end">
-              <Link
-                href="/icomics-wiki"
-                className="text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
-              >
-                {t.wikiExplainerCta}
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
-              >
-                {t.dept}
-              </Link>
-              <Link
-                href="/guides"
-                className="text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
-              >
-                {footerT.guides}
-              </Link>
-              <Link
-                href="/reading"
-                className="text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
-              >
-                {footerT.readingHub}
-              </Link>
-              <a
-                href="https://t.me/icomicsuz"
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm font-medium text-fg-secondary transition-colors hover:text-accent-text"
-              >
-                {t.hub}
-              </a>
-            </div>
+        <div className="z-box flex flex-col gap-6 p-8 lg:flex-row lg:items-center lg:justify-between" style={{ background: 'var(--z-blue)' }}>
+          <div className="text-center lg:text-left">
+            <h2 className="z-display text-[clamp(1.8rem,4vw,2.8rem)] leading-[0.85] text-[var(--z-paper)]">{t.stillQuestions}</h2>
+            <p className="mt-1 text-[15px] font-semibold text-[var(--z-paper)]/85">{t.stillDesc}</p>
           </div>
-        </m.div>
+          <div className="flex flex-wrap justify-center gap-3 lg:justify-end">
+            {links.map((l) => <Link key={l.href} href={l.href} className="z-btn z-btn--yellow z-btn--sm">{l.label}</Link>)}
+            <a href="https://t.me/icomicsuz" target="_blank" rel="noreferrer" className="z-btn z-btn--paper z-btn--sm">{t.hub}</a>
+          </div>
+        </div>
       </main>
-
-      <Footer />
+      <ZineFooter />
     </div>
-    </LazyMotion>
   );
 }

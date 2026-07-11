@@ -1,29 +1,28 @@
 'use client';
 
+/**
+ * Profile — the reader's account "card", rebuilt from zero in the Bold Pop Zine language.
+ * Reuses ONLY the data layer (/api/profile GET+PUT, logout). No JSX from the old profile page.
+ */
+
 import { useCallback, useEffect, useState, useRef, type ChangeEvent, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LazyMotion, domAnimation, m } from 'framer-motion';
-import Navbar from '@/components/Navbar';
+import { LogOut, Home, User, Loader2 } from 'lucide-react';
+import ZineNav from '@/components/zine/ZineNav';
+import ZineFooter from '@/components/zine/ZineFooter';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
 
 type ProfileUser = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  email?: string | null;
-  avatar?: string | null;
-  authProvider: string;
-  authProviderId?: string | null;
-  createdAt: string;
-  hasPassword: boolean;
-  _count: {
-    reading: number;
-    completed: number;
-  };
+  id: string; firstName: string; lastName: string; username: string;
+  email?: string | null; avatar?: string | null; authProvider: string;
+  authProviderId?: string | null; createdAt: string; hasPassword: boolean;
+  _count: { reading: number; completed: number };
 };
+
+const INPUT = 'w-full rounded-[7px] border-[2.5px] border-[var(--z-ink)] bg-[var(--z-card)] px-4 py-3 text-[15px] font-bold text-[var(--z-ink)] shadow-[3px_3px_0_var(--z-ink)] placeholder:font-normal placeholder:text-[var(--z-ink-2)] focus:outline-none focus:-translate-y-0.5 transition-transform';
+const LABEL = 'mb-2 block text-[12px] font-extrabold uppercase tracking-wide text-[var(--z-ink-2)]';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -36,299 +35,153 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    username: '',
-    email: '',
-    password: '',
-  });
+  const [form, setForm] = useState({ firstName: '', lastName: '', username: '', email: '', password: '' });
 
-  useEffect(() => {
-    langRef.current = lang;
-  }, [lang]);
+  useEffect(() => { langRef.current = lang; }, [lang]);
 
   useEffect(() => {
     const savedLang = readStorageItem('lang') as Lang;
-    const timer =
-      savedLang && translations[savedLang]
-        ? window.setTimeout(() => setLang((c) => (savedLang !== c ? savedLang : c)), 0)
-        : undefined;
-    const handleLang = (event: Event) => setLang((event as CustomEvent<Lang>).detail);
+    if (savedLang && translations[savedLang]) setLang(savedLang);
+    const handleLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
     window.addEventListener('langChange', handleLang as EventListener);
-    return () => {
-      window.removeEventListener('langChange', handleLang as EventListener);
-      if (timer) window.clearTimeout(timer);
-    };
+    return () => window.removeEventListener('langChange', handleLang as EventListener);
   }, []);
 
   const loadProfile = useCallback(async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const res = await fetch('/api/profile');
-      if (res.status === 401) {
-        router.replace('/auth');
-        return;
-      }
-
+      if (res.status === 401) { router.replace('/auth'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || translations[langRef.current].profile.loadFailedMsg);
-
       setUser(data.user);
-      setForm({
-        firstName: data.user.firstName || '',
-        lastName: data.user.lastName || '',
-        username: data.user.username || '',
-        email: data.user.email || '',
-        password: '',
-      });
+      setForm({ firstName: data.user.firstName || '', lastName: data.user.lastName || '', username: data.user.username || '', email: data.user.email || '', password: '' });
     } catch (err: unknown) {
-      const p = translations[langRef.current].profile;
-      setError(err instanceof Error ? err.message : p.loadFailedMsg);
-    } finally {
-      setLoading(false);
-    }
+      setError(err instanceof Error ? err.message : translations[langRef.current].profile.loadFailedMsg);
+    } finally { setLoading(false); }
   }, [router]);
 
-  useEffect(() => {
-    void loadProfile();
-  }, [loadProfile]);
+  useEffect(() => { void loadProfile(); }, [loadProfile]);
 
-  const handleChange = (key: keyof typeof form) => (event: ChangeEvent<HTMLInputElement>) => {
-    setForm((current) => ({ ...current, [key]: event.target.value }));
-  };
+  const handleChange = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) => setForm((c) => ({ ...c, [key]: e.target.value }));
 
-  const handleSave = async (event: FormEvent) => {
-    event.preventDefault();
-    setSaving(true);
-    setError('');
-    setSuccess('');
-
+  const handleSave = async (e: FormEvent) => {
+    e.preventDefault(); setSaving(true); setError(''); setSuccess('');
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
+      const res = await fetch('/api/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || translations[langRef.current].profile.saveFailedMsg);
-
       setUser(data.user);
-      setForm((current) => ({ ...current, password: '' }));
+      setForm((c) => ({ ...c, password: '' }));
       setSuccess(translations[langRef.current].profile.profileUpdated);
       router.refresh();
     } catch (err: unknown) {
-      const p = translations[langRef.current].profile;
-      setError(err instanceof Error ? err.message : p.saveFailedMsg);
-    } finally {
-      setSaving(false);
-    }
+      setError(err instanceof Error ? err.message : translations[langRef.current].profile.saveFailedMsg);
+    } finally { setSaving(false); }
   };
 
+  const logout = async () => { const res = await fetch('/api/auth/logout', { method: 'POST' }); if (res.ok) router.push('/'); };
+
   return (
-    <LazyMotion features={domAnimation} strict>
-    <div className="min-h-dvh bg-app text-fg">
-      <Navbar />
+    <div className="zine min-h-dvh">
+      <ZineNav />
 
-      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
-        <div className="wrap grid max-w-6xl gap-8 py-14 sm:py-16 lg:grid-cols-[1fr_380px] lg:gap-12 lg:py-20">
-          {/* Left Column: Form & Info */}
-          <section className="space-y-8 sm:space-y-10">
-            <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-end">
-              <div className="space-y-4">
-                <p className="ic-eyebrow">{t.badge}</p>
-                <h1 className="ic-display text-balance text-4xl sm:text-5xl md:text-6xl">
-                  {t.titleLine1}
-                  <br />
-                  <span className="text-accent-text">{t.titleAccent}</span>
-                </h1>
-                <p className="max-w-xl text-sm leading-relaxed text-fg-secondary">{t.intro}</p>
-                {user && (
-                  <div className="flex flex-wrap gap-x-8 gap-y-3 pt-2">
-                    <div>
-                      <p className="ic-eyebrow">{t.accountId}</p>
-                      <p className="break-all font-mono text-sm text-fg">{user.id}</p>
-                    </div>
-                    <div>
-                      <p className="ic-eyebrow">{t.joined}</p>
-                      <p className="text-sm text-fg-secondary">
-                        {new Date(user.createdAt).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="ic-eyebrow">{t.security}</p>
-                      <p className="text-sm text-accent-text">{t.encryptedBadge}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {user && (
-                <div className="relative h-28 w-28 flex-none overflow-hidden rounded-card border border-line bg-sunken shadow-[var(--shadow-sm)] sm:h-36 sm:w-36">
-                  <img
-                    src={user.avatar || '/logo.png'}
-                    alt={`${user.firstName} ${user.lastName}`}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 py-1.5 text-center" style={{ background: 'rgba(12, 11, 16, 0.62)' }}>
-                    <span className="ic-eyebrow">{t.verifiedReader}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="sk h-[420px] rounded-card" />
-            ) : user ? (
-              <form onSubmit={handleSave}>
-                <div className="section__head">
-                  <div className="section__titles">
-                    <h2 className="section__heading text-2xl">{t.sectionEdit}</h2>
-                  </div>
-                </div>
-                <div className="space-y-6 rounded-card border border-line bg-card p-6 sm:p-10">
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div className="ic-field">
-                      <label className="ic-field__label">{t.labelFirstName}</label>
-                      <input
-                        value={form.firstName}
-                        onChange={handleChange('firstName')}
-                        className="ic-input"
-                      />
-                    </div>
-                    <div className="ic-field">
-                      <label className="ic-field__label">{t.labelLastName}</label>
-                      <input
-                        value={form.lastName}
-                        onChange={handleChange('lastName')}
-                        className="ic-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div className="ic-field">
-                      <label className="ic-field__label">{t.labelUsername}</label>
-                      <input
-                        value={form.username}
-                        onChange={handleChange('username')}
-                        className="ic-input"
-                      />
-                    </div>
-                    <div className="ic-field">
-                      <label className="ic-field__label">{t.labelEmail}</label>
-                      <input
-                        value={form.email}
-                        onChange={handleChange('email')}
-                        className="ic-input"
-                        placeholder={t.placeholderEmail}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="ic-field">
-                    <label className="ic-field__label">
-                      {t.passwordLabelFull} {user.hasPassword ? t.passwordChange : t.passwordSet}
-                    </label>
-                    <input
-                      type="password"
-                      value={form.password}
-                      onChange={handleChange('password')}
-                      className="ic-input"
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  {error && (
-                    <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-btn border border-line bg-inset p-4 text-center text-sm text-danger">
-                      {t.errorPrefix}: {error}
-                    </m.div>
-                  )}
-
-                  {success && (
-                    <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-btn border border-line bg-inset p-4 text-center text-sm text-success">
-                      {t.successPrefix}: {success}
-                    </m.div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="ic-btn ic-btn--primary ic-btn--lg ic-btn--block"
-                  >
-                    {saving ? t.saving : t.saveProfile}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="state-block">
-                <p>{t.couldntLoad}</p>
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="button" onClick={() => void loadProfile()} className="ic-btn ic-btn--secondary ic-btn--sm">{t.tryAgain}</button>
-              </div>
-            )}
-          </section>
-
-          {/* Right Column: Cards & Actions */}
-          <aside className="space-y-10">
-            <div>
-              <div className="section__head">
-                <div className="section__titles">
-                  <h2 className="section__heading text-xl">{t.signInMethods}</h2>
-                </div>
-              </div>
-              <div className="divide-y divide-[var(--border-subtle)]">
-                <div className="flex items-center justify-between py-3.5 first:pt-0">
-                  <span className="text-sm font-medium text-fg-secondary">{t.google}</span>
-                  <span className={`ic-badge ${user?.authProviderId ? 'ic-badge--accent' : 'ic-badge--neutral'}`}>
-                    {user?.authProviderId ? t.enabled : t.disconnected}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-3.5 last:pb-0">
-                  <span className="text-sm font-medium text-fg-secondary">{t.passwordShort}</span>
-                  <span className={`ic-badge ${user?.hasPassword ? 'ic-badge--success' : 'ic-badge--neutral'}`}>
-                    {user?.hasPassword ? t.active : t.unset}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className="ic-eyebrow mb-5">{t.yourLibrary}</p>
-              <div className="flex divide-x divide-[var(--border-subtle)]">
-                <div className="flex-1 pr-6">
-                  <div className="ic-display text-4xl leading-none text-accent-text">{user?._count?.reading ?? 0}</div>
-                  <div className="ic-eyebrow mt-2">{t.reading}</div>
-                </div>
-                <div className="flex-1 pl-6">
-                  <div className="ic-display text-4xl leading-none text-fg">{user?._count?.completed ?? 0}</div>
-                  <div className="ic-eyebrow mt-2">{t.completed}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-line-subtle pt-8">
-              <Link href="/">
-                <button type="button" className="ic-btn ic-btn--secondary ic-btn--md ic-btn--block">
-                  {t.backHome}
-                </button>
-              </Link>
-              <button
-                type="button"
-                onClick={async () => {
-                  const res = await fetch('/api/auth/logout', { method: 'POST' });
-                  if (res.ok) router.push('/');
-                }}
-                className="ic-btn ic-btn--danger ic-btn--md ic-btn--block"
-              >
-                {t.logOut}
-              </button>
-            </div>
-          </aside>
+      <main id="main-content" tabIndex={-1} className="z-wrap py-12">
+        {/* masthead */}
+        <div className="mb-10 flex flex-wrap items-center gap-6">
+          <div className="z-box grid h-28 w-28 shrink-0 place-items-center overflow-hidden !shadow-[6px_6px_0_var(--z-ink)]" style={{ background: 'var(--z-yellow)' }}>
+            {user?.avatar ? <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" /> : <User size={44} strokeWidth={2.5} />}
+          </div>
+          <div>
+            <span className="z-tag z-tag--red">{t.badge}</span>
+            <h1 className="z-display mt-3 text-[clamp(2.6rem,7vw,5rem)] leading-[0.82]">
+              {user ? `${user.firstName || user.username}` : t.titleLine1}
+            </h1>
+            {user ? <p className="mt-1 text-[15px] font-bold text-[var(--z-ink-2)]">@{user.username}</p> : null}
+          </div>
         </div>
+
+        {loading ? (
+          <div className="flex items-center gap-3"><Loader2 className="h-6 w-6 animate-spin" /><span className="z-tag z-tag--yellow">Loading…</span></div>
+        ) : user ? (
+          <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+            {/* edit form */}
+            <form onSubmit={handleSave}>
+              <h2 className="z-display -rotate-1 mb-5 inline-block border-[3px] border-[var(--z-ink)] bg-[var(--z-blue)] px-3 py-1 text-[1.8rem] leading-[0.82] text-[var(--z-paper)] shadow-[4px_4px_0_var(--z-ink)]">{t.sectionEdit}</h2>
+              <div className="z-box space-y-5 p-6 sm:p-8">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div><label className={LABEL}>{t.labelFirstName}</label><input value={form.firstName} onChange={handleChange('firstName')} className={INPUT} /></div>
+                  <div><label className={LABEL}>{t.labelLastName}</label><input value={form.lastName} onChange={handleChange('lastName')} className={INPUT} /></div>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div><label className={LABEL}>{t.labelUsername}</label><input value={form.username} onChange={handleChange('username')} className={INPUT} /></div>
+                  <div><label className={LABEL}>{t.labelEmail}</label><input value={form.email} onChange={handleChange('email')} className={INPUT} placeholder={t.placeholderEmail} /></div>
+                </div>
+                <div>
+                  <label className={LABEL}>{t.passwordLabelFull} {user.hasPassword ? t.passwordChange : t.passwordSet}</label>
+                  <input type="password" value={form.password} onChange={handleChange('password')} className={INPUT} placeholder="••••••••" />
+                </div>
+                {error ? <div className="rounded-[7px] border-[2.5px] border-[var(--z-red)] bg-[color-mix(in_oklab,var(--z-red)_15%,var(--z-card))] p-3 text-center text-[14px] font-bold text-[var(--z-red)]">{t.errorPrefix}: {error}</div> : null}
+                {success ? <div className="rounded-[7px] border-[2.5px] border-[var(--z-green)] bg-[color-mix(in_oklab,var(--z-green)_15%,var(--z-card))] p-3 text-center text-[14px] font-bold text-[var(--z-green)]">{t.successPrefix}: {success}</div> : null}
+                <button type="submit" disabled={saving} className="z-btn z-btn--red w-full text-[16px]" style={saving ? { opacity: 0.6 } : undefined}>
+                  {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> {t.saving}</> : t.saveProfile}
+                </button>
+              </div>
+            </form>
+
+            {/* side */}
+            <aside className="space-y-8">
+              {/* stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="z-box p-5 text-center" style={{ background: 'var(--z-pink)' }}>
+                  <div className="z-display text-[3rem] leading-none text-[var(--z-ink)]">{user._count?.reading ?? 0}</div>
+                  <div className="z-kicker mt-1 text-[var(--z-ink)]">{t.reading}</div>
+                </div>
+                <div className="z-box p-5 text-center" style={{ background: 'var(--z-green)' }}>
+                  <div className="z-display text-[3rem] leading-none text-[var(--z-paper)]">{user._count?.completed ?? 0}</div>
+                  <div className="z-kicker mt-1 text-[var(--z-paper)]">{t.completed}</div>
+                </div>
+              </div>
+
+              {/* account facts */}
+              <div className="z-box p-6">
+                <h3 className="z-kicker mb-4 text-[var(--z-ink-2)]">{t.signInMethods}</h3>
+                <div className="space-y-3">
+                  <Row label={t.google} on={Boolean(user.authProviderId)} onText={t.enabled} offText={t.disconnected} />
+                  <Row label={t.passwordShort} on={user.hasPassword} onText={t.active} offText={t.unset} />
+                </div>
+                <hr className="z-rule my-5" />
+                <div className="space-y-2 text-[13px] font-bold text-[var(--z-ink-2)]">
+                  <div className="flex justify-between gap-3"><span className="uppercase">{t.joined}</span><span>{new Date(user.createdAt).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')}</span></div>
+                  <div className="flex items-start justify-between gap-3"><span className="uppercase">{t.accountId}</span><span className="break-all text-right" style={{ fontFamily: 'var(--font-zine-mono)', fontSize: 11 }}>{user.id}</span></div>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <Link href="/" className="z-btn z-btn--paper w-full"><Home size={16} strokeWidth={2.5} /> {t.backHome}</Link>
+                <button type="button" onClick={logout} className="z-btn z-btn--blue w-full"><LogOut size={16} strokeWidth={2.5} /> {t.logOut}</button>
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <div className="z-box grid place-items-center p-12 text-center">
+            <h3 className="z-display text-[2rem]">{t.couldntLoad}</h3>
+            {error ? <p className="mt-2 text-[14px] font-bold text-[var(--z-red)]">{error}</p> : null}
+            <button type="button" onClick={() => void loadProfile()} className="z-btn z-btn--red z-btn--sm mt-5">{t.tryAgain}</button>
+          </div>
+        )}
       </main>
+
+      <ZineFooter />
     </div>
-    </LazyMotion>
+  );
+}
+
+function Row({ label, on, onText, offText }: { label: string; on: boolean; onText: string; offText: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[14px] font-extrabold text-[var(--z-ink)]">{label}</span>
+      <span className="z-tag" style={{ background: on ? 'var(--z-green)' : 'var(--z-card)', color: on ? '#fff' : 'var(--z-ink-2)' }}>{on ? onText : offText}</span>
+    </div>
   );
 }

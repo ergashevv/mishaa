@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Onest, Spectral, IBM_Plex_Mono, Bricolage_Grotesque } from "next/font/google";
+import { Manrope, Bricolage_Grotesque, JetBrains_Mono, Anton, Rubik, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { getPublicSiteUrl } from "@/lib/og-metadata";
 import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
@@ -15,33 +15,53 @@ import SkipToContentLink from "@/components/SkipToContentLink";
 
 const SITE_ORIGIN = getPublicSiteUrl().replace(/\/$/, "");
 
-const onest = Onest({
-  variable: "--font-onest",
+/* Body / UI sans: Manrope — a famous, modern humanist-geometric grotesque. Cleaner and more
+   distinctive than the old Onest; full cyrillic coverage keeps Russian UI on-brand. */
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin", "cyrillic"],
   display: "swap",
 });
 
-/* Display serif: Spectral, not Instrument Serif (an overused LLM-default). Bold weights (600-700)
-   give headlines/hero titles/oversized numerals real editorial weight; full cyrillic coverage
-   keeps Russian headings on-brand instead of falling back to a generic system serif. */
-const displaySerif = Spectral({
-  variable: "--font-instrument-serif",
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin", "cyrillic"],
+/* Display voice: Bricolage Grotesque — the wordmark face, promoted to headlines/hero. A
+   characterful modern grotesque (not another LLM-default serif) that gives the whole site an
+   editorial-yet-cinematic tone. Cyrillic headings fall back to Manrope via the --font-display stack. */
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+/* Mono micro-labels (eyebrows, ratings, kbd): JetBrains Mono — a refined, famous monospace.
+   NOTE: Manrope / Bricolage / JetBrains are retained ONLY for Read Mode, which must stay
+   identical. The rest of the app (the zine rebuild) uses the three fonts below. */
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   weight: ["400", "500", "600"],
   subsets: ["latin"],
   display: "swap",
 });
 
-/* The logo wordmark keeps its original face — loaded only for the logo. */
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+/* ---- ZINE fonts (bold pop / manga-magazine rebuild) ---- */
+/* Poster impact type — massive condensed caps for cover-story headlines. */
+const anton = Anton({
+  variable: "--font-anton",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+/* UI + body — Rubik: rounded, friendly, heavy weights, full cyrillic for RU. */
+const rubik = Rubik({
+  variable: "--font-rubik",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  subsets: ["latin", "cyrillic"],
+  display: "swap",
+});
+/* Stamps / tags / meta — Space Mono: quirky monospace, zine-appropriate. */
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -52,13 +72,15 @@ const bricolage = Bricolage_Grotesque({
    theme nor the language attribute flashes for returning or geo-defaulted visitors. */
 const PREPAINT_BOOTSTRAP = `try{var d=document.documentElement;var t=localStorage.getItem("icw-theme");d.dataset.theme=t==="light"?"light":"dark";var l=localStorage.getItem("lang");if(!(l==="en"||l==="ru"||l==="ja"||l==="ko"||l==="zh")){var m=document.cookie.match(/(?:^|; )ics_ui_lang=([^;]+)/);l=m&&decodeURIComponent(m[1])}if(l==="en"||l==="ru"||l==="ja"||l==="ko"||l==="zh"){d.lang=l==="zh"?"zh-Hans":l}}catch(e){}`;
 
+const FONT_VARIABLES = `${manrope.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${anton.variable} ${rubik.variable} ${spaceMono.variable}`;
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F6F4" },
-    { media: "(prefers-color-scheme: dark)", color: "#0D0D10" },
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFB" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0B0F" },
   ],
 };
 
@@ -148,7 +170,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${onest.variable} ${displaySerif.variable} ${plexMono.variable} ${bricolage.variable} h-full min-h-dvh antialiased`}
+      className={`${FONT_VARIABLES} h-full min-h-dvh antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: PREPAINT_BOOTSTRAP }} />

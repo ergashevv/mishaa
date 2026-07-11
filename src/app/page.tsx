@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
-import HomeClient from '@/components/HomeClient';
+import ZineHome from '@/components/zine/ZineHome';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
 import { getHomeData } from '@/lib/home-data';
 import type { MangaLanguage } from '@/lib/manga-language';
@@ -75,7 +75,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
   return (
     <>
       <h1 className="sr-only">{homePageH1}</h1>
-      <HomeClient
+      <ZineHome
         initialData={initialData}
         initialAgeVerified={includeAdultContent}
         initialIsTouchDevice={initialIsTouchDevice}

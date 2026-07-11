@@ -1,9 +1,10 @@
 'use client';
 
+/** Privacy — rebuilt in the Bold Pop Zine language. Reuses only the i18n copy. */
+
 import { useEffect, useState } from 'react';
-import { LazyMotion, domAnimation, m } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import ZineNav from '@/components/zine/ZineNav';
+import ZineFooter from '@/components/zine/ZineFooter';
 import { Shield, Eye, Lock, FileText } from 'lucide-react';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
@@ -13,86 +14,48 @@ export default function PrivacyPage() {
   const t = translations[lang].privacy;
 
   useEffect(() => {
-    const savedLang = readStorageItem('lang') as Lang;
-    const timer =
-      savedLang && translations[savedLang]
-        ? window.setTimeout(() => setLang((c) => (savedLang !== c ? savedLang : c)), 0)
-        : undefined;
-    const handleLang = (event: Event) => setLang((event as CustomEvent<Lang>).detail);
-    window.addEventListener('langChange', handleLang as EventListener);
-    return () => {
-      window.removeEventListener('langChange', handleLang as EventListener);
-      if (timer) window.clearTimeout(timer);
-    };
+    const saved = readStorageItem('lang') as Lang;
+    if (saved && translations[saved]) setLang(saved);
+    const onLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail);
+    window.addEventListener('langChange', onLang as EventListener);
+    return () => window.removeEventListener('langChange', onLang as EventListener);
   }, []);
 
+  const sections = [
+    { icon: Eye, title: t.s1Title, body: t.s1Body, color: 'var(--z-blue)' },
+    { icon: Lock, title: t.s2Title, body: t.s2Body, color: 'var(--z-red)' },
+    { icon: FileText, title: t.s3Title, body: t.s3Body, color: 'var(--z-green)' },
+  ];
+
   return (
-    <LazyMotion features={domAnimation} strict>
-    <div className="min-h-dvh overflow-x-hidden bg-app text-fg">
-      <Navbar />
+    <div className="zine min-h-dvh">
+      <ZineNav />
+      <main id="main-content" tabIndex={-1} className="z-wrap max-w-3xl py-14">
+        <div className="z-box mb-14 p-8 text-center sm:p-12" style={{ background: 'var(--z-yellow)' }}>
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-[10px] border-[2.5px] border-[var(--z-ink)] bg-[var(--z-card)] shadow-[4px_4px_0_var(--z-ink)]"><Shield size={32} strokeWidth={2.5} /></span>
+          <span className="z-kicker mt-5 block text-[var(--z-ink)]">{t.eyebrow}</span>
+          <h1 className="z-display mt-2 text-[clamp(2.4rem,6vw,4.5rem)] leading-[0.82]">{t.titleLine1} {t.titleLine2}</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-[15px] font-semibold leading-relaxed text-[var(--z-ink)]">{t.subtitle}</p>
+        </div>
 
-      <main id="main-content" tabIndex={-1} className="pt-nav-catalog">
-        <m.div
-          initial={false}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-          className="wrap max-w-3xl py-14 sm:py-16 lg:py-20"
-        >
-          <div className="mb-14 rounded-card border border-line bg-card p-6 text-center sm:p-10 md:p-14">
-            <div className="space-y-6">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-card bg-accent-tint text-accent-text">
-                <Shield size={32} />
+        <div className="space-y-10">
+          {sections.map((s) => (
+            <section key={s.title}>
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[7px] border-2 border-[var(--z-ink)] text-white shadow-[2px_2px_0_var(--z-ink)]" style={{ background: s.color }}><s.icon size={22} strokeWidth={2.5} /></span>
+                <h2 className="z-display text-[clamp(1.4rem,3vw,2rem)] leading-[0.9]">{s.title}</h2>
               </div>
-              <p className="ic-eyebrow">{t.eyebrow}</p>
-              <h1 className="ic-display text-balance text-4xl text-fg sm:text-5xl md:text-6xl">
-                {t.titleLine1} <br />
-                {t.titleLine2}
-              </h1>
-              <p className="mx-auto max-w-2xl text-sm leading-relaxed text-fg-secondary">{t.subtitle}</p>
-            </div>
+              <p className="mt-4 text-[15px] font-semibold leading-relaxed text-[var(--z-ink-2)] sm:pl-[60px]">{s.body}</p>
+            </section>
+          ))}
+
+          <div className="z-box border-dashed p-6 text-center sm:p-8">
+            <span className="z-kicker text-[var(--z-ink-2)]">{t.footerRegistry}</span>
+            <div className="mx-auto mt-3 max-w-lg text-[13px] font-semibold leading-relaxed text-[var(--z-ink-2)]">{t.footerContact}</div>
           </div>
-
-          <div className="space-y-12">
-            <section className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                  <Eye size={22} />
-                </div>
-                <h2 className="ic-display text-balance text-2xl text-fg sm:text-3xl">{t.s1Title}</h2>
-              </div>
-              <p className="text-sm leading-relaxed text-fg-secondary sm:pl-[60px] sm:text-base">{t.s1Body}</p>
-            </section>
-
-            <section className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                  <Lock size={22} />
-                </div>
-                <h2 className="ic-display text-balance text-2xl text-fg sm:text-3xl">{t.s2Title}</h2>
-              </div>
-              <p className="text-sm leading-relaxed text-fg-secondary sm:pl-[60px] sm:text-base">{t.s2Body}</p>
-            </section>
-
-            <section className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-btn bg-accent-tint text-accent-text">
-                  <FileText size={22} />
-                </div>
-                <h2 className="ic-display text-balance text-2xl text-fg sm:text-3xl">{t.s3Title}</h2>
-              </div>
-              <p className="text-sm leading-relaxed text-fg-secondary sm:pl-[60px] sm:text-base">{t.s3Body}</p>
-            </section>
-
-            <div className="space-y-3 rounded-card border border-dashed border-line bg-card p-6 text-center text-fg-secondary sm:p-10">
-              <p className="ic-eyebrow">{t.footerRegistry}</p>
-              <div className="mx-auto max-w-lg text-xs leading-relaxed">{t.footerContact}</div>
-            </div>
-          </div>
-        </m.div>
+        </div>
       </main>
-
-      <Footer />
+      <ZineFooter />
     </div>
-    </LazyMotion>
   );
 }
