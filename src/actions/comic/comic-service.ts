@@ -1,6 +1,14 @@
 "use server";
 
-import { BooruSource, mapBooruDetail } from '@/lib/booru';
+import {
+  BooruSource,
+  BOORU_FETCH_HEADERS,
+  buildBooruPostUrl,
+  buildBooruSearchUrl,
+  mapBooruDetail,
+  mapBooruSearchResults,
+  booruDisplayLabel,
+} from '@/lib/booru';
 import {
   buildMangaDexCoverUrl,
   pickMangaDexCoverFileName,
@@ -15,7 +23,7 @@ import {
 } from '@/lib/manga-language';
 import { fetchAniListManga } from '@/lib/anilist';
 import { fetchJikanManga } from '@/lib/jikan';
-import { isRestrictedLibrarySource } from '@/lib/comic-sources';
+import { isRestrictedLibrarySource, isBooruLibrarySource } from '@/lib/comic-sources';
 import { hasAgeVerification } from './age-gate';
 import { MARVEL_PUBLIC_API_BASE } from '@/lib/marvel/public-api';
 import type {
@@ -188,7 +196,7 @@ export async function getComicDetails(
           : Promise.resolve(null),
         enrich
           ? aniListPromise
-              .then((ani) => buildMangaDexRelatedRails(manga, ani, mangaLanguage))
+              .then((ani) => buildMangaDexRelatedRails(manga, ani, mangaLanguage, manga.attributes.contentRating))
               .catch(() => [])
           : Promise.resolve([]),
       ]);
@@ -261,31 +269,29 @@ export async function getComicDetails(
       };
     }
 
-    if (['e621', 'danbooru', 'gelbooru', 'rule34'].includes(source)) {
-      let targetUrl = '';
-      if (source === 'e621') targetUrl = `https://e621.net/posts/${id}.json`;
-      else if (source === 'danbooru') targetUrl = `https://danbooru.donmai.us/posts/${id}.json`;
-      else if (source === 'gelbooru')
-        targetUrl = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&id=${id}&json=1`;
-      else if (source === 'rule34')
-        targetUrl = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&id=${id}&json=1`;
+    if (isBooruLibrarySource(source)) {
+      const booruSource = source as BooruSource;
+      const targetUrl = buildBooruPostUrl(booruSource, id);
 
-      const res = await fetch(targetUrl, { next: { revalidate: 3600 } });
+      const res = await fetch(targetUrl, {
+        headers: BOORU_FETCH_HEADERS,
+        next: { revalidate: 3600 },
+      });
       if (!res.ok) throw new Error('Booru fetch failed');
       const pdata = await res.json();
-      const post = mapBooruDetail(source as BooruSource, pdata);
+      const post = mapBooruDetail(booruSource, pdata);
       if (!post) throw new Error('Post not found');
 
       return {
         id: post.id,
-        title: post.title || `${source.toUpperCase()} #${post.id}`,
+        title: post.title || `${booruDisplayLabel(booruSource)} #${post.id}`,
         description: post.description || post.tags.join(', '),
         coverUrl: post.coverUrl,
         rating: post.rating,
         genres: post.tags,
         status: 'Completed',
-        author: source,
-        source: source as BooruSource,
+        author: booruDisplayLabel(booruSource),
+        source: booruSource,
       };
     }
 
@@ -432,7 +438,7 @@ export async function getChapterPages(source: string, id: string, chapterId: str
       });
     }
 
-    if (['e621', 'danbooru', 'gelbooru', 'rule34'].includes(source)) {
+    if (isBooruLibrarySource(source)) {
       // Booru posts are single images — reuse the detail fetch (same upstream
       // URLs and caching) and read the proxied full-size file URL.
       const detail = await getComicDetails(source, id, undefined, { enrich: false });
@@ -598,6 +604,43 @@ export async function searchComics(params: {
         })),
         hasMore: Number.isFinite(numPages) && numPages > 0 ? page + 1 < numPages : results.length > 0,
       };
+    }
+
+    if (isBooruLibrarySource(source)) {
+      const booruSource = source as BooruSource;
+      const targetUrl = buildBooruSearchUrl(booruSource, {
+        limit: SEARCH_PAGE_LIMIT,
+        page,
+        query,
+      });
+
+      let payload: unknown = [];
+      try {
+        const res = await fetch(targetUrl, {
+          headers: BOORU_FETCH_HEADERS,
+          next: { revalidate: 3600 },
+        });
+        if (res.ok) {
+          // Gelbooru-family boards answer an empty result set with a bare `204`
+          // or a non-JSON body — treat any parse failure as "no results".
+          const text = await res.text();
+          payload = text ? JSON.parse(text) : [];
+        }
+      } catch {
+        payload = [];
+      }
+
+      const posts = mapBooruSearchResults(booruSource, payload);
+      const items = posts.map((post) => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        coverUrl: post.coverUrl,
+        source: booruSource,
+        rating: post.rating,
+      }));
+
+      return { items, hasMore: items.length >= Math.floor(SEARCH_PAGE_LIMIT / 2) };
     }
 
     return { items: [], hasMore: false };

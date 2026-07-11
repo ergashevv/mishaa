@@ -1,17 +1,16 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from 'next/server';
+import { BOORU_IMAGE_HOSTS, booruRefererForHost } from '@/lib/booru';
 
 const ALLOWED_HOSTS = [
   'mangadex.org',
   'mangadex.network',
   'nhentai.net',
   'nhentai.to',
-  'e621.net',
-  'donmai.us',
-  'gelbooru.com',
-  'rule34.xxx',
   'annihil.us',
   'marvel.com',
+  // Every booru board's site + CDN hosts, derived from the registry.
+  ...BOORU_IMAGE_HOSTS,
 ];
 
 function isAllowedHost(hostname: string) {
@@ -23,11 +22,8 @@ function isAllowedHost(hostname: string) {
 function getReferer(url: URL) {
   if (url.hostname.includes('mangadex')) return 'https://mangadex.org/';
   if (url.hostname.includes('nhentai')) return 'https://nhentai.net/';
-  if (url.hostname.includes('e621')) return 'https://e621.net/';
-  if (url.hostname.includes('danbooru')) return 'https://danbooru.donmai.us/';
-  if (url.hostname.includes('gelbooru')) return 'https://gelbooru.com/';
   if (url.hostname.includes('annihil.us') || url.hostname.includes('marvel')) return 'https://www.marvel.com/';
-  return undefined;
+  return booruRefererForHost(url.hostname);
 }
 
 export async function GET(req: NextRequest) {

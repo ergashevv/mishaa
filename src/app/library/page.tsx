@@ -10,7 +10,10 @@ import { getPublicSiteUrl } from '@/lib/og-metadata';
 import { openGraphTwitterFromLogo } from '@/lib/seo/page-metadata';
 import { Suspense } from 'react';
 import { UI_LANG_COOKIE } from '@/lib/i18n/cookies';
+import { isUiLang } from '@/lib/i18n/lang';
+import { uiLangToPreferredMangaLanguage } from '@/lib/i18n/ui-lang-to-manga';
 import { translations } from '@/lib/translations';
+import type { MangaLanguage } from '@/lib/manga-language';
 import {
   hreflangAlternates,
   openGraphLocaleForUiLang,
@@ -151,6 +154,10 @@ export default async function Page({
   const { tab } = await searchParams;
   const cookieStore = await cookies();
   const initialAgeVerified = cookieStore.get('age_verified')?.value === 'true';
+  const uiCookie = cookieStore.get(UI_LANG_COOKIE)?.value;
+  const initialMangaLanguage: MangaLanguage = isUiLang(uiCookie)
+    ? uiLangToPreferredMangaLanguage(uiCookie)
+    : 'en';
 
   const siteUrl = getPublicSiteUrl().replace(/\/$/, '');
   const shelf = typeof tab === 'string' && tab.trim() ? tab.trim() : 'All shelves';
@@ -186,7 +193,7 @@ export default async function Page({
         fallback={<LibraryRouteLoading />}
       >
         <JsonLd data={collectionSchema} />
-        <ZineLibrary initialAgeVerified={initialAgeVerified} />
+        <ZineLibrary initialAgeVerified={initialAgeVerified} initialMangaLanguage={initialMangaLanguage} />
       </Suspense>
       <Suspense fallback={null}>
         <BrowseTitlesNav />

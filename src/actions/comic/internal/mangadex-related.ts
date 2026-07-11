@@ -25,6 +25,17 @@ export function extractMangaDexUuidFromExternalLinks(
   return null;
 }
 
+/** Content ratings at or below a given tier — keeps the fallback search from surfacing
+ *  explicit titles as "more like this" under a safe/suggestive series. */
+const RATING_TIERS: Record<string, string[]> = {
+  safe: ['safe'],
+  suggestive: ['safe', 'suggestive'],
+  erotica: ['safe', 'suggestive', 'erotica'],
+  pornographic: ['safe', 'suggestive', 'erotica', 'pornographic'],
+};
+
+const isAdultTier = (rating: string) => rating === 'erotica' || rating === 'pornographic';
+
 export async function buildMangaDexRelatedRails(
   manga: {
     id: string;
@@ -35,8 +46,10 @@ export async function buildMangaDexRelatedRails(
   },
   aniListData: AniListMedia | null,
   mangaLanguage: MangaLanguage,
+  currentRating: string,
 ): Promise<MangaDexRelatedRailsItem[]> {
   const currentId = manga.id;
+  const currentIsAdult = isAdultTier(currentRating);
   const seen = new Set<string>([currentId]);
   const out: MangaDexRelatedRailsItem[] = [];
 
@@ -52,6 +65,8 @@ export async function buildMangaDexRelatedRails(
       nodes.map(async (n) => {
         const rec = n?.mediaRecommendation;
         if (!rec || rec.type !== 'MANGA') return null;
+        // Never surface an explicit pick as "more like this" under a safe/suggestive title.
+        if (rec.isAdult && !currentIsAdult) return null;
         const aniTitle = rec.title?.userPreferred || rec.title?.english || '';
         const fromLink = extractMangaDexUuidFromExternalLinks(rec.externalLinks);
         let mdId = fromLink;
@@ -67,14 +82,13 @@ export async function buildMangaDexRelatedRails(
           title: aniTitle || 'Untitled',
           coverUrl: rec.coverImage?.extraLarge || rec.coverImage?.large || '/logo.png',
           source: 'mangadex' as const,
-          rating: 'Safe',
+          // Honest rating (was hardcoded 'Safe') — the age-gate blur elsewhere keys off this field.
+          rating: rec.isAdult ? 'erotica' : 'safe',
         };
       }),
     );
     batch.forEach((x) => push(x));
   }
-
-  const ratingsList: string[] = ['safe', 'suggestive', 'erotica', 'pornographic'];
 
   if (out.length < 8) {
     const tagIds = (manga.attributes.tags || [])
@@ -84,6 +98,8 @@ export async function buildMangaDexRelatedRails(
       })
       .map((t) => t.id)
       .filter(Boolean);
+
+    const ratingsList = RATING_TIERS[currentRating] ?? RATING_TIERS.safe;
 
     // Tag searches are independent of each other — run them concurrently so the
     // fallback costs one round-trip instead of up to four serial ones.
@@ -98,19 +114,36 @@ export async function buildMangaDexRelatedRails(
         }),
       ),
     );
+
+    // Rank by how many of the shared genre/theme tags each candidate matched, instead of
+    // first-tag-search-wins — a title sharing 2+ tags with the current series is a closer
+    // match than one that only happens to share the first tag searched.
+    const candidates = new Map<string, { item: MangaDexRelatedRailsItem; matches: number }>();
     for (const result of tagResults) {
-      if (out.length >= 12) break;
       if (result.status !== 'fulfilled') continue;
       for (const item of result.value.items) {
-        push({
-          id: item.id,
-          title: item.title,
-          coverUrl: item.coverUrl || '/logo.png',
-          source: 'mangadex',
-          rating: item.rating,
-        });
-        if (out.length >= 12) break;
+        if (seen.has(item.id)) continue;
+        const existing = candidates.get(item.id);
+        if (existing) {
+          existing.matches += 1;
+        } else {
+          candidates.set(item.id, {
+            item: {
+              id: item.id,
+              title: item.title,
+              coverUrl: item.coverUrl || '/logo.png',
+              source: 'mangadex',
+              rating: item.rating,
+            },
+            matches: 1,
+          });
+        }
       }
+    }
+
+    for (const { item } of [...candidates.values()].sort((a, b) => b.matches - a.matches)) {
+      if (out.length >= 12) break;
+      push(item);
     }
   }
 

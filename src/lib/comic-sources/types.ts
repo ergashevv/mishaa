@@ -1,17 +1,16 @@
-import type { BooruSource } from '@/lib/booru';
+import { BOORU_SOURCE_SLUGS, type BooruSource } from '@/lib/booru';
 
 export const LIBRARY_SOURCE_SLUGS = [
   'mangadex',
   'marvel',
   'superhero',
   'nhentai',
-  'e621',
-  'danbooru',
-  'gelbooru',
-  'rule34',
+  ...BOORU_SOURCE_SLUGS,
 ] as const;
 
 export type LibrarySource = (typeof LIBRARY_SOURCE_SLUGS)[number];
+
+const BOORU_SLUG_SET: ReadonlySet<string> = new Set(BOORU_SOURCE_SLUGS);
 
 export function isLibrarySource(value: string): value is LibrarySource {
   const s = value.trim().toLowerCase();
@@ -27,6 +26,5 @@ export function normalizeLibrarySource(value: string): LibrarySource | null {
 export type { BooruSource };
 
 export function isBooruLibrarySource(source: string): source is BooruSource {
-  const s = source.trim().toLowerCase();
-  return s === 'e621' || s === 'danbooru' || s === 'gelbooru' || s === 'rule34';
+  return BOORU_SLUG_SET.has(source.trim().toLowerCase());
 }

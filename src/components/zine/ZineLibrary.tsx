@@ -17,8 +17,9 @@ import { isAdultComic, readAgeVerification, persistAgeVerification } from '@/lib
 import { searchComicsWithClientCache as searchComics } from '@/lib/comic-search-client-cache';
 import { readStorageItem } from '@/lib/browser-storage';
 import { translations, Lang } from '@/lib/translations';
-import { readStoredMangaLanguage, MangaLanguage } from '@/lib/manga-language';
+import { MANGA_LANGUAGE_STORAGE_KEY, readStoredMangaLanguage, MangaLanguage } from '@/lib/manga-language';
 import { MANGADEX_LONG_STRIP_TAG_ID, MANGADEX_GIRLS_LOVE_TAG_ID } from '@/lib/mangadex';
+import { BOORU_SOURCE_SLUGS, BOORU_BOARDS, type BooruSource } from '@/lib/booru';
 import type { ComicListItem } from '@/lib/comic-types';
 import { imageUnoptimizedForSrc } from '@/lib/next-image-unoptimized';
 
@@ -51,6 +52,29 @@ const NSFW_CATS: Cat[] = [
   { label: 'Mature Romance', color: 'var(--z-red)', source: 'nhentai', nsfw: true, query: 'mature' },
 ];
 
+// The image-board directory shown in the dedicated 18+ panel. Grouped by the upstream
+// API family so the grid reads as an intentional taxonomy, not a flat wall of chips.
+type BooruFamily = { style: string; label: string; color: string };
+const BOORU_FAMILIES: BooruFamily[] = [
+  { style: 'gelbooru', label: 'Gelbooru network', color: 'var(--z-red)' },
+  { style: 'danbooru', label: 'Danbooru', color: 'var(--z-blue)' },
+  { style: 'e621', label: 'e621 network', color: 'var(--z-green)' },
+  { style: 'moebooru', label: 'Moebooru', color: 'var(--z-purple)' },
+  { style: 'philomena', label: 'Philomena network', color: 'var(--z-pink)' },
+];
+
+const boardHost = (slug: BooruSource) => BOORU_BOARDS[slug].site.replace(/^https?:\/\//, '');
+
+const BOORU_SOURCE_CATS: Cat[] = BOORU_SOURCE_SLUGS.map((slug) => {
+  const family = BOORU_FAMILIES.find((f) => f.style === BOORU_BOARDS[slug].style);
+  return {
+    label: BOORU_BOARDS[slug].label,
+    source: slug,
+    nsfw: true,
+    color: family?.color ?? 'var(--z-ink)',
+  };
+});
+
 function LibCard({ comic, ageVerified, onLocked, rot }: { comic: ComicListItem; ageVerified: boolean; onLocked: () => void; rot: number }) {
   const adult = isAdultComic(comic);
   const blocked = adult && !ageVerified;
@@ -77,7 +101,13 @@ function LibCard({ comic, ageVerified, onLocked, rot }: { comic: ComicListItem; 
   );
 }
 
-export default function ZineLibrary({ initialAgeVerified = false }: { initialAgeVerified?: boolean }) {
+export default function ZineLibrary({
+  initialAgeVerified = false,
+  initialMangaLanguage,
+}: {
+  initialAgeVerified?: boolean;
+  initialMangaLanguage?: MangaLanguage;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -85,7 +115,7 @@ export default function ZineLibrary({ initialAgeVerified = false }: { initialAge
   const [showGate, setShowGate] = useState(false);
   const [pendingCat, setPendingCat] = useState<Cat | null>(null);
   const [lang, setLang] = useState<Lang>('en');
-  const mangaLang = useRef<MangaLanguage>('en');
+  const mangaLang = useRef<MangaLanguage>(initialMangaLanguage ?? 'en');
 
   const initialLabel = searchParams.get('tab') || 'All';
   const [active, setActive] = useState<string>(initialLabel);
@@ -100,12 +130,20 @@ export default function ZineLibrary({ initialAgeVerified = false }: { initialAge
   const reqId = useRef(0);
 
   const t = translations[lang].library;
-  const allCats = useMemo(() => (ageVerified ? [...CATS, ...NSFW_CATS] : CATS), [ageVerified]);
+  // Chips shown in the pill row (content filters). Booru boards live in the 18+ panel instead.
+  const chipCats = useMemo(() => (ageVerified ? [...CATS, ...NSFW_CATS] : CATS), [ageVerified]);
+  // Full resolvable set, including per-board browse categories, for `active` lookup.
+  const allCats = useMemo(
+    () => (ageVerified ? [...CATS, ...NSFW_CATS, ...BOORU_SOURCE_CATS] : CATS),
+    [ageVerified],
+  );
   const activeCat = useMemo(() => allCats.find((c) => c.label === active) || CATS[0], [allCats, active]);
 
   useEffect(() => {
     if (readAgeVerification()) setAgeVerified(true);
-    mangaLang.current = readStoredMangaLanguage();
+    // Only an explicit prior choice (localStorage) should override the SSR-resolved language —
+    // otherwise a first-time visitor's geo-suggested cookie language gets clobbered back to 'en'.
+    if (readStorageItem(MANGA_LANGUAGE_STORAGE_KEY)) mangaLang.current = readStoredMangaLanguage();
     const saved = readStorageItem('lang') as Lang;
     if (saved && translations[saved]) setLang(saved);
     const onLang = (e: Event) => { const n = (e as CustomEvent<Lang>).detail; if (translations[n]) setLang(n); };
@@ -180,7 +218,7 @@ export default function ZineLibrary({ initialAgeVerified = false }: { initialAge
 
         {/* category chips */}
         <div className="mb-10 flex flex-wrap gap-2.5">
-          {allCats.map((c) => {
+          {chipCats.map((c) => {
             const on = c.label === active;
             return (
               <button key={c.label} type="button" onClick={() => pickCategory(c)}
@@ -191,6 +229,65 @@ export default function ZineLibrary({ initialAgeVerified = false }: { initialAge
             );
           })}
         </div>
+
+        {/* 18+ source directory — the expanded restricted-source catalog */}
+        <section className="mb-12">
+          <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h2 className="z-display text-[clamp(1.5rem,4.5vw,2.4rem)] leading-[0.85]">
+              <span className="mr-2 inline-block -rotate-2 border-[2.5px] border-[var(--z-ink)] bg-[var(--z-red)] px-2.5 text-[var(--z-paper)] shadow-[3px_3px_0_var(--z-ink)]">18+</span>
+              Sources
+            </h2>
+            <span className="text-[11px] font-bold uppercase text-[var(--z-ink-2)]" style={{ fontFamily: 'var(--font-zine-mono)' }}>
+              {BOORU_SOURCE_CATS.length} boards · age-gated
+            </span>
+          </div>
+
+          {ageVerified ? (
+            <div className="space-y-6">
+              {BOORU_FAMILIES.map((fam) => {
+                const boards = BOORU_SOURCE_CATS.filter((c) => BOORU_BOARDS[c.source as BooruSource].style === fam.style);
+                if (!boards.length) return null;
+                return (
+                  <div key={fam.style}>
+                    <div className="mb-2.5 flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full border-[2px] border-[var(--z-ink)]" style={{ background: fam.color }} />
+                      <span className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--z-ink-2)]" style={{ fontFamily: 'var(--font-zine-mono)' }}>{fam.label}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                      {boards.map((cat) => {
+                        const on = cat.label === active;
+                        return (
+                          <button
+                            key={cat.label}
+                            type="button"
+                            onClick={() => pickCategory(cat)}
+                            aria-pressed={on}
+                            className="z-box z-pop group flex flex-col items-start gap-0.5 px-3.5 py-3 text-left"
+                            style={{ background: on ? cat.color : 'var(--z-card)', boxShadow: on ? 'var(--z-sh-sm)' : undefined }}
+                          >
+                            <span className="text-[14px] font-extrabold leading-tight" style={{ color: on ? '#fff' : 'var(--z-ink)' }}>{cat.label}</span>
+                            <span className="truncate text-[10px] font-bold uppercase" style={{ fontFamily: 'var(--font-zine-mono)', color: on ? 'rgba(255,255,255,0.9)' : 'var(--z-ink-2)' }}>
+                              {boardHost(cat.source as BooruSource)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="z-box grid place-items-center gap-3 p-10 text-center">
+              <span className="grid h-12 w-12 place-items-center rounded-full border-[2.5px] border-[var(--z-ink)] bg-[var(--z-red)] text-white shadow-[3px_3px_0_var(--z-ink)]"><Lock size={20} strokeWidth={2.5} /></span>
+              <h3 className="z-display text-[1.7rem] leading-none">Restricted shelves</h3>
+              <p className="max-w-sm text-[14px] font-semibold text-[var(--z-ink-2)]">
+                {BOORU_SOURCE_CATS.length} adult image-board sources unlock once you confirm you’re 18 or older.
+              </p>
+              <button type="button" onClick={() => setShowGate(true)} className="z-btn z-btn--red z-btn--sm mt-1">Verify 18+</button>
+            </div>
+          )}
+        </section>
 
         {/* grid */}
         {loading && items.length === 0 ? (

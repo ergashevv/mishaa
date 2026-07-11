@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "icomics-ingest-cron",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-28",
+  // Daily at 06:00 UTC — mirrors the old (now-dead) Vercel cron `0 6 * * *`.
+  "triggers": {
+    "crons": ["0 6 * * *"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Which site to trigger. Override per-environment if you add staging.
+    "SITE_ORIGIN": "https://icomics.wiki",
+    "INGEST_TARGET": "500"
+  }
+  // CRON_SECRET is a secret, NOT a var — set it with:  wrangler secret put CRON_SECRET
+}

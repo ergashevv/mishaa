@@ -54,6 +54,7 @@ export interface AniListMedia {
           large?: string;
         };
         type?: string;
+        isAdult?: boolean;
         externalLinks?: Array<{ url?: string | null; site?: string | null }>;
       };
     }>;
@@ -114,6 +115,7 @@ query ($id: Int) {
             large
           }
           type
+          isAdult
           externalLinks {
             url
             site

@@ -5,6 +5,10 @@ export type MangaLanguage = 'en' | 'ja' | 'ko' | 'ru' | 'es' | 'fr' | 'de' | 'pt
 export const MANGA_LANGUAGE_STORAGE_KEY = 'mangaLanguage';
 export const DEFAULT_MANGA_LANGUAGE: MangaLanguage = 'en';
 
+/** Fired when the content (manga/chapter) language changes independently of the UI language
+ *  (Settings' standalone picker). LocaleBootstrap reloads on this the same way it does for `langChange`. */
+export const MANGA_LANGUAGE_CHANGE_EVENT = 'mangaLanguageChange';
+
 export const MANGA_LANGUAGE_OPTIONS: Array<{ value: MangaLanguage; label: string }> = [
   { value: 'en', label: 'English' },
   { value: 'ja', label: 'Japanese' },

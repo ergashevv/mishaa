@@ -3,18 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AGE_VERIFICATION_COOKIE } from '@/lib/age-verification';
 import {
   BooruSource,
-  normalizeBooruQuery,
+  BOORU_FETCH_HEADERS,
+  buildBooruPostUrl,
+  buildBooruSearchUrl,
 } from '@/lib/booru';
 import { isBooruLibrarySource } from '@/lib/comic-sources';
 
 export const dynamic = 'force-dynamic';
-
-const BOORU_BASE_URLS: Record<BooruSource, string> = {
-  e621: 'https://e621.net',
-  danbooru: 'https://danbooru.donmai.us',
-  gelbooru: 'https://gelbooru.com',
-  rule34: 'https://api.rule34.xxx',
-};
 
 function parsePageIndex(params: URLSearchParams) {
   const raw = Number.parseInt(params.get('page') || '0', 10);
@@ -26,60 +21,33 @@ function isBooruSourceParam(value: string | null): value is BooruSource {
 }
 
 function buildUrl(source: BooruSource, kind: 'search' | 'post', params: URLSearchParams) {
-  const pageIndex = parsePageIndex(params);
-
-  if (source === 'gelbooru' || source === 'rule34') {
-    const url = new URL(`${BOORU_BASE_URLS[source]}/index.php`);
-    url.searchParams.set('page', 'dapi');
-    url.searchParams.set('s', 'post');
-    url.searchParams.set('q', 'index');
-    url.searchParams.set('json', '1');
-
-    if (kind === 'search') {
-      url.searchParams.set('limit', params.get('limit') || '36');
-      url.searchParams.set('pid', String(pageIndex));
-      url.searchParams.set('tags', normalizeBooruQuery(source, params.get('query') || ''));
-    } else {
-      url.searchParams.set('id', params.get('id') || '');
-    }
-
-    return url.toString();
+  if (kind === 'post') {
+    return buildBooruPostUrl(source, params.get('id') || '');
   }
-
-  if (kind === 'search') {
-    const url = new URL(`${BOORU_BASE_URLS[source]}/posts.json`);
-    url.searchParams.set('limit', params.get('limit') || '36');
-    url.searchParams.set('page', String(pageIndex + 1));
-    url.searchParams.set('tags', normalizeBooruQuery(source, params.get('query') || ''));
-    return url.toString();
-  }
-
-  return `${BOORU_BASE_URLS[source]}/posts/${params.get('id')}.json`;
+  return buildBooruSearchUrl(source, {
+    limit: Number.parseInt(params.get('limit') || '36', 10) || 36,
+    page: parsePageIndex(params),
+    query: params.get('query') || '',
+  });
 }
 
 async function fetchJson(
   source: BooruSource,
   kind: 'search' | 'post',
   params: URLSearchParams,
-  headers: Record<string, string>,
 ) {
   const targetUrl = buildUrl(source, kind, params);
   let res: Response;
   try {
     res = await fetch(targetUrl, {
-      headers,
+      headers: BOORU_FETCH_HEADERS,
       next: { revalidate: 3600 },
     });
   } catch (error) {
-    if (source !== 'gelbooru' || kind !== 'search') {
+    if (kind !== 'search') {
       throw error;
     }
-    res = new Response(null, { status: 502, statusText: 'Gelbooru upstream unavailable' });
-  }
-
-  if (res.ok) {
-    const body = await res.text();
-    return { body, status: res.status, contentType: res.headers.get('content-type') || 'application/json' };
+    res = new Response(null, { status: 502, statusText: 'Booru upstream unavailable' });
   }
 
   const body = await res.text();
@@ -103,22 +71,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid booru request' }, { status: 400 });
   }
 
-  const headers = {
-    'User-Agent': 'iComics.wiki/1.0 (booru proxy; contact support@icomics.wiki)',
-    Accept: 'application/json',
-    'Accept-Language': 'en-US,en;q=0.9',
-  };
+  const emptyList = () =>
+    NextResponse.json([], {
+      status: 200,
+      headers: { 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' },
+    });
 
   try {
-    const { body, status, contentType } = await fetchJson(sourceParam, kind, searchParams, headers);
+    const { body, status, contentType } = await fetchJson(sourceParam, kind, searchParams);
 
-    if (sourceParam === 'gelbooru' && kind === 'search' && status >= 400) {
-      return NextResponse.json([], {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-        },
-      });
+    // A flaky/empty upstream on a search shouldn't surface as an error — the grid
+    // renders an "empty shelf" instead.
+    if (kind === 'search' && status >= 400) {
+      return emptyList();
     }
 
     return new NextResponse(body, {
@@ -129,15 +94,9 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    if (sourceParam === 'gelbooru' && kind === 'search') {
-      return NextResponse.json([], {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-        },
-      });
+    if (kind === 'search') {
+      return emptyList();
     }
-
     const message = error instanceof Error ? error.message : 'Unknown proxy error';
     return NextResponse.json({ error: message }, { status: 502 });
   }

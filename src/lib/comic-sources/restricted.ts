@@ -1,12 +1,10 @@
+import { BOORU_SOURCE_SLUGS } from '@/lib/booru';
 import type { LibrarySource } from './types';
 
 /** Sources that require age verification on the server and client. */
 export const RESTRICTED_LIBRARY_SOURCES = new Set<LibrarySource>([
   'nhentai',
-  'e621',
-  'danbooru',
-  'gelbooru',
-  'rule34',
+  ...BOORU_SOURCE_SLUGS,
 ]);
 
 export function isRestrictedLibrarySource(source: string): boolean {

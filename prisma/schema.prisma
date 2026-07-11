@@ -45,3 +45,91 @@ model ReadingProgress {
   @@index([userId, updatedAt])
   @@index([source, comicId])
 }
+
+// ---------------------------------------------------------------------------
+// Owned content catalog (metadata-only). Populated incrementally by the daily
+// ingest job (see src/lib/ingest/*). We deliberately store METADATA, not chapter
+// page images: metadata is what powers indexable text, structured data, honest
+// sitemap lastmod and fast catalog pages — image bytes add cost + copyright risk
+// for ~zero SEO gain. Reader images stay proxied/hotlinked at read time.
+// ---------------------------------------------------------------------------
+
+/// One catalog work, source-agnostic (MangaDex first). Upserted by (source, sourceId).
+model Series {
+  id            String   @id @default(cuid())
+  /// 'mangadex' | 'marvel' | ... — matches LibrarySource discriminator used by routes.
+  source        String
+  /// Upstream id (MangaDex UUID). URLs stay /library/{source}/{sourceId} — no URL migration.
+  sourceId      String
+  /// Optional SEO slug for a future /comic/{slug} structure. Not routed yet.
+  slug          String?
+
+  /// Flat display title (localized pick: en → ru → romaji → first available).
+  title         String
+  /// Full localized title map + alt titles, verbatim from upstream.
+  titles        Json?
+  altTitles     Json?
+  /// Flat plain-ish description (localized pick); `descriptions` keeps every locale.
+  description   String?
+  descriptions  Json?
+
+  /// Raw MangaDex cover file name — lets us rebuild the cover URL anytime without a refetch.
+  coverFileName String?
+  /// Derived cover URL (proxy/derivative) as served to the grid.
+  coverUrl      String?
+
+  contentRating String?
+  status        String?
+  year          Int?
+  originalLanguage String?
+  demographic   String?
+  author        String?
+  artist        String?
+  /// Array of { name, group } tag objects (genre/theme/format).
+  tags          Json?
+  lastChapter   String?
+  lastVolume    String?
+
+  /// Upstream timestamps. `sourceCreatedAt` drives the stable createdAt-asc sweep
+  /// watermark; `sourceUpdatedAt` is the honest per-title sitemap lastmod.
+  sourceCreatedAt DateTime?
+  sourceUpdatedAt DateTime?
+
+  /// Our row bookkeeping.
+  ingestedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([source, sourceId])
+  @@index([source, sourceUpdatedAt])
+  @@index([source, sourceCreatedAt])
+  @@index([sourceUpdatedAt])
+  @@index([contentRating])
+}
+
+/// Resumable sweep position per source. Watermark = createdAt of the last ingested
+/// item, used as `createdAtSince` next run — sidesteps MangaDex's 10k offset cap.
+model IngestCursor {
+  /// Source key, e.g. 'mangadex'.
+  id              String   @id
+  source          String
+  createdAtWatermark DateTime?
+  totalSeen       Int      @default(0)
+  /// True once the sweep has caught up to the newest title (freshness pass only after).
+  exhausted       Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+/// Audit row per daily ingest run (observability + backoff decisions).
+model IngestRun {
+  id          String   @id @default(cuid())
+  source      String
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime?
+  requested   Int      @default(0)
+  upserted    Int      @default(0)
+  failed      Int      @default(0)
+  ok          Boolean  @default(false)
+  note        String?
+
+  @@index([source, startedAt])
+}

@@ -14,7 +14,7 @@ import ZineNav from '@/components/zine/ZineNav';
 import ZineFooter from '@/components/zine/ZineFooter';
 import { translations, type Lang } from '@/lib/translations';
 import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
-import { MANGA_LANGUAGE_OPTIONS, type MangaLanguage, persistStoredMangaLanguage, readStoredMangaLanguage } from '@/lib/manga-language';
+import { MANGA_LANGUAGE_CHANGE_EVENT, MANGA_LANGUAGE_OPTIONS, type MangaLanguage, persistStoredMangaLanguage, readStoredMangaLanguage } from '@/lib/manga-language';
 import { persistUiLangCookie } from '@/lib/i18n/ui-lang-cookie-client';
 import { uiLangToPreferredMangaLanguage } from '@/lib/i18n/ui-lang-to-manga';
 import { clearAgeVerification, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -55,7 +55,12 @@ export default function SettingsPage() {
     if (typeof document !== 'undefined') document.documentElement.lang = htmlLangFromUiLang(nextLang);
     router.refresh();
   };
-  const applyMangaLanguage = (next: MangaLanguage) => { setMangaLanguage(next); persistStoredMangaLanguage(next); window.dispatchEvent(new Event(LIBRARY_ACTIVITY_EVENT)); };
+  const applyMangaLanguage = (next: MangaLanguage) => {
+    setMangaLanguage(next);
+    persistStoredMangaLanguage(next);
+    window.dispatchEvent(new Event(LIBRARY_ACTIVITY_EVENT));
+    window.dispatchEvent(new CustomEvent(MANGA_LANGUAGE_CHANGE_EVENT, { detail: next }));
+  };
   const clearLibraryData = async () => {
     window.localStorage.removeItem(BOOKMARKS_STORAGE_KEY); clearReadingHistory();
     try { const me = await fetch('/api/auth/me').then((r) => r.json()).catch(() => null); if (me?.user) await fetch('/api/reading-progress', { method: 'DELETE' }); } catch (e) { console.error(e); }

@@ -44,9 +44,10 @@ type Props = {
   source: string;
   id: string;
   initialAgeVerified?: boolean;
+  initialMangaLanguage?: MangaLanguage;
 };
 
-export default function ZineDetail({ initialComic, initialChapters, source, id, initialAgeVerified = false }: Props) {
+export default function ZineDetail({ initialComic, initialChapters, source, id, initialAgeVerified = false, initialMangaLanguage = 'en' }: Props) {
   const router = useRouter();
   const [readPending, startRead] = useTransition();
   const [pendingChapter, setPendingChapter] = useState<string | null>(null);
@@ -66,6 +67,7 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lastRead, setLastRead] = useState<{ id: string; title: string; progressPercent?: number } | null>(null);
+  const [engagedIds, setEngagedIds] = useState<Set<string>>(() => new Set());
 
   const restricted = isRestrictedLibrarySource(source);
   const [imgSrc, setImgSrc] = useState(comic?.coverUrl || FALLBACK_IMG);
@@ -83,9 +85,14 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
     return () => { window.removeEventListener('langChange', onLang as EventListener); window.removeEventListener('langChange', onManga as EventListener); };
   }, []);
 
+  // Read via a ref (not a useCallback dependency) — `fetchDetails` itself sets `comic`, so
+  // depending on `comic` directly would recreate the callback on every fetch and loop forever.
+  const comicRef = useRef(comic);
+  useEffect(() => { comicRef.current = comic; }, [comic]);
+
   const fetchDetails = useCallback(async () => {
     if (restricted && !ageVerified) { setShowGate(true); return; }
-    setLoading(!comic);
+    setLoading(!comicRef.current);
     try {
       const [c, ch] = await Promise.all([
         getComicDetails(source, id, mangaLang),
@@ -94,10 +101,14 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
       if (c) setComic(c);
       if (ch) setChapters(ch);
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [source, id, mangaLang, restricted, ageVerified, comic]);
+  }, [source, id, mangaLang, restricted, ageVerified]);
 
-  // SSR provided the first render; only refetch when language changes.
-  const skipInitial = useRef(Boolean(initialComic) && (initialChapters?.length ?? 0) > 0);
+  // SSR provided the first render; only skip the refetch if it was actually fetched in the
+  // content language this client instance is using — otherwise (e.g. an explicit content-language
+  // override in Settings that differs from the UI-language-derived SSR default) correct it.
+  const skipInitial = useRef(
+    Boolean(initialComic) && (initialChapters?.length ?? 0) > 0 && mangaLang === initialMangaLanguage
+  );
   useEffect(() => {
     if (skipInitial.current) { skipInitial.current = false; return; }
     const timer = setTimeout(() => void fetchDetails(), 0);
@@ -112,6 +123,11 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
       const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
       setBookmarked(bm.some((b: { id: string; source: string }) => b.id === id && b.source === source));
       const hist = readReadingHistory();
+      // "More like this" shouldn't re-pitch what the reader already bookmarked or has read —
+      // a recommendation rail that only ever repeats your own shelf back at you feels stale.
+      const engaged = new Set<string>(Object.keys(hist));
+      bm.forEach((b: { id: string; source: string }) => engaged.add(`${b.source}:${b.id}`));
+      setEngagedIds(engaged);
       const h = hist[`${source}:${id}`];
       let next = h ? { id: h.chapterId || h.id || id, title: h.chapterTitle || h.title || crLabel, progressPercent: h.progressPercent } : null;
       try {
@@ -153,6 +169,11 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
     } as const;
     window.open(urls[target], '_blank', 'noopener,noreferrer');
   };
+
+  const relatedToShow = useMemo(
+    () => (comic?.related || []).filter((r) => !engagedIds.has(`${r.source}:${r.id}`)),
+    [comic?.related, engagedIds]
+  );
 
   const nextChapterId = useMemo(() => {
     if (!chapters.length) return null;
@@ -369,11 +390,11 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
         ) : null}
 
         {/* ---------------------------------------------- RELATED */}
-        {comic.related && comic.related.length > 0 ? (
+        {relatedToShow.length > 0 ? (
           <section className="mt-16">
             <h2 className="z-display -rotate-1 mb-6 inline-block border-[3px] border-[var(--z-ink)] bg-[var(--z-purple)] px-3 py-1 text-[clamp(1.6rem,4vw,2.4rem)] leading-[0.82] text-[var(--z-paper)] shadow-[4px_4px_0_var(--z-ink)]">{t.moreLikeThis}</h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
-              {comic.related.slice(0, 12).map((r, i) => (
+              {relatedToShow.slice(0, 12).map((r, i) => (
                 <Link key={r.id} href={`/library/${r.source}/${r.id}`} className="z-box z-pop group block overflow-hidden" style={{ transform: `rotate(${(i % 2 ? 1 : -1) * 0.6}deg)` }}>
                   <span className="z-cover block">
                     <RelatedImg src={r.coverUrl} alt={r.title} />

@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { searchComics, getChapters } from '@/actions/comic';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
 import { GUIDES_ORDER } from '@/lib/guides/registry';
+import { getSeriesSitemapEntries } from '@/lib/ingest/series-repo';
 
 /**
  * Re-run the heavy MangaDex/Marvel fan-out at most every 6h. The route already had
@@ -166,6 +167,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           });
         }
       }
+    }
+
+    // Merge our OWN ingested catalog (Postgres) on top of the live listing. This is
+    // strictly additive — it only ever ADDS titles the live fan-out missed (everything
+    // beyond the 55-page / ~2000-URL cap), so the sitemap can only grow as ingestion
+    // fills. Once the DB comprehensively covers the catalog, the live fan-out above can
+    // be dropped entirely. Failure here is non-fatal: we keep the live-derived entries.
+    try {
+      const dbSeries = await getSeriesSitemapEntries({ source: 'mangadex' });
+      for (const s of dbSeries) {
+        const url = `${baseUrl}/library/${s.source}/${s.sourceId}`;
+        if (!byUrl.has(url)) {
+          byUrl.set(url, {
+            url,
+            lastModified: s.sourceUpdatedAt ?? CONTENT_REVISION,
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Sitemap: DB catalog merge failed (kept live entries)', e);
     }
 
     // Marvel issue detail pages — a whole indexable vertical that was previously absent

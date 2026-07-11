@@ -1567,6 +1567,11 @@ body {
 /* Hard hairline divider (ink). */
 .z-rule { height: var(--z-b); background: var(--z-ink); border: 0; border-radius: 2px; }
 
+/* react-pageflip (Journal reader) — pages fill their leaf. */
+.ic-flipbook { margin: 0 auto; }
+.ic-flip-page { width: 100%; height: 100%; }
+.ic-flip-page img { pointer-events: none; }
+
 /* Cover frame inside a card. */
 .z-cover {
   position: relative;

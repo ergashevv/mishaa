@@ -22,6 +22,10 @@ import {
 } from '@/lib/seo/library-work-metadata';
 import { buildComicCoverImageObjects } from '@/lib/seo/comic-jsonld';
 import { hreflangAlternates } from '@/lib/seo/hreflang-urls';
+import { UI_LANG_COOKIE } from '@/lib/i18n/cookies';
+import { isUiLang } from '@/lib/i18n/lang';
+import { uiLangToPreferredMangaLanguage } from '@/lib/i18n/ui-lang-to-manga';
+import type { MangaLanguage } from '@/lib/manga-language';
 
 export const runtime = 'nodejs';
 
@@ -35,6 +39,14 @@ export const viewport: Viewport = {
 
 const getComicDetails = cache(getComicDetailsAction);
 const getCachedChapters = cache(getChapters);
+
+/** Resolves the visitor's preferred chapter/content language from `ics_ui_lang` — same source
+ *  the home page uses — so detail/chapter SSR data matches what the rest of the app shows. */
+async function resolvePageMangaLanguage(): Promise<MangaLanguage> {
+  const cookieStore = await cookies();
+  const uiCookie = cookieStore.get(UI_LANG_COOKIE)?.value;
+  return isUiLang(uiCookie) ? uiLangToPreferredMangaLanguage(uiCookie) : 'en';
+}
 
 /** cache() dedupes the AniList→MangaDex lookup between generateMetadata and the page render. */
 const resolveMangaDexRouteId = cache(async (source: string, id: string) => {
@@ -158,8 +170,9 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
     };
   }
 
-  const comic = (await getComicDetails(source, resolvedId)) as ComicSeoData | null;
-  const chapters = comic ? await getCachedChapters(source, resolvedId) : [];
+  const mangaLanguage = await resolvePageMangaLanguage();
+  const comic = (await getComicDetails(source, resolvedId, mangaLanguage)) as ComicSeoData | null;
+  const chapters = comic ? await getCachedChapters(source, resolvedId, mangaLanguage) : [];
   const chapterCount = chapters.length;
 
   const siteUrl = getPublicSiteUrl();
@@ -260,10 +273,11 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
 
   const cookieStore = await cookies();
   const initialAgeVerified = cookieStore.get('age_verified')?.value === 'true';
-  
+  const mangaLanguage = await resolvePageMangaLanguage();
+
   const [initialComic, initialChapters] = await Promise.all([
-    getComicDetails(source, resolvedId),
-    getCachedChapters(source, resolvedId),
+    getComicDetails(source, resolvedId, mangaLanguage),
+    getCachedChapters(source, resolvedId, mangaLanguage),
   ]);
 
   const comicData = initialComic as ComicSeoData | null;
@@ -369,6 +383,7 @@ export default async function Page({ params }: { params: Promise<RouteParams> })
       source={source}
       id={id}
       initialAgeVerified={initialAgeVerified}
+      initialMangaLanguage={mangaLanguage}
     />
   </article>
   );

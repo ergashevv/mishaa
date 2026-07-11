@@ -33,6 +33,7 @@ import { getChapterPages, getComicDetails, getChapters } from '@/actions/comic';
 import { isRestrictedLibrarySource } from '@/lib/comic-sources';
 import type { ComicChapter, ComicDetail } from '@/lib/comic-types';
 import Image from 'next/image';
+import JournalFlipBook, { type FlipApi } from './JournalFlipBook';
 import {
   clampReaderZoom,
   computeLastPageIndexForAdjacentChapter,
@@ -223,11 +224,10 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageReady, setPageReady] = useState(false);
-  /** +1 = turning forward, -1 = turning back — drives the journal book-flip direction.
-   *  Computed during render (not state) so the flip mounts with the correct direction. */
-  const lastPageRef = useRef(0);
-  const pageDir = currentPage >= lastPageRef.current ? 1 : -1;
-  useEffect(() => { lastPageRef.current = currentPage; }, [currentPage]);
+  /** Journal mode renders react-pageflip (Apple-Books-style page curl). The reader still owns
+   *  paging state; the book reports flips back and we drive it for external jumps. */
+  const flipApiRef = useRef<FlipApi | null>(null);
+  const bookPageRef = useRef(0);
   const [viewMode, setViewMode] = useState<'classic' | 'flow' | 'journal'>('classic');
   const [readerLoading, setReaderLoading] = useState(false);
   const [uiVisible, setUiVisible] = useState(false);
@@ -839,6 +839,12 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   }, [currentChapterIdx]);
 
   const handleNextPage = useCallback(() => {
+    // Journal mode: let react-pageflip animate the page curl; only jump chapters at the very end.
+    if (viewMode === 'journal' && flipApiRef.current) {
+      if (flipApiRef.current.atEnd()) { adjNavigateRef.current = 'next'; nextChapter(); }
+      else flipApiRef.current.next();
+      return;
+    }
     const step = (viewMode === 'journal' && !(isSpreadCover && currentPage === 0)) ? 2 : 1;
     if (currentPage < pages.length - step) {
       setCurrentPage(p => p + step);
@@ -850,6 +856,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   }, [viewMode, isSpreadCover, currentPage, pages.length, nextChapter]);
 
   const handlePrevPage = useCallback(() => {
+    if (viewMode === 'journal' && flipApiRef.current) {
+      if (flipApiRef.current.atStart()) { adjNavigateRef.current = 'prev'; prevChapter(); }
+      else flipApiRef.current.prev();
+      return;
+    }
     const step = (viewMode === 'journal' && !(isSpreadCover && currentPage <= 1)) ? 2 : 1;
     if (currentPage > 0) {
       setCurrentPage(p => Math.max(0, p - step));
@@ -859,6 +870,15 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       prevChapter();
     }
   }, [viewMode, isSpreadCover, currentPage, prevChapter]);
+
+  // Drive the book for EXTERNAL page jumps (resume, slider) that didn't come from a flip event.
+  useEffect(() => {
+    if (viewMode !== 'journal' || !flipApiRef.current) return;
+    if (currentPage !== bookPageRef.current) {
+      flipApiRef.current.turnTo(currentPage);
+      bookPageRef.current = currentPage;
+    }
+  }, [currentPage, viewMode]);
 
   const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (viewMode !== 'flow' && event.touches.length >= 2) {
@@ -1956,60 +1976,17 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                      )}
                    </div>
                 ) : viewMode === 'journal' ? (
-                   <div className="mx-auto flex w-full max-w-[min(100%,98vw)] items-stretch justify-center gap-0" style={{ perspective: '2200px' }}>
-                      {!pageReady ? (
-                        <div className="flex min-h-[min(50vh,28rem)] w-full items-center justify-center py-12">
-                          <div className="w-12 h-12 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(255,45,85,0.25)', borderTopColor: '#FF2D55' }} />
-                        </div>
-                      ) : (
-                          <m.div
-                            key={`journal-${currentPage}`}
-                            initial={{ rotateY: pageDir > 0 ? 58 : -58, opacity: 0.25, x: pageDir > 0 ? 34 : -34 }}
-                            animate={{ rotateY: 0, opacity: 1, x: 0 }}
-                            transition={{ duration: 0.52, ease: [0.22, 0.61, 0.36, 1] }}
-                            style={{ transformStyle: 'preserve-3d', transformOrigin: pageDir > 0 ? 'left center' : 'right center', willChange: 'transform' }}
-                            className="flex w-full items-stretch justify-center gap-0"
-                          >
-                            {currentPage === 0 && isSpreadCover ? (
-                              <div className="relative max-h-[90vh] w-full aspect-[2/3] flex justify-center">
-                                <Image
-                                  src={pages[0]}
-                                  fill
-                                  className="object-contain shadow-2xl"
-                                  style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
-                                  alt={`${comic.title} cover`}
-                                  unoptimized
-                                />
-                              </div>
-                            ) : (
-                              <>
-                                <div className="relative flex-1 aspect-[2/3] max-h-[90vh] min-h-0">
-                                  <Image
-                                    src={pages[currentPage]}
-                                    fill
-                                    className="object-contain shadow-2xl"
-                                    style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
-                                    alt={`Page ${currentPage + 1} of ${comic.title}`}
-                                    unoptimized
-                                  />
-                                </div>
-                                {pages[currentPage + 1] && (
-                                  <div className="relative flex-1 aspect-[2/3] max-h-[90vh] min-h-0">
-                                    <Image
-                                      src={pages[currentPage + 1]}
-                                      fill
-                                      className="object-contain shadow-2xl"
-                                      style={{ border: `1px solid ${READER_THEMES[readerTheme].border}` }}
-                                      alt={`Page ${currentPage + 2} of ${comic.title}`}
-                                      unoptimized
-                                    />
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </m.div>
-                      )}
-                   </div>
+                   pages.length > 0 ? (
+                     <JournalFlipBook
+                       key={`flip-${chapterId}-${pages.length}`}
+                       ref={flipApiRef}
+                       pages={pages}
+                       startPage={currentPage}
+                       border={READER_THEMES[readerTheme].border}
+                       shellBg={READER_THEMES[readerTheme].shellBg}
+                       onFlip={(idx) => { bookPageRef.current = idx; setCurrentPage(idx); }}
+                     />
+                   ) : null
                  ) : (
                   <div
                     className="mx-auto flex w-full flex-col items-center gap-0"
