@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
+import { getPublicSiteUrl } from '@/lib/og-metadata';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://icomics.wiki').replace(/\/$/, '');
-  
+  const baseUrl = getPublicSiteUrl().replace(/\/$/, '');
+
   return {
     rules: {
       userAgent: '*',

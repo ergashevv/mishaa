@@ -21,14 +21,19 @@ function isLoopbackHostname(hostname: string): boolean {
  * deployment host: emitting that as canonical/og:url/sitemap loc splits SEO
  * signal off the real domain (Google would index the vercel.app URL instead of
  * icomics.wiki and treat the custom domain as a duplicate).
+ *
+ * The loopback check used to be gated on `VERCEL === '1'` only, so a Cloudflare
+ * build (which inlines the same `.env` used for local dev, where this var is
+ * `http://localhost:3000`) shipped a sitemap of 22k+ localhost URLs to
+ * production. Loopback is never a legitimate public site origin on any
+ * platform, so the guard now applies unconditionally.
  */
 export function getPublicSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (raw) {
     try {
       const u = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
-      const onVercel = process.env.VERCEL === '1';
-      if (!(onVercel && isLoopbackHostname(u.hostname))) {
+      if (!isLoopbackHostname(u.hostname)) {
         return u.origin;
       }
     } catch {

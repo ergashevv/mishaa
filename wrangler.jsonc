@@ -16,7 +16,12 @@
   },
   "assets": {
     "binding": "ASSETS",
-    "directory": ".open-next/assets"
+    "directory": ".open-next/assets",
+    // Default "auto-trailing-slash" 307-redirects /file.html to /file. The only .html files
+    // this app ships are Google/Yandex site-verification files, which must be served at the
+    // exact literal path with no redirect or the verifier fails. "none" serves every asset at
+    // its literal path; nothing else in the app is served via a bare .html filename.
+    "html_handling": "none"
   },
   // OpenNext incremental cache store (see open-next.config.ts). Makes getHomeData's
   // unstable_cache(1h) + ISR actually persist on Workers, collapsing the homepage TTFB.
