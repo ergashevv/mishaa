@@ -1544,6 +1544,7 @@ body {
 .z-btn--blue { background: var(--z-blue); color: #fff; }
 .z-btn--yellow { background: var(--z-yellow); color: var(--z-ink); }
 .z-btn--green { background: var(--z-green); color: #fff; }
+.z-btn--purple { background: var(--z-purple); color: #fff; }
 .z-btn--paper { background: var(--z-card); color: var(--z-ink); }
 
 /* Pop hover for cards / tiles. */

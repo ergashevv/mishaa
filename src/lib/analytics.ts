@@ -9,7 +9,8 @@ export type AnalyticsEventName =
   | 'report_opened'
   | 'report_submitted'
   | 'reader_swipe_next'
-  | 'reader_swipe_prev';
+  | 'reader_swipe_prev'
+  | 'promo_banner_click';
 
 export type AnalyticsPayload = Record<string, string | number | boolean | null | undefined>;
 

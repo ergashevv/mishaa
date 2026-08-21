@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import ZineNav from './ZineNav';
 import ZineFooter from './ZineFooter';
+import AppPromoBanner from './AppPromoBanner';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import RichTextContent from '@/components/RichTextContent';
 import { isAdultComic, persistAgeVerification, readAgeVerification } from '@/lib/age-verification';
@@ -345,6 +346,10 @@ export default function ZineDetail({ initialComic, initialChapters, source, id, 
             </div>
           </section>
         ) : null}
+
+        <section className="mt-16">
+          <AppPromoBanner placement="detail" />
+        </section>
 
         {/* ---------------------------------------------- CHAPTERS */}
         {!isMarvel ? (

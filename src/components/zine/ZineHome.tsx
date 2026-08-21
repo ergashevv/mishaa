@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Play, Lock, ArrowRight, Bookmark } from 'lucide-react';
 import ZineNav from './ZineNav';
 import ZineFooter from './ZineFooter';
+import AppPromoBanner from './AppPromoBanner';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
 import { getChapters } from '@/actions/comic';
@@ -401,6 +402,10 @@ export default function ZineHome({ initialData = {}, initialAgeVerified = false,
         </div>
 
         <div className="z-wrap py-14">
+          <section className="mb-20">
+            <AppPromoBanner placement="home" />
+          </section>
+
           {/* ------------------------------------------------ CONTINUE */}
           {continueItems.length > 0 ? (
             <section className="mb-20">

@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Play, Lock, Loader2, X } from 'lucide-react';
 import ZineNav from './ZineNav';
+import AppPromoBanner from './AppPromoBanner';
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
 import { searchComicsWithClientCache as searchComics } from '@/lib/comic-search-client-cache';
@@ -228,6 +229,10 @@ export default function ZineLibrary({
               </button>
             );
           })}
+        </div>
+
+        <div className="mb-12">
+          <AppPromoBanner placement="library" />
         </div>
 
         {/* 18+ source directory — the expanded restricted-source catalog */}
