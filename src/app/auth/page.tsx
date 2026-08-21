@@ -13,6 +13,7 @@ import { Eye, EyeOff, ArrowLeft, ShieldCheck, User, Lock, Globe, Loader2 } from 
 import Link from 'next/link';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
+import AppPromoStrip from '@/components/zine/AppPromoStrip';
 
 type Mode = 'login' | 'signup';
 const AVATAR_STYLES = ['adventurer', 'avataaars', 'big-ears', 'bottts', 'fun-emoji'];
@@ -160,6 +161,10 @@ function AuthPageContent() {
             <button type="button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="text-[14px] font-extrabold text-[var(--z-ink-2)] underline-offset-4 hover:text-[var(--z-red)] hover:underline">
               {mode === 'login' ? t.switchToRegister : t.switchToSignIn}
             </button>
+          </div>
+
+          <div className="mt-10">
+            <AppPromoStrip placement="auth" />
           </div>
         </div>
       </div>

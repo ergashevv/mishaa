@@ -23,6 +23,7 @@ import { useLibraryAgeDescription } from '@/hooks/useLibraryAgeDescription';
 import { readStorageItem, writeStorageItem } from '@/lib/browser-storage';
 import { readReadingHistory, upsertReadingHistory } from '@/lib/library-storage';
 import { trackEvent } from '@/lib/analytics';
+import AppPromoReaderStrip from '@/components/zine/AppPromoReaderStrip';
 import { getChapterFromCache, saveChapterToCache } from '@/lib/comic-cache';
 import {
   readStoredMangaLanguage,
@@ -2013,11 +2014,14 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                           />
                         </div>
                       ))}
+                      <div className="mt-12 w-full">
+                        <AppPromoReaderStrip placement="reader-chapter-end" theme={READER_THEMES[readerTheme]} />
+                      </div>
                       {currentChapterIdx < chapters.length - 1 && (
                         <button
                           type="button"
                           onClick={nextChapter}
-                          className="w-full rounded-card py-24 mt-12 mb-4 border border-dashed transition-colors flex flex-col items-center gap-3"
+                          className="w-full rounded-card py-24 mt-4 mb-4 border border-dashed transition-colors flex flex-col items-center gap-3"
                           style={{
                             borderColor: READER_THEMES[readerTheme].border,
                           }}

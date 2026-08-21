@@ -13,6 +13,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Play, Lock, Loader2, X } from 'lucide-react';
 import ZineNav from './ZineNav';
 import AppPromoBanner from './AppPromoBanner';
+import AppPromoGridCard from './AppPromoGridCard';
+
+/** Every 12th tile in the browse grid is the promo card, so it repeats as people scroll
+ * without ever being the first or last thing they see in a row. */
+const GRID_PROMO_EVERY = 12;
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
 import { searchComicsWithClientCache as searchComics } from '@/lib/comic-search-client-cache';
@@ -313,7 +318,12 @@ export default function ZineLibrary({
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6">
             {items.map((c, i) => (
-              <LibCard key={`${c.source}:${c.id}:${i}`} comic={c} ageVerified={ageVerified} onLocked={() => setShowGate(true)} rot={ROT[i % ROT.length]} />
+              <React.Fragment key={`${c.source}:${c.id}:${i}`}>
+                <LibCard comic={c} ageVerified={ageVerified} onLocked={() => setShowGate(true)} rot={ROT[i % ROT.length]} />
+                {(i + 1) % GRID_PROMO_EVERY === 0 ? (
+                  <AppPromoGridCard placement="library-grid" rot={ROT[(i + 1) % ROT.length]} />
+                ) : null}
+              </React.Fragment>
             ))}
           </div>
         )}

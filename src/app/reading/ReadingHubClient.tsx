@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { BookMarked, Library, Rss, ArrowRight } from 'lucide-react';
 import ZineNav from '@/components/zine/ZineNav';
 import ZineFooter from '@/components/zine/ZineFooter';
+import AppPromoBanner from '@/components/zine/AppPromoBanner';
 import { translations, Lang } from '@/lib/translations';
 import { readStorageItem } from '@/lib/browser-storage';
 
@@ -58,6 +59,10 @@ export default function ReadingHubClient() {
               </span>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-14 max-w-2xl">
+          <AppPromoBanner placement="reading-hub" />
         </div>
 
         <section className="mt-20 max-w-2xl">

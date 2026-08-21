@@ -11,13 +11,12 @@
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
-
-const APP_STORE_URL = 'https://apps.apple.com/uz/app/evenfall-movie-night-picker/id6794722280';
+import { APP_PROMO_URL, APP_PROMO_ICON, APP_PROMO_HEADLINE, APP_PROMO_BODY } from './app-promo-data';
 
 export default function AppPromoBanner({ placement }: { placement: string }) {
   return (
     <a
-      href={APP_STORE_URL}
+      href={APP_PROMO_URL}
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => trackEvent('promo_banner_click', { placement, app: 'evenfall' })}
@@ -25,13 +24,13 @@ export default function AppPromoBanner({ placement }: { placement: string }) {
     >
       <div className="flex items-center gap-4">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-[var(--z-ink)] shadow-[3px_3px_0_var(--z-ink)] sm:h-20 sm:w-20">
-          <Image src="/promo/evenfall-icon.jpg" alt="" fill sizes="80px" className="object-cover" />
+          <Image src={APP_PROMO_ICON} alt="" fill sizes="80px" className="object-cover" />
         </div>
         <div className="min-w-0 flex-1">
           <span className="z-tag z-tag--purple mb-1.5 inline-block -rotate-2 !text-[10px]">AD · APP OF THE WEEK</span>
-          <h3 className="z-display text-[1.25rem] leading-[0.9] sm:text-[1.6rem]">Stuck picking a movie tonight?</h3>
+          <h3 className="z-display text-[1.25rem] leading-[0.9] sm:text-[1.6rem]">{APP_PROMO_HEADLINE}</h3>
           <p className="mt-1 text-[13px] font-semibold leading-snug text-[var(--z-ink-2)] sm:text-[14px]">
-            Evenfall picks one film you can actually stream, in seconds. Free on the App Store.
+            {APP_PROMO_BODY}
           </p>
         </div>
         {/* `.z-btn` sets its own `display` outside any @layer, which beats Tailwind's

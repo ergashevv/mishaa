@@ -14,6 +14,9 @@ import { Play, Lock, ArrowRight, Bookmark } from 'lucide-react';
 import ZineNav from './ZineNav';
 import ZineFooter from './ZineFooter';
 import AppPromoBanner from './AppPromoBanner';
+import AppPromoGridCard from './AppPromoGridCard';
+
+const GRID_PROMO_EVERY = 12;
 import AgeGateOverlay from '@/components/AgeGateOverlay';
 import { isAdultComic, readAgeVerification, persistAgeVerification } from '@/lib/age-verification';
 import { getChapters } from '@/actions/comic';
@@ -491,14 +494,18 @@ export default function ZineHome({ initialData = {}, initialAgeVerified = false,
             </p>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6">
               {discover.map((c, i) => (
-                <ZineCard
-                  key={`disc:${c.source}:${c.id}:${i}`}
-                  comic={c}
-                  ageVerified={ageVerified}
-                  onLocked={() => setShowGate(true)}
-                  rot={ROT[i % ROT.length]}
-                  sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, 180px"
-                />
+                <React.Fragment key={`disc:${c.source}:${c.id}:${i}`}>
+                  <ZineCard
+                    comic={c}
+                    ageVerified={ageVerified}
+                    onLocked={() => setShowGate(true)}
+                    rot={ROT[i % ROT.length]}
+                    sizes="(max-width: 640px) 45vw, (max-width: 768px) 30vw, 180px"
+                  />
+                  {(i + 1) % GRID_PROMO_EVERY === 0 ? (
+                    <AppPromoGridCard placement="home-discover-grid" rot={ROT[(i + 1) % ROT.length]} />
+                  ) : null}
+                </React.Fragment>
               ))}
             </div>
             <div ref={loaderRef} className="flex justify-center py-12">

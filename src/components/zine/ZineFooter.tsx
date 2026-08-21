@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link';
+import AppPromoStrip from './AppPromoStrip';
 
 const COLS: { title: string; color: string; links: { label: string; href: string }[] }[] = [
   {
@@ -54,6 +55,10 @@ export default function ZineFooter() {
       </div>
 
       <div className="z-wrap py-14">
+        <div className="mb-12">
+          <AppPromoStrip placement="footer" />
+        </div>
+
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="z-display text-[clamp(2.5rem,6vw,4rem)] leading-[0.82]">
