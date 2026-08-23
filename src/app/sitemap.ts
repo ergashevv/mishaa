@@ -117,6 +117,20 @@ function buildStaticRoutes(baseUrl: string, catalogLastModified: Date): Metadata
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getPublicSiteUrl().replace(/\/$/, '');
 
+  // Read our own catalog BEFORE the upstream fan-out, not after it.
+  //
+  // Every outbound call costs one Worker subrequest, Neon's HTTP driver included, and the
+  // ~55 listing fetches below exhaust the per-invocation budget. A query issued after them
+  // therefore throws, and because the merge treats that as non-fatal the sitemap silently
+  // shipped without the ingested catalog at all — the live fan-out's ~2,000 URLs instead of
+  // the DB's ~22,000. One cheap statement first, then the optional extras.
+  let dbSeries: Awaited<ReturnType<typeof getSeriesSitemapEntries>> = [];
+  try {
+    dbSeries = await getSeriesSitemapEntries({ source: 'mangadex' });
+  } catch (e) {
+    console.error('Sitemap: DB catalog read failed (keeping the live fan-out only)', e);
+  }
+
   try {
     // Chunk the 55 listing fetches into batches so we never open 55 simultaneous
     // connections to MangaDex (which triggers 429s that cascade into thin pages).
@@ -169,26 +183,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // Merge our OWN ingested catalog (Postgres) on top of the live listing. This is
-    // strictly additive — it only ever ADDS titles the live fan-out missed (everything
-    // beyond the 55-page / ~2000-URL cap), so the sitemap can only grow as ingestion
-    // fills. Once the DB comprehensively covers the catalog, the live fan-out above can
-    // be dropped entirely. Failure here is non-fatal: we keep the live-derived entries.
-    try {
-      const dbSeries = await getSeriesSitemapEntries({ source: 'mangadex' });
-      for (const s of dbSeries) {
-        const url = `${baseUrl}/library/${s.source}/${s.sourceId}`;
-        if (!byUrl.has(url)) {
-          byUrl.set(url, {
-            url,
-            lastModified: s.sourceUpdatedAt ?? CONTENT_REVISION,
-            changeFrequency: 'weekly',
-            priority: 0.7,
-          });
-        }
+    // Merge our OWN ingested catalog (read above) on top of the live listing. Strictly
+    // additive — it only ADDS titles the live fan-out missed, so the sitemap can only grow
+    // as ingestion fills. Merged here, after the live entries, so a live `lastModified`
+    // still wins for any title both sources carry.
+    for (const s of dbSeries) {
+      const url = `${baseUrl}/library/${s.source}/${s.sourceId}`;
+      if (!byUrl.has(url)) {
+        byUrl.set(url, {
+          url,
+          lastModified: s.sourceUpdatedAt ?? CONTENT_REVISION,
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        });
       }
-    } catch (e) {
-      console.error('Sitemap: DB catalog merge failed (kept live entries)', e);
     }
 
     // Marvel issue detail pages — a whole indexable vertical that was previously absent
