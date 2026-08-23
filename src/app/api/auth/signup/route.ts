@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+import { createUser, usernameExists } from '@/lib/db/user-repo';
 import { createSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -20,21 +20,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { username } });
-    if (existing) {
+    if (await usernameExists(username)) {
       return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
     }
 
     const hashed = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        username,
-        password: hashed,
-        avatar: avatar || `https://api.dicebear.com/9.x/identicon/svg?seed=${username}`,
-        authProvider: 'local',
-      },
+    const user = await createUser({
+      firstName,
+      lastName,
+      username,
+      password: hashed,
+      email: null,
+      avatar: avatar || `https://api.dicebear.com/9.x/identicon/svg?seed=${username}`,
+      authProvider: 'local',
+      authProviderId: null,
     });
 
     await createSession({

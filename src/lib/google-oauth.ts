@@ -1,4 +1,9 @@
-import { prisma } from '@/lib/prisma';
+import {
+  createUser,
+  findGoogleUser,
+  findUsernamesWithPrefix,
+  updateUser,
+} from '@/lib/db/user-repo';
 import { createSession, type SessionUser } from '@/lib/auth';
 
 export const GOOGLE_STATE_COOKIE = 'google_oauth_state';
@@ -59,15 +64,15 @@ const buildBaseUsername = (profile: GoogleProfile) => {
 
 const generateUniqueUsername = async (profile: GoogleProfile) => {
   const baseUsername = buildBaseUsername(profile);
-  let candidate = baseUsername;
-  let counter = 0;
+  // One query, then pick a free suffix in memory. Probing per candidate cost a database
+  // round-trip each time, and Workers caps outbound subrequests per invocation.
+  const taken = await findUsernamesWithPrefix(baseUsername);
+  if (!taken.has(baseUsername)) return baseUsername;
 
-  while (await prisma.user.findUnique({ where: { username: candidate } })) {
-    counter += 1;
-    candidate = `${baseUsername}_${counter}`;
+  for (let counter = 1; ; counter += 1) {
+    const candidate = `${baseUsername}_${counter}`;
+    if (!taken.has(candidate)) return candidate;
   }
-
-  return candidate;
 };
 
 const buildAvatar = (profile: GoogleProfile) =>
@@ -127,39 +132,32 @@ export const upsertGoogleUser = async (profile: GoogleProfile): Promise<SessionU
   const { firstName, lastName } = normalizeNameParts(profile);
   const avatar = buildAvatar(profile);
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { authProvider: 'google', authProviderId: profile.sub },
-        ...(email ? [{ email }] : []),
-      ],
-    },
-  });
+  const existingUser = await findGoogleUser(profile.sub, email);
 
   const user = existingUser
-    ? await prisma.user.update({
-        where: { id: existingUser.id },
-        data: {
-          firstName,
-          lastName,
-          email: email || existingUser.email,
-          avatar: existingUser.avatar || avatar,
-          authProvider: 'google',
-          authProviderId: profile.sub,
-        },
+    ? await updateUser(existingUser.id, {
+        firstName,
+        lastName,
+        email: email || existingUser.email,
+        avatar: existingUser.avatar || avatar,
+        authProvider: 'google',
+        authProviderId: profile.sub,
       })
-    : await prisma.user.create({
-        data: {
-          firstName,
-          lastName,
-          username: await generateUniqueUsername(profile),
-          password: null,
-          email,
-          avatar,
-          authProvider: 'google',
-          authProviderId: profile.sub,
-        },
+    : await createUser({
+        firstName,
+        lastName,
+        username: await generateUniqueUsername(profile),
+        password: null,
+        email,
+        avatar,
+        authProvider: 'google',
+        authProviderId: profile.sub,
       });
+
+  // updateUser returns null when the row vanished between the lookup and the write.
+  if (!user) {
+    throw new Error('Failed to persist the Google account');
+  }
 
   return {
     id: user.id,

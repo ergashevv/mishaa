@@ -1,5 +1,4 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { sql } from '@/lib/sql';
 import { buildMangaDexCoverUrl, pickMangaDexCoverFileName } from '@/lib/mangadex';
 import { getPublicSiteUrl } from '@/lib/og-metadata';
 
@@ -11,13 +10,16 @@ import { getPublicSiteUrl } from '@/lib/og-metadata';
  * to api.mangadex.org. Runs a bounded number of upserts per invocation (the daily cron
  * passes ~500) and is fully idempotent: re-running only refreshes rows.
  *
- * Paging strategy — createdAt ASC + a `createdAtSince` watermark:
- * MangaDex caps `offset` at 10,000 (offset+limit ≤ 10000), so a plain offset walk can
- * never sweep the full ~93k catalog. Instead we remember the createdAt of the last item
- * we ingested and pass it as `createdAtSince` next run. createdAt never changes, so the
- * walk is deterministic, resumable, and immune to the offset cap. Once we reach the tail
- * (a short page), the cursor is marked `exhausted` and every later run naturally becomes
- * a freshness pass — brand-new titles have a createdAt later than the watermark.
+ * DB access is raw Neon HTTP SQL (see ./sql) — Prisma's query engine can't run on the
+ * Cloudflare Workers runtime.
+ *
+ * Two passes (see the exported functions):
+ *  - FRESH:    order[latestUploadedChapter]=desc — the "last news" titles whose newest
+ *              chapter dropped most recently; keeps the site's freshness signal alive.
+ *  - BACKFILL: createdAt ASC + a `createdAtSince` watermark. MangaDex caps `offset` at
+ *              10,000, so a plain offset walk can never sweep the full ~93k catalog;
+ *              remembering the last createdAt and passing it as `createdAtSince` next run
+ *              makes the walk deterministic, resumable and immune to the offset cap.
  */
 
 const MANGADEX_API = 'https://api.mangadex.org';
@@ -35,8 +37,6 @@ const INGEST_CONTENT_RATINGS = ['safe', 'suggestive', 'erotica'] as const;
 const PAGE_LIMIT = 100; // MangaDex max per request
 const FETCH_TIMEOUT_MS = 12_000;
 const DELAY_BETWEEN_PAGES_MS = 350; // gentle: well under MangaDex's ~5 req/s ceiling
-/** Parallel Neon upserts per chunk — collapses ~100 sequential round-trips into ~13. */
-const UPSERT_CONCURRENCY = 8;
 const SOURCE = 'mangadex' as const;
 
 type MangaDexRow = {
@@ -106,49 +106,101 @@ function mapTags(row: MangaDexRow): Array<{ name: string; group: string }> {
     .filter((t) => t.name);
 }
 
-/** Nullable-Json helper: real objects/arrays pass through; empty/missing → SQL NULL. */
-function jsonOrNull(value: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull {
-  if (value == null) return Prisma.DbNull;
-  if (Array.isArray(value) && value.length === 0) return Prisma.DbNull;
-  if (typeof value === 'object' && Object.keys(value as object).length === 0) return Prisma.DbNull;
-  return value as Prisma.InputJsonValue;
+/** Serialize a JSON value for a jsonb column: real objects/arrays → JSON text, else null. */
+function jsonParam(value: unknown): string | null {
+  if (value == null) return null;
+  if (Array.isArray(value) && value.length === 0) return null;
+  if (typeof value === 'object' && Object.keys(value as object).length === 0) return null;
+  return JSON.stringify(value);
 }
 
-/** Upstream row → Prisma Series create/update payload (metadata only). */
-function toSeriesData(row: MangaDexRow): Prisma.SeriesCreateInput {
+/**
+ * Data columns for the Series upsert, in a fixed order. `id` (gen_random_uuid) and
+ * `updatedAt` (now()) are supplied as SQL expressions, not params — see upsertSeries.
+ */
+const SERIES_DATA_COLS = [
+  'source',
+  '"sourceId"',
+  'title',
+  'titles',
+  '"altTitles"',
+  'description',
+  'descriptions',
+  '"coverFileName"',
+  '"coverUrl"',
+  '"contentRating"',
+  'status',
+  'year',
+  '"originalLanguage"',
+  'demographic',
+  'author',
+  'artist',
+  'tags',
+  '"lastChapter"',
+  '"lastVolume"',
+  '"sourceCreatedAt"',
+  '"sourceUpdatedAt"',
+] as const;
+
+/** Upstream row → ordered value array matching {@link SERIES_DATA_COLS}. */
+function toSeriesValues(row: MangaDexRow): unknown[] {
   const coverFileName = pickMangaDexCoverFileName(row.relationships) || null;
   const yearRaw = row.attributes.year;
-  return {
-    source: SOURCE,
-    sourceId: row.id,
-    title: pickLocalized(row.attributes.title) || row.id,
-    titles: jsonOrNull(row.attributes.title),
-    altTitles: jsonOrNull(row.attributes.altTitles),
-    description: pickLocalized(row.attributes.description) || null,
-    descriptions: jsonOrNull(row.attributes.description),
+  return [
+    SOURCE,
+    row.id,
+    pickLocalized(row.attributes.title) || row.id,
+    jsonParam(row.attributes.title),
+    jsonParam(row.attributes.altTitles),
+    pickLocalized(row.attributes.description) || null,
+    jsonParam(row.attributes.description),
     coverFileName,
-    coverUrl: coverFileName ? buildMangaDexCoverUrl(row.id, coverFileName) || null : null,
-    contentRating: row.attributes.contentRating ?? null,
-    status: row.attributes.status ?? null,
-    year: typeof yearRaw === 'number' ? yearRaw : null,
-    originalLanguage: row.attributes.originalLanguage ?? null,
-    demographic: row.attributes.publicationDemographic ?? null,
-    author: relName(row, 'author'),
-    artist: relName(row, 'artist'),
-    tags: jsonOrNull(mapTags(row)),
-    lastChapter: row.attributes.lastChapter ?? null,
-    lastVolume: row.attributes.lastVolume ?? null,
-    sourceCreatedAt: parseDate(row.attributes.createdAt),
-    sourceUpdatedAt: parseDate(row.attributes.updatedAt),
-  };
+    coverFileName ? buildMangaDexCoverUrl(row.id, coverFileName) || null : null,
+    row.attributes.contentRating ?? null,
+    row.attributes.status ?? null,
+    typeof yearRaw === 'number' ? yearRaw : null,
+    row.attributes.originalLanguage ?? null,
+    row.attributes.publicationDemographic ?? null,
+    relName(row, 'author'),
+    relName(row, 'artist'),
+    jsonParam(mapTags(row)),
+    row.attributes.lastChapter ?? null,
+    row.attributes.lastVolume ?? null,
+    parseDate(row.attributes.createdAt),
+    parseDate(row.attributes.updatedAt),
+  ];
 }
 
-/** MangaDex `/manga` sort orders we page by. */
-type MangaDexOrder = { key: string; val: 'asc' | 'desc' };
-/** Full-catalog backfill: stable, never-changing key (paged via createdAtSince watermark). */
-const ORDER_CREATED_ASC: MangaDexOrder = { key: 'order[createdAt]', val: 'asc' };
-/** Freshness: titles whose newest chapter dropped most recently — the "last news" feed. */
-const ORDER_LATEST_CHAPTER_DESC: MangaDexOrder = { key: 'order[latestUploadedChapter]', val: 'desc' };
+const SERIES_UPDATE_CLAUSE = SERIES_DATA_COLS.map((c) => `${c} = EXCLUDED.${c}`).join(', ');
+
+/**
+ * Bulk upsert a whole page in ONE multi-row INSERT. Cloudflare Workers cap outbound
+ * subrequests per invocation (50 on the free plan), and every Neon HTTP query is one
+ * subrequest — so a row-at-a-time loop of 500 upserts instantly trips "Too many
+ * subrequests". Batching ~100 rows per statement keeps a 500-title run to ~5 DB
+ * subrequests. Deduped by id first: ON CONFLICT can't touch the same row twice in one
+ * statement.
+ */
+async function upsertSeriesBatch(rows: MangaDexRow[]): Promise<void> {
+  const seen = new Set<string>();
+  const unique = rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+  if (unique.length === 0) return;
+
+  const cols = SERIES_DATA_COLS.length;
+  const params: unknown[] = [];
+  const tuples = unique.map((row, i) => {
+    const vals = toSeriesValues(row);
+    params.push(...vals);
+    const ph = vals.map((_, j) => `$${i * cols + j + 1}`).join(', ');
+    return `(gen_random_uuid()::text, now(), ${ph})`;
+  });
+
+  const text =
+    `INSERT INTO "Series" (id, "updatedAt", ${SERIES_DATA_COLS.join(', ')}) ` +
+    `VALUES ${tuples.join(', ')} ` +
+    `ON CONFLICT (source, "sourceId") DO UPDATE SET ${SERIES_UPDATE_CLAUSE}, "updatedAt" = now()`;
+  await sql(text, params);
+}
 
 async function fetchMangaPage(input: {
   order: MangaDexOrder;
@@ -182,6 +234,11 @@ async function fetchMangaPage(input: {
     clearTimeout(timer);
   }
 }
+
+/** MangaDex `/manga` sort orders we page by. */
+type MangaDexOrder = { key: string; val: 'asc' | 'desc' };
+const ORDER_CREATED_ASC: MangaDexOrder = { key: 'order[createdAt]', val: 'asc' };
+const ORDER_LATEST_CHAPTER_DESC: MangaDexOrder = { key: 'order[latestUploadedChapter]', val: 'desc' };
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -239,34 +296,23 @@ async function runIngestPass(opts: {
       break;
     }
 
-    // Respect `target` even mid-page, then upsert the slice in small parallel chunks.
+    // Respect `target` even mid-page, then upsert the whole slice in ONE bulk statement
+    // (Workers subrequest budget — see upsertSeriesBatch).
     const rows = page.rows.slice(0, opts.target - upserted);
-    for (let i = 0; i < rows.length; i += UPSERT_CONCURRENCY) {
-      const chunk = rows.slice(i, i + UPSERT_CONCURRENCY);
-      const results = await Promise.allSettled(
-        chunk.map(async (row) => {
-          const data = toSeriesData(row);
-          await prisma.series.upsert({
-            where: { source_sourceId: { source: SOURCE, sourceId: row.id } },
-            create: data,
-            update: data,
-          });
-          return { row, data };
-        }),
-      );
-      for (const r of results) {
-        if (r.status === 'fulfilled') {
-          upserted += 1;
-          const { row, data } = r.value;
-          if (data.contentRating !== 'erotica') {
-            urls.push(`${opts.origin}/library/mangadex/${row.id}`);
-          }
-          const created = parseDate(row.attributes.createdAt);
-          if (created && (!maxCreatedAt || created > maxCreatedAt)) maxCreatedAt = created;
-        } else {
-          failed += 1;
-        }
+    try {
+      await upsertSeriesBatch(rows);
+    } catch (e) {
+      failed += rows.length;
+      note = `upsert batch failed at offset ${offset}: ${(e as Error).message}`;
+      break;
+    }
+    for (const row of rows) {
+      upserted += 1;
+      if (row.attributes.contentRating !== 'erotica') {
+        urls.push(`${opts.origin}/library/mangadex/${row.id}`);
       }
+      const created = parseDate(row.attributes.createdAt);
+      if (created && (!maxCreatedAt || created > maxCreatedAt)) maxCreatedAt = created;
     }
 
     // Short page => reached the tail of the ordered list.
@@ -282,6 +328,27 @@ async function runIngestPass(opts: {
   return { upserted, failed, urls, maxCreatedAt, exhausted, note };
 }
 
+/** Insert an IngestRun audit row, returning its id. */
+async function startRun(label: string, requested: number): Promise<string> {
+  const rows = (await sql`
+    INSERT INTO "IngestRun" (id, source, requested, note)
+    VALUES (gen_random_uuid()::text, ${SOURCE}, ${requested}, ${label})
+    RETURNING id
+  `) as Array<{ id: string }>;
+  return rows[0].id;
+}
+
+async function finishRun(
+  id: string,
+  data: { upserted: number; failed: number; ok: boolean; note: string },
+): Promise<void> {
+  await sql`
+    UPDATE "IngestRun"
+    SET "finishedAt" = now(), upserted = ${data.upserted}, failed = ${data.failed}, ok = ${data.ok}, note = ${data.note}
+    WHERE id = ${id}
+  `;
+}
+
 /**
  * BACKFILL pass — walk the whole catalog oldest-first, advancing the `createdAtSince`
  * watermark so we sidestep MangaDex's 10k offset cap. Builds the long-tail base over time.
@@ -289,13 +356,21 @@ async function runIngestPass(opts: {
  */
 export async function ingestMangaDex({ target = 500 }: { target?: number } = {}): Promise<IngestResult> {
   const origin = getPublicSiteUrl().replace(/\/$/, '');
-  const run = await prisma.ingestRun.create({ data: { source: SOURCE, requested: target, note: 'backfill' } });
+  const runId = await startRun('backfill', target);
 
-  const cursor =
-    (await prisma.ingestCursor.findUnique({ where: { id: SOURCE } })) ??
-    (await prisma.ingestCursor.create({ data: { id: SOURCE, source: SOURCE } }));
-
-  const createdAtSince = cursor.createdAtWatermark ? toMangaDexSince(cursor.createdAtWatermark) : null;
+  // Load-or-create the cursor.
+  await sql`
+    INSERT INTO "IngestCursor" (id, source, "totalSeen", exhausted, "updatedAt")
+    VALUES (${SOURCE}, ${SOURCE}, 0, false, now())
+    ON CONFLICT (id) DO NOTHING
+  `;
+  const cursorRows = (await sql`
+    SELECT "createdAtWatermark" FROM "IngestCursor" WHERE id = ${SOURCE}
+  `) as Array<{ createdAtWatermark: string | Date | null }>;
+  const priorWatermark = cursorRows[0]?.createdAtWatermark
+    ? new Date(cursorRows[0].createdAtWatermark)
+    : null;
+  const createdAtSince = priorWatermark ? toMangaDexSince(priorWatermark) : null;
 
   const pass = await runIngestPass({
     target,
@@ -303,26 +378,22 @@ export async function ingestMangaDex({ target = 500 }: { target?: number } = {})
     fetchPage: (offset) => fetchMangaPage({ order: ORDER_CREATED_ASC, createdAtSince, offset }),
   });
 
-  const priorWatermark = cursor.createdAtWatermark ?? null;
   const newWatermark =
     pass.maxCreatedAt && (!priorWatermark || pass.maxCreatedAt > priorWatermark)
       ? pass.maxCreatedAt
-      : priorWatermark;
+      : null; // null => keep existing (COALESCE below)
 
-  await prisma.ingestCursor.update({
-    where: { id: SOURCE },
-    data: {
-      createdAtWatermark: newWatermark ?? undefined,
-      totalSeen: { increment: pass.upserted },
-      exhausted: pass.exhausted,
-    },
-  });
+  await sql`
+    UPDATE "IngestCursor"
+    SET "createdAtWatermark" = COALESCE(${newWatermark}::timestamp, "createdAtWatermark"),
+        "totalSeen" = "totalSeen" + ${pass.upserted},
+        exhausted = ${pass.exhausted},
+        "updatedAt" = now()
+    WHERE id = ${SOURCE}
+  `;
 
   const ok = pass.failed === 0 && !pass.note;
-  await prisma.ingestRun.update({
-    where: { id: run.id },
-    data: { finishedAt: new Date(), upserted: pass.upserted, failed: pass.failed, ok, note: pass.note ?? 'backfill' },
-  });
+  await finishRun(runId, { upserted: pass.upserted, failed: pass.failed, ok, note: pass.note ?? 'backfill' });
 
   return {
     ok,
@@ -343,7 +414,7 @@ export async function ingestMangaDex({ target = 500 }: { target?: number } = {})
  */
 export async function ingestMangaDexFresh({ target = 120 }: { target?: number } = {}): Promise<IngestResult> {
   const origin = getPublicSiteUrl().replace(/\/$/, '');
-  const run = await prisma.ingestRun.create({ data: { source: SOURCE, requested: target, note: 'fresh' } });
+  const runId = await startRun('fresh', target);
 
   const pass = await runIngestPass({
     target,
@@ -352,10 +423,7 @@ export async function ingestMangaDexFresh({ target = 120 }: { target?: number } 
   });
 
   const ok = pass.failed === 0 && !pass.note;
-  await prisma.ingestRun.update({
-    where: { id: run.id },
-    data: { finishedAt: new Date(), upserted: pass.upserted, failed: pass.failed, ok, note: pass.note ?? 'fresh' },
-  });
+  await finishRun(runId, { upserted: pass.upserted, failed: pass.failed, ok, note: pass.note ?? 'fresh' });
 
   return {
     ok,

@@ -1,4 +1,4 @@
-import { getSql } from '@/lib/human-check/db';
+import { getSql } from '@/lib/sql';
 
 export type Totals = {
   total: number;

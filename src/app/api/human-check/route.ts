@@ -7,7 +7,7 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import { getSql } from '@/lib/human-check/db';
+import { getSql } from '@/lib/sql';
 import { isCrawlerUserAgent, parseBrowser, parseDevice, parseOs } from '@/lib/human-check/ua';
 
 /** Column caps — a hostile client should not be able to inflate the table with megabyte fields. */

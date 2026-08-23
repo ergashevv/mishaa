@@ -1,7 +1,13 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import {
+  deleteAllProgress,
+  deleteProgress,
+  findProgress,
+  listProgress,
+  upsertProgress,
+} from '@/lib/db/reading-progress-repo';
 import { getSession } from '@/lib/auth';
 import {
   calculateReadingProgressPercent,
@@ -44,23 +50,12 @@ export async function GET(request: NextRequest) {
     const comicId = searchParams.get('comicId');
 
     if (source && comicId) {
-      const progress = await prisma.readingProgress.findUnique({
-        where: {
-          userId_source_comicId: {
-            userId: session.id,
-            source,
-            comicId,
-          },
-        },
-      });
+      const progress = await findProgress(session.id, source, comicId);
 
       return NextResponse.json({ progress });
     }
 
-    const items = await prisma.readingProgress.findMany({
-      where: { userId: session.id },
-      orderBy: { updatedAt: 'desc' },
-    });
+    const items = await listProgress(session.id);
 
     return NextResponse.json({ items });
   } catch (error: unknown) {
@@ -89,41 +84,20 @@ export async function POST(request: NextRequest) {
     const progressPercent = calculateReadingProgressPercent(payload);
     const progressStatus = deriveReadingProgressStatus(progressPercent);
 
-    const record = await prisma.readingProgress.upsert({
-      where: {
-        userId_source_comicId: {
-          userId: session.id,
-          source: payload.source,
-          comicId: payload.comicId,
-        },
-      },
-      create: {
-        userId: session.id,
-        source: payload.source,
-        comicId: payload.comicId,
-        comicTitle: payload.comicTitle || null,
-        comicCoverUrl: payload.comicCoverUrl || null,
-        chapterId: payload.chapterId || null,
-        chapterTitle: payload.chapterTitle || null,
-        currentPage: payload.currentPage || 0,
-        totalPages: payload.totalPages || 0,
-        chapterIndex: payload.chapterIndex || 0,
-        chapterCount: payload.chapterCount || 0,
-        progressPercent,
-        progressStatus,
-      },
-      update: {
-        comicTitle: payload.comicTitle || undefined,
-        comicCoverUrl: payload.comicCoverUrl || undefined,
-        chapterId: payload.chapterId || undefined,
-        chapterTitle: payload.chapterTitle || undefined,
-        currentPage: payload.currentPage || 0,
-        totalPages: payload.totalPages || 0,
-        chapterIndex: payload.chapterIndex || 0,
-        chapterCount: payload.chapterCount || 0,
-        progressPercent,
-        progressStatus,
-      },
+    const record = await upsertProgress({
+      userId: session.id,
+      source: payload.source,
+      comicId: payload.comicId,
+      comicTitle: payload.comicTitle || null,
+      comicCoverUrl: payload.comicCoverUrl || null,
+      chapterId: payload.chapterId || null,
+      chapterTitle: payload.chapterTitle || null,
+      currentPage: payload.currentPage || 0,
+      totalPages: payload.totalPages || 0,
+      chapterIndex: payload.chapterIndex || 0,
+      chapterCount: payload.chapterCount || 0,
+      progressPercent,
+      progressStatus,
     });
 
     return NextResponse.json({ progress: record });
@@ -145,19 +119,11 @@ export async function DELETE(request: NextRequest) {
     const comicId = searchParams.get('comicId');
 
     if (source && comicId) {
-      await prisma.readingProgress.deleteMany({
-        where: {
-          userId: session.id,
-          source,
-          comicId,
-        },
-      });
+      await deleteProgress(session.id, source, comicId);
       return NextResponse.json({ success: true });
     }
 
-    await prisma.readingProgress.deleteMany({
-      where: { userId: session.id },
-    });
+    await deleteAllProgress(session.id);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
