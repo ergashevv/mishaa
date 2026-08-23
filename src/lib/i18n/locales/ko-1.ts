@@ -161,4 +161,13 @@ export const koPart1: DeepPartial<typeof en> = {
     wikiIdentityBody:
       '검색으로 오셨다면: icomics.wiki — 라이브러리+가이드+FAQ 허브입니다. Fandom의 다른 시리즈 목록도, 이름이 비슷한 iOS 파일 앱도, Marvel Icon도 아닙니다. URL이 icomics.wiki인지 확인하세요.',
   },
+  humanCheck: {
+    eyebrow: '확인',
+    title: '사람이신가요?',
+    description:
+      'icomics.wiki를 계속 이용하려면 실제 독자임을 확인해 주세요. 한 번만 누르면 되며, 라이브러리를 자동화된 트래픽으로부터 보호합니다.',
+    confirmLabel: '네, 사람입니다',
+    verifiedLabel: '확인됨',
+    footnote: 'icomics.wiki · 봇 차단 확인',
+  },
 };

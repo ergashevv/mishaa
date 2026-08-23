@@ -6,6 +6,7 @@ import { getPublicSiteUrl } from "@/lib/og-metadata";
 import { ICS_SITE_DISPLAY_NAME } from "@/lib/seo/page-metadata";
 import RegionalShell from "@/components/RegionalShell";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
+import HumanCheckGate from "@/components/HumanCheckGate";
 import GlobalAgeGate from "@/components/GlobalAgeGate";
 import AnalyticsBridge from "@/components/AnalyticsBridge";
 import JsonLd from "@/components/JsonLd";
@@ -179,6 +180,9 @@ export default function RootLayout({
         <RegionalShell>
           <SkipToContentLink />
           <LocaleBootstrap />
+          {/* Human check runs before the 18+ gate: one question at a time, and the
+              answer is what the /admin/human dashboard counts. */}
+          <HumanCheckGate />
           <GlobalAgeGate />
           <JsonLd data={buildOrganizationJsonLd()} />
           <JsonLd data={buildWebSiteJsonLd()} />

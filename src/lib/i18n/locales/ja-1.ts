@@ -49,4 +49,13 @@ export const jaPart1: DeepPartial<typeof en> = {
     reliabilityDesc: 'スマホもデスクトップも同じリーダー。',
     uplink: '接続',
   },
+  humanCheck: {
+    eyebrow: '確認',
+    title: 'あなたは人間ですか？',
+    description:
+      'icomics.wiki を続けるには、実在の読者であることをご確認ください。タップ一回で完了し、ライブラリを自動化されたアクセスから守ります。',
+    confirmLabel: 'はい、人間です',
+    verifiedLabel: '確認済み',
+    footnote: 'icomics.wiki · ボット対策チェック',
+  },
 };

@@ -161,4 +161,13 @@ export const zhPart1: DeepPartial<typeof en> = {
     wikiIdentityBody:
       '若您来自搜索：本站是 icomics.wiki——结构化的读者中心（书库+指南+常见问题），不是无关系列的 Fandom 列表，不是同名的 iOS DRM 文件应用，也不是漫威旧 Icon。请确认地址栏为 icomics.wiki。',
   },
+  humanCheck: {
+    eyebrow: '验证',
+    title: '你是真人吗？',
+    description:
+      '请确认你是真实读者，以继续访问 icomics.wiki。只需轻点一次，即可帮我们阻挡自动化流量。',
+    confirmLabel: '是，我是真人',
+    verifiedLabel: '已验证',
+    footnote: 'icomics.wiki · 机器人检测',
+  },
 };

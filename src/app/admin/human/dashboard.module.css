@@ -1,0 +1,332 @@
+/* Internal ops surface, written in the site's Bold Pop Zine language (paper, ink outlines,
+   hard offset shadows, Anton poster type) rather than a generic admin theme — an internal
+   tool that looks like a different product is a coherence break.
+
+   Colour split: --z-red is reserved for actions, --z-blue carries every data mark. A single
+   series never needs more than one hue, and keeping action ≠ data means a bar is never
+   mistaken for a button. The zine palette has no dark variant, matching the rest of the app. */
+
+.page {
+  min-height: 100dvh;
+  background-color: var(--z-paper);
+  background-image: radial-gradient(rgba(23, 18, 11, 0.055) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  color: var(--z-ink);
+  font-family: var(--font-zine);
+  padding: 34px 0 90px;
+}
+
+.shell {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+/* ------------------------------------------------------------------ header --- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 22px;
+  border-bottom: var(--z-b) solid var(--z-ink);
+}
+
+.title {
+  font-family: var(--font-zine-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: clamp(38px, 6vw, 58px);
+  line-height: 0.86;
+  letter-spacing: 0.005em;
+  margin: 8px 0 0;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--z-ink-2);
+  max-width: 52ch;
+}
+
+/* ---------------------------------------------------------------- kpi tiles --- */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.kpi {
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-card);
+  box-shadow: var(--z-sh-sm);
+  padding: 16px 18px 18px;
+}
+
+/* The headline number wears the highlighter — one tile, not four. */
+.kpiLead {
+  background: var(--z-yellow);
+  box-shadow: var(--z-sh);
+}
+
+.kpiValue {
+  font-family: var(--font-zine-display);
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 0.9;
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiHint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--z-ink-2);
+}
+
+/* -------------------------------------------------------------------- cards --- */
+
+.card {
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-card);
+  box-shadow: var(--z-sh);
+  padding: 20px;
+  margin-top: 26px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-family: var(--font-zine-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  margin: 0;
+}
+
+/* Deliberately uneven: a wide ranking beside a narrow breakdown reads as a hierarchy,
+   where two equal columns would read as a template. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.stack { display: flex; flex-direction: column; gap: 22px; }
+.flush { margin-top: 0; }
+
+/* -------------------------------------------------------------- trend chart --- */
+
+.trend {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: end;
+  /* 2px of paper between adjacent fills keeps marks legible without gridlines. */
+  gap: 2px;
+  height: 156px;
+  padding-bottom: 6px;
+  border-bottom: var(--z-b) solid var(--z-ink);
+}
+
+.trendBar {
+  background: var(--z-blue);
+  border: 2px solid var(--z-ink);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+/* A day with no confirmations still holds its slot — a gap-free axis is the point. */
+.trendBarEmpty {
+  background: var(--z-paper-2);
+  border-color: var(--z-ink-2);
+}
+
+.trendAxis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--z-ink-2);
+}
+
+/* --------------------------------------------------------- horizontal bars --- */
+
+.rank { display: flex; flex-direction: column; gap: 12px; }
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 82px;
+  align-items: center;
+  gap: 12px;
+}
+
+.rankLabel {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankTrack {
+  display: block;
+  height: 16px;
+  border: 2px solid var(--z-ink);
+  border-radius: 4px;
+  background: var(--z-paper-2);
+  overflow: hidden;
+}
+
+.rankFill {
+  display: block;
+  height: 100%;
+  background: var(--z-blue);
+  min-width: 3px;
+}
+
+.rankValue {
+  text-align: right;
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--z-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------------- table --- */
+
+.tableWrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--z-ink-2);
+  padding: 0 16px 10px 0;
+  border-bottom: var(--z-b) solid var(--z-ink);
+}
+
+.table td {
+  padding: 10px 16px 10px 0;
+  border-bottom: 1.5px solid var(--z-paper-2);
+  color: var(--z-ink-2);
+}
+
+.table tr:hover td { background: rgba(37, 64, 234, 0.05); }
+
+.mono {
+  font-family: var(--font-zine-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--z-ink);
+}
+
+.dim { color: var(--z-ink-2); opacity: 0.8; }
+
+.empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--z-ink-2);
+  font-size: 14px;
+}
+
+/* -------------------------------------------------------------------- login --- */
+
+.gateWrap {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--z-paper);
+  background-image: radial-gradient(rgba(23, 18, 11, 0.055) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  font-family: var(--font-zine);
+  color: var(--z-ink);
+}
+
+.gateCard {
+  width: 100%;
+  max-width: 400px;
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-card);
+  box-shadow: var(--z-sh-lg);
+  padding: 28px;
+}
+
+.gateTitle {
+  font-family: var(--font-zine-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 40px;
+  line-height: 0.88;
+  margin: 8px 0 12px;
+}
+
+.gateBody { margin: 0; font-size: 14px; line-height: 1.55; color: var(--z-ink-2); }
+
+.input {
+  width: 100%;
+  height: 48px;
+  margin-top: 18px;
+  padding: 0 14px;
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-paper);
+  color: var(--z-ink);
+  font-family: var(--font-zine-mono);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.input::placeholder { color: var(--z-ink-2); opacity: 0.6; }
+.input:focus-visible { outline: 3px solid var(--z-blue); outline-offset: 2px; }
+
+.error {
+  margin: 14px 0 0;
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--z-red);
+}
+
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* `.z-btn` inherits its focus ring from an ancestor `.zine`, which this page deliberately
+   does not carry (it paints its own canvas). Re-declare the ring so keyboard users keep it. */
+.page button:focus-visible,
+.gateCard button:focus-visible {
+  outline: 3px solid var(--z-blue);
+  outline-offset: 2px;
+}

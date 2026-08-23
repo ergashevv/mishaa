@@ -629,5 +629,14 @@ export const ru = {
       nsfwToggleOff: 'Вкладки 18+ скрыты — нажмите, чтобы показать',
       popularNow: 'Сейчас популярно',
       moreTitles: 'Другие тайтлы',
-    }
+    },
+    humanCheck: {
+      eyebrow: 'Проверка',
+      title: 'Вы человек?',
+      description:
+        'Подтвердите, что вы реальный читатель, чтобы продолжить на icomics.wiki. Одно нажатие — и библиотека остаётся защищённой от ботов.',
+      confirmLabel: 'Да, я человек',
+      verifiedLabel: 'Подтверждено',
+      footnote: 'icomics.wiki · проверка на ботов',
+    },
 }

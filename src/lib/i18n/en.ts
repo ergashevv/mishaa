@@ -626,5 +626,14 @@ export const en = {
       nsfwToggleOff: 'Adult source tabs are off — click to show NSFW shelves',
       popularNow: 'Popular now',
       moreTitles: 'More titles',
-    }
+    },
+    humanCheck: {
+      eyebrow: 'Verification',
+      title: 'Are you human?',
+      description:
+        'Confirm you are a real reader to continue to icomics.wiki. One tap, and it keeps automated traffic out of the library.',
+      confirmLabel: "Yes, I'm human",
+      verifiedLabel: 'Verified',
+      footnote: 'icomics.wiki · anti-bot check',
+    },
 }
