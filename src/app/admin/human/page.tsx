@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { isAdminAuthed, getAdminToken } from '@/lib/human-check/auth';
 import { loadDashboard, type Dashboard, type LabelCount } from '@/lib/human-check/stats';
-import styles from './dashboard.module.css';
+import AdminNav from '../AdminNav';
+import styles from '../dashboard.module.css';
 
 export const metadata: Metadata = {
   title: 'Human check',
@@ -205,7 +206,9 @@ export default async function HumanCheckDashboard({
             <h1 className={styles.title}>Human check</h1>
             <p className={styles.subtitle}>
               Every &ldquo;Yes, I&rsquo;m human&rdquo; confirmation, newest first. Times are UTC.
+              For everyone who reached the site at all, see Visitors.
             </p>
+            <AdminNav current="human" />
           </div>
           <form method="post" action="/api/admin/human/session">
             <input type="hidden" name="intent" value="logout" />

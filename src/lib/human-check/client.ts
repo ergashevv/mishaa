@@ -1,10 +1,11 @@
 import { isCrawlerUserAgent } from '@/lib/human-check/ua';
+import { getVisitorId } from '@/lib/visitor-id';
+
+export { getVisitorId };
 
 export const HUMAN_CHECK_COOKIE = 'ics_human_ok';
 export const HUMAN_CHECK_STORAGE_KEY = 'ics_human_verified';
 export const HUMAN_CHECK_TIMESTAMP_KEY = 'ics_human_verified_at';
-export const HUMAN_CHECK_VISITOR_KEY = 'ics_visitor_id';
-
 /** How long one confirmation lasts before the gate asks again. */
 export const HUMAN_CHECK_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -23,23 +24,6 @@ function writeLocal(key: string, value: string) {
   } catch {
     // Cookie fallback below still carries the verification.
   }
-}
-
-/**
- * Stable per-browser id so the dashboard can tell "1000 confirmations" from "1000 people".
- * Not tied to an account and never joined with one — it only groups a browser's own visits.
- */
-export function getVisitorId(): string {
-  const existing = readLocal(HUMAN_CHECK_VISITOR_KEY);
-  if (existing) return existing;
-
-  const generated =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `v-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-
-  writeLocal(HUMAN_CHECK_VISITOR_KEY, generated);
-  return generated;
 }
 
 /** True when this browser has confirmed within the TTL. */

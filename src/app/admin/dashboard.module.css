@@ -330,3 +330,42 @@
   outline: 3px solid var(--z-blue);
   outline-offset: 2px;
 }
+
+/* --------------------------------------------------------------- admin nav --- */
+/* Two surfaces share this chrome: visitors (who reached the site) and the human-check
+   log (who answered the gate). A sticker-tab row keeps the jump between them obvious. */
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-zine-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border: var(--z-b) solid var(--z-ink);
+  border-radius: var(--z-radius);
+  background: var(--z-card);
+  color: var(--z-ink);
+  text-decoration: none;
+  box-shadow: var(--z-sh-sm);
+}
+
+.navLink:hover { transform: translate(-2px, -2px); box-shadow: var(--z-sh); }
+.navLinkActive { background: var(--z-ink); color: var(--z-paper); }
+
+/* A second metric under the bars, for charts that carry views *and* people. */
+.trendSub {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--z-ink-2);
+}
