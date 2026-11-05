@@ -247,6 +247,10 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   /** False while the chapter canvas is scrolling; FAB reappears after scroll idle. */
   const [settingsFabIdle, setSettingsFabIdle] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  /** iOS Safari on iPhone can't fullscreen a <div> (fullscreenEnabled === false) — the
+   * button would be a dead no-op, so we hide it there and rely on the 100dvh edge-to-edge
+   * shell instead. Defaults false so SSR/first paint don't flash a button that can't work. */
+  const [fullscreenSupported, setFullscreenSupported] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [savedPageIndex, setSavedPageIndex] = useState<number | null>(null);
   const [resumeOfferPage, setResumeOfferPage] = useState<number | null>(null);
@@ -328,7 +332,9 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       try {
         const savedVm = localStorage.getItem(READER_VIEW_MODE_KEY);
         if (savedVm === 'flow' || savedVm === 'classic' || savedVm === 'journal') {
-          setViewMode(savedVm);
+          // Journal (two-page book spread) is a desktop-only mode — a phone can't show a
+          // readable open book, so never restore it on mobile; fall back to flow.
+          setViewMode(initialMobile && savedVm === 'journal' ? 'flow' : savedVm);
         } else if (initialMobile) {
           setViewMode('flow');
         }
@@ -474,6 +480,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   }, [chapters.length, chapterId, comic, id, mangaLanguage, restrictedSource, source, isAgeVerified]);
 
   useEffect(() => {
+    // `fullscreenEnabled` is false on iPhone Safari (element fullscreen unsupported).
+    setFullscreenSupported(
+      typeof document !== 'undefined' &&
+        (document.fullscreenEnabled || typeof readerRef.current?.requestFullscreen === 'function'),
+    );
     const handleFullscreenChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
     };
@@ -501,11 +512,31 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     };
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+  /**
+   * Mobile flow scrolls the DOCUMENT (body), not an inner panel — that's the only way iOS
+   * Safari auto-hides its toolbar and lets content run edge-to-edge under it (exactly how
+   * every normal page behaves). Classic/journal and desktop keep the inner canvas scroller
+   * (needed for single-page fit + desktop element-fullscreen). `docScrollRef` lets the
+   * imperative scroll callbacks below pick the right target without re-subscribing.
+   */
+  const docScroll = isMobile && viewMode === 'flow';
+  const docScrollRef = useRef(docScroll);
+  docScrollRef.current = docScroll;
 
+  // Journal is desktop-only: if the viewport becomes mobile (rotate/resize) while Journal
+  // is active, drop back to flow so a phone never lands in the two-page book mode.
+  useEffect(() => {
+    if (isMobile && viewMode === 'journal') setViewMode('flow');
+  }, [isMobile, viewMode]);
+
+  useEffect(() => {
+    const readTop = () => (docScroll ? window.scrollY : canvasRef.current?.scrollTop ?? 0);
+    const readMax = () =>
+      docScroll
+        ? document.documentElement.scrollHeight - window.innerHeight
+        : (canvasRef.current?.scrollHeight ?? 0) - (canvasRef.current?.clientHeight ?? 0);
+
+    const handleScroll = () => {
       setSettingsFabIdle(false);
       if (settingsFabScrollEndTimerRef.current) clearTimeout(settingsFabScrollEndTimerRef.current);
       settingsFabScrollEndTimerRef.current = setTimeout(() => {
@@ -513,34 +544,34 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         setSettingsFabIdle(true);
       }, 420);
 
-      if (canvas.scrollTop > 100) setScrolled(true);
-      else setScrolled(false);
+      const top = readTop();
+      setScrolled(top > 100);
 
-      const currentScrollY = canvas.scrollTop;
-      if (currentScrollY > lastScrollY.current + 5) {
+      if (top > lastScrollY.current + 5) {
         if (uiVisible) setUiVisible(false);
       }
-      lastScrollY.current = currentScrollY;
+      lastScrollY.current = top;
 
-      const total = canvas.scrollHeight - canvas.clientHeight;
+      const total = readMax();
       if (total > 200) {
-        setScrollProgress((canvas.scrollTop / total) * 100);
+        setScrollProgress((top / total) * 100);
       } else {
         setScrollProgress(0);
         setScrolled(true);
       }
     };
-    const canvas = canvasRef.current;
-    if (canvas) canvas.addEventListener('scroll', handleScroll, { passive: true });
+
+    const target: Window | HTMLDivElement | null = docScroll ? window : canvasRef.current;
+    target?.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       if (settingsFabScrollEndTimerRef.current) {
         clearTimeout(settingsFabScrollEndTimerRef.current);
         settingsFabScrollEndTimerRef.current = null;
       }
       setSettingsFabIdle(true);
-      canvas?.removeEventListener('scroll', handleScroll);
+      target?.removeEventListener('scroll', handleScroll);
     };
-  }, [viewMode, uiVisible]);
+  }, [viewMode, uiVisible, docScroll]);
 
   useEffect(() => {
     queueMicrotask(() => setSettingsFabIdle(true));
@@ -637,7 +668,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       alert("Error loading chapter.");
     } finally {
       setReaderLoading(false);
-      canvasRef.current?.scrollTo(0, 0);
+      (docScrollRef.current ? window : canvasRef.current)?.scrollTo(0, 0);
       const nav = adjNavigateRef.current;
       adjNavigateRef.current = null;
       if (loadedPages.length > 0 && nav === 'prev') {
@@ -849,7 +880,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     const step = (viewMode === 'journal' && !(isSpreadCover && currentPage === 0)) ? 2 : 1;
     if (currentPage < pages.length - step) {
       setCurrentPage(p => p + step);
-      canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'instant' });
     } else {
       adjNavigateRef.current = 'next';
       nextChapter();
@@ -865,7 +896,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     const step = (viewMode === 'journal' && !(isSpreadCover && currentPage <= 1)) ? 2 : 1;
     if (currentPage > 0) {
       setCurrentPage(p => Math.max(0, p - step));
-      canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'instant' });
     } else {
       adjNavigateRef.current = 'prev';
       prevChapter();
@@ -1074,7 +1105,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       if (mediaNext) {
         e.preventDefault();
         if (flow) {
-          canvasRef.current?.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+          (docScrollRef.current ? window : canvasRef.current)?.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
         } else {
           handleNextPage();
         }
@@ -1083,7 +1114,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
       if (mediaPrev) {
         e.preventDefault();
         if (flow) {
-          canvasRef.current?.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+          (docScrollRef.current ? window : canvasRef.current)?.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
         } else {
           handlePrevPage();
         }
@@ -1118,12 +1149,12 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         }
       } else {
         if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-          canvasRef.current?.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+          (docScrollRef.current ? window : canvasRef.current)?.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
           if (e.key === 'PageDown') e.preventDefault();
           return;
         }
         if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-          canvasRef.current?.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+          (docScrollRef.current ? window : canvasRef.current)?.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
           if (e.key === 'PageUp') e.preventDefault();
           return;
         }
@@ -1131,11 +1162,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
       if (e.key === 'Home') {
         setCurrentPage(0);
-        canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'smooth' });
       }
       if (e.key === 'End') {
         setCurrentPage(pages.length - 1);
-        canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'smooth' });
       }
       if (e.key === 'Escape') {
         exitToComicDetail();
@@ -1156,6 +1187,76 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
     exitToComicDetail,
     setReaderZoom,
   ]);
+
+  /**
+   * Flow-mode auto-trim: some manga scans bake a white margin around the panel grid (while
+   * splash pages bleed full), so consecutive pages don't align edge-to-edge. On load we
+   * sample the image (same-origin proxy → canvas-safe) and, if the left/right edges are
+   * clearly PURE-white uniform margins, crop them via object-fit so every page fills the
+   * width like a webtoon. Deliberately conservative — only near-pure-white columns count,
+   * capped at 16%/side, and pages that are basically full-bleed are left untouched. Any
+   * failure is swallowed: a cosmetic trim must never break the reader.
+   */
+  const trimPageMargins = useCallback((img: HTMLImageElement) => {
+    try {
+      if (img.dataset.trimChecked === '1') return;
+      img.dataset.trimChecked = '1';
+      const natW = img.naturalWidth;
+      const natH = img.naturalHeight;
+      const wrap = img.parentElement as HTMLElement | null;
+      if (!natW || !natH || !wrap) return;
+
+      const AW = 80;
+      const AH = Math.max(8, Math.round((AW * natH) / natW));
+      const cv = document.createElement('canvas');
+      cv.width = AW;
+      cv.height = AH;
+      const ctx = cv.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, AW, AH);
+      let data: Uint8ClampedArray;
+      try {
+        data = ctx.getImageData(0, 0, AW, AH).data;
+      } catch {
+        return; // tainted (cross-origin) — bail
+      }
+
+      const WHITE = 244;
+      const tolerance = Math.max(1, Math.floor(AH * 0.012)); // allow a few stray pixels
+      const columnIsMargin = (x: number) => {
+        let nonWhite = 0;
+        for (let y = 0; y < AH; y++) {
+          const i = (y * AW + x) * 4;
+          if (data[i] < WHITE || data[i + 1] < WHITE || data[i + 2] < WHITE) {
+            if (++nonWhite > tolerance) return false;
+          }
+        }
+        return true;
+      };
+
+      let l = 0;
+      while (l < AW && columnIsMargin(l)) l++;
+      let r = 0;
+      while (r < AW && columnIsMargin(AW - 1 - r)) r++;
+      if (l + r >= AW) return; // fully blank — leave alone
+
+      const MAX = 0.16;
+      const leftTrim = Math.min(l / AW, MAX);
+      const rightTrim = Math.min(r / AW, MAX);
+      if (leftTrim + rightTrim < 0.02) return; // effectively full-bleed
+
+      const contentFrac = 1 - leftTrim - rightTrim;
+      const posX = (leftTrim / (leftTrim + rightTrim)) * 100;
+      wrap.style.overflow = 'hidden';
+      wrap.style.aspectRatio = `${natW * contentFrac} / ${natH}`;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.objectPosition = `${posX}% center`;
+    } catch {
+      /* never break the reader over a cosmetic trim */
+    }
+  }, []);
 
   const flowDisplayZoom = viewMode === 'flow' ? 1 : readerZoom;
   const comicZoomWrapStyle: React.CSSProperties =
@@ -1213,7 +1314,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
   return (
     <LazyMotion features={domAnimation} strict>
     <div
-      className="min-h-dvh overflow-hidden"
+      className={docScroll ? 'min-h-[100lvh]' : 'min-h-dvh overflow-hidden'}
       style={{
         backgroundColor: READER_THEMES[readerTheme].shellBg,
         color: READER_THEMES[readerTheme].text,
@@ -1237,7 +1338,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
         ref={readerRef} 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
-        className="fixed inset-0 z-[10000] flex min-h-0 flex-col overflow-hidden select-none [-webkit-tap-highlight-color:transparent]"
+        className={`${docScroll ? 'relative w-full' : 'fixed inset-0 z-[10000] flex min-h-0 flex-col overflow-hidden'} select-none [-webkit-tap-highlight-color:transparent]`}
         style={{
           backgroundColor: READER_THEMES[readerTheme].shellBg,
           color: READER_THEMES[readerTheme].text,
@@ -1336,9 +1437,11 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                           <button aria-label="Classic reading mode" onClick={() => { setViewMode('classic'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${viewMode === 'classic' ? 'bg-[#FF2D55] text-[#FFFFFF]' : 'text-white/55 hover:text-white'}`}>
                             Classic
                           </button>
-                          <button aria-label="Journal reading mode" onClick={() => { setViewMode('journal'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${viewMode === 'journal' ? 'bg-[#FF2D55] text-[#FFFFFF]' : 'text-white/55 hover:text-white'}`}>
-                            Journal
-                          </button>
+                          {!isMobile && (
+                            <button aria-label="Journal reading mode" onClick={() => { setViewMode('journal'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${viewMode === 'journal' ? 'bg-[#FF2D55] text-[#FFFFFF]' : 'text-white/55 hover:text-white'}`}>
+                              Journal
+                            </button>
+                          )}
                           <button aria-label="Flow reading mode" onClick={() => { setViewMode('flow'); setUiVisible(false); }} className={`flex-1 flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${viewMode === 'flow' ? 'bg-[#FF2D55] text-[#FFFFFF]' : 'text-white/55 hover:text-white'}`}>
                             Flow
                           </button>
@@ -1378,7 +1481,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                            if (viewMode === 'flow') {
                              document.getElementById(`page-${val}`)?.scrollIntoView({ behavior: 'smooth' });
                            } else {
-                             canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+                             (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'instant' });
                            }
                          }}
                          className="w-full h-1.5 bg-white/10 appearance-none cursor-pointer accent-[#FF2D55] rounded-full"
@@ -1391,7 +1494,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                              <List size={18}/> Overview
                           </button>
                           {viewMode === 'flow' && (
-                            <button aria-label="Scroll to top" onClick={() => { setUiVisible(false); canvasRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 h-12 flex items-center justify-center gap-2 rounded-btn border border-white/10 bg-white/5 text-sm font-medium text-white/80 transition-colors hover:text-white">
+                            <button aria-label="Scroll to top" onClick={() => { setUiVisible(false); (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 h-12 flex items-center justify-center gap-2 rounded-btn border border-white/10 bg-white/5 text-sm font-medium text-white/80 transition-colors hover:text-white">
                               <ChevronUp size={18}/> Top
                             </button>
                           )}
@@ -1454,20 +1557,24 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
             >
               <RotateCcw size={17} aria-hidden />
             </button>
-            <span
-              className="mx-0.5 h-6 w-px shrink-0 self-center"
-              style={{ backgroundColor: READER_THEMES[readerTheme].scrimBorder }}
-              aria-hidden
-            />
-            <button
-              type="button"
-              aria-label={isFullscreen ? t.readerFullscreenExit : t.readerFullscreenEnter}
-              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full sm:h-auto sm:w-auto sm:p-2.5"
-              style={{ color: READER_THEMES[readerTheme].scrimText }}
-              onClick={() => void toggleFullscreen()}
-            >
-              {isFullscreen ? <Minimize2 size={18} aria-hidden /> : <Maximize2 size={18} aria-hidden />}
-            </button>
+            {fullscreenSupported && (
+              <>
+                <span
+                  className="mx-0.5 h-6 w-px shrink-0 self-center"
+                  style={{ backgroundColor: READER_THEMES[readerTheme].scrimBorder }}
+                  aria-hidden
+                />
+                <button
+                  type="button"
+                  aria-label={isFullscreen ? t.readerFullscreenExit : t.readerFullscreenEnter}
+                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full sm:h-auto sm:w-auto sm:p-2.5"
+                  style={{ color: READER_THEMES[readerTheme].scrimText }}
+                  onClick={() => void toggleFullscreen()}
+                >
+                  {isFullscreen ? <Minimize2 size={18} aria-hidden /> : <Maximize2 size={18} aria-hidden />}
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -1637,21 +1744,23 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                     <HelpCircle size={16} aria-hidden /> {t.readerShortcutsBtn}
                   </button>
 
-                  {/* Fullscreen */}
-                  <div className="space-y-3">
-                    <div className="ic-eyebrow" style={{ color: READER_THEMES[readerTheme].muted }}>{t.readerFullscreenSectionTitle}</div>
-                    <button
-                      onClick={() => void toggleFullscreen()}
-                      className="w-full rounded-btn border py-3.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                      style={isFullscreen
-                        ? { borderColor: READER_THEMES[readerTheme].accent, backgroundColor: READER_THEMES[readerTheme].accentSoft, color: READER_THEMES[readerTheme].text }
-                        : { borderColor: READER_THEMES[readerTheme].border, backgroundColor: READER_THEMES[readerTheme].panelAltBg, color: READER_THEMES[readerTheme].muted }
-                      }
-                    >
-                      {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                      {isFullscreen ? t.readerModalExitFullscreen : t.readerModalEnterFullscreen}
-                    </button>
-                  </div>
+                  {/* Fullscreen — hidden on iPhone Safari where element fullscreen is unsupported. */}
+                  {fullscreenSupported && (
+                    <div className="space-y-3">
+                      <div className="ic-eyebrow" style={{ color: READER_THEMES[readerTheme].muted }}>{t.readerFullscreenSectionTitle}</div>
+                      <button
+                        onClick={() => void toggleFullscreen()}
+                        className="w-full rounded-btn border py-3.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        style={isFullscreen
+                          ? { borderColor: READER_THEMES[readerTheme].accent, backgroundColor: READER_THEMES[readerTheme].accentSoft, color: READER_THEMES[readerTheme].text }
+                          : { borderColor: READER_THEMES[readerTheme].border, backgroundColor: READER_THEMES[readerTheme].panelAltBg, color: READER_THEMES[readerTheme].muted }
+                        }
+                      >
+                        {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                        {isFullscreen ? t.readerModalExitFullscreen : t.readerModalEnterFullscreen}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </m.div>
             </div>
@@ -1704,7 +1813,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                           document.getElementById(`page-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         });
                       } else {
-                        canvasRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+                        (docScrollRef.current ? window : canvasRef.current)?.scrollTo({ top: 0, behavior: 'instant' });
                       }
                     }}
                   >
@@ -1868,7 +1977,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
 
         <div
           ref={canvasRef}
-          className={`relative h-full min-h-0 flex-1 w-full overflow-y-auto scroll-smooth touch-pan-y overscroll-y-contain ${
+          className={`${docScroll ? 'relative w-full' : 'relative h-full min-h-0 flex-1 w-full overflow-y-auto scroll-smooth touch-pan-y overscroll-y-contain'} ${
             viewMode !== 'flow' && pages.length > 0 && !readerLoading
               ? 'scroll-pb-[max(8.25rem,calc(7rem+env(safe-area-inset-bottom,0px)))] sm:scroll-pb-[max(6.75rem,calc(5.75rem+env(safe-area-inset-bottom,0px)))]'
               : ''
@@ -1949,7 +2058,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                 style={comicZoomWrapStyle}
                 className={`mx-auto flex w-full flex-col items-center transition-all duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
                   viewMode === 'flow'
-                    ? 'pt-0 pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4.5rem)] sm:pb-24'
+                    ? 'pt-0 pb-[env(safe-area-inset-bottom,0px)]'
                     : 'box-border min-h-full justify-center px-3 pt-4 pb-[max(8.25rem,calc(7rem+env(safe-area-inset-bottom,0px)))] sm:px-4 sm:pt-6 sm:pb-[max(7rem,calc(6rem+env(safe-area-inset-bottom,0px)))]'
                 }`}
               >
@@ -1996,6 +2105,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                       {pages.map((p, i) => (
                         <div
                           key={i}
+                          id={`page-${i}`}
                           className="relative w-full border-b flex justify-center"
                           style={{
                             backgroundColor: READER_THEMES[readerTheme].canvasBg,
@@ -2010,6 +2120,7 @@ export default function ComicReaderClient({ initialComic, initialChapters, sourc
                             loading={i < 2 ? 'eager' : 'lazy'}
                             decoding="async"
                             draggable={false}
+                            onLoad={(e) => trimPageMargins(e.currentTarget)}
                             className="block h-auto w-full max-w-full select-none object-contain"
                           />
                         </div>

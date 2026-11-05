@@ -95,6 +95,13 @@ export const metadata: Metadata = {
   authors: [{ name: `${ICS_SITE_DISPLAY_NAME} Team`, url: SITE_ORIGIN }],
   creator: ICS_SITE_DISPLAY_NAME,
   publisher: ICS_SITE_DISPLAY_NAME,
+  // "Add to Home Screen" on iOS then launches the reader with NO Safari toolbar/URL bar —
+  // the only way to get a truly chrome-less fullscreen reader on iPhone (Safari won't hide
+  // its bars for in-browser tabs). Pairs with manifest `display: standalone`.
+  appleWebApp: {
+    capable: true,
+    title: 'iComics',
+  },
   metadataBase: new URL(SITE_ORIGIN),
   alternates: {
     canonical: SITE_ORIGIN,
